@@ -19,7 +19,7 @@
       --color-border-tertiary: #f3f4f6;
       --border-radius-md: 8px;
       --border-radius-lg: 12px;
-      --color-brand: #10b981; /* Modern Green */
+      --color-brand: #10b981; 
       --color-brand-hover: #059669;
     }
     
@@ -27,61 +27,47 @@
     body { background-color: #f9fafb; }
     .app { font-family:var(--font-sans); font-size:14px; color:var(--color-text-primary); max-width: 1200px; margin: 0 auto; background: var(--color-background-primary); min-height: 100vh; box-shadow: 0 0 20px rgba(0,0,0,0.02); }
     
-    /* Topbar */
     .topbar { display:flex; align-items:center; justify-content:space-between; padding:16px 20px; border-bottom:1px solid var(--color-border-secondary); background:var(--color-background-primary); }
     .topbar-left { display:flex; align-items:center; gap:12px; }
     .topbar h1 { font-size:18px; font-weight:600; color: #111827; }
     .sync-badge { display:inline-flex; align-items:center; gap:5px; font-size:12px; font-weight: 500; padding:4px 10px; border-radius:20px; background:var(--color-background-secondary); color:var(--color-text-secondary); border:1px solid var(--color-border-secondary); transition: all 0.3s; }
     
-    /* Tabs */
     .tabs { display:flex; gap:8px; padding:0 20px; border-bottom:1px solid var(--color-border-secondary); background:var(--color-background-primary); margin-top: 10px; }
     .tab { padding:12px 16px; font-size:14px; font-weight: 500; border:none; background:none; cursor:pointer; color:var(--color-text-secondary); border-bottom:2px solid transparent; display:flex; align-items:center; gap:8px; transition: all 0.2s; }
     .tab:hover { color: var(--color-text-primary); }
     .tab.active { color:var(--color-brand); border-bottom-color:var(--color-brand); }
     
-    /* Panels */
     .panel { padding:20px; background: #f9fafb; min-height: calc(100vh - 140px); }
     .sec { display:none; animation: fadeIn 0.3s ease-in-out; }
     .sec.active { display:block; }
     @keyframes fadeIn { from { opacity: 0; transform: translateY(5px); } to { opacity: 1; transform: translateY(0); } }
     
-    /* Stats Grid */
     .stats-grid { display:grid; grid-template-columns:repeat(auto-fit, minmax(150px, 1fr)); gap:16px; margin-bottom:20px; }
     .stat { background:var(--color-background-primary); border-radius:var(--border-radius-lg); padding:16px; box-shadow: 0 1px 3px rgba(0,0,0,0.05); border: 1px solid var(--color-border-secondary); }
     .stat .lbl { font-size:12px; color:var(--color-text-secondary); font-weight: 500; text-transform:uppercase; margin-bottom:8px; }
     .stat .val { font-size:24px; font-weight:600; }
     .val.g { color:#10b981; } .val.b { color:#3b82f6; } .val.a { color:#f59e0b; } .val.r { color:#ef4444; }
     
-    /* Cards */
     .card { background:var(--color-background-primary); border:1px solid var(--color-border-secondary); border-radius:var(--border-radius-lg); padding:16px; margin-bottom:12px; box-shadow: 0 1px 2px rgba(0,0,0,0.03); transition: transform 0.2s, box-shadow 0.2s; }
     .card:hover { transform: translateY(-2px); box-shadow: 0 4px 12px rgba(0,0,0,0.05); }
     .card-hd { display:flex; align-items:flex-start; justify-content:space-between; margin-bottom:12px; }
     .card-title { font-size:15px; font-weight:600; color: #111827; }
     .card-sub { font-size:13px; color:var(--color-text-secondary); margin-top:4px; }
     
-    /* Buttons */
     .btn { display:inline-flex; align-items:center; gap:6px; padding:8px 14px; font-size:13px; font-weight:500; font-family: var(--font-sans); border-radius:var(--border-radius-md); cursor:pointer; border:1px solid var(--color-border-secondary); background:var(--color-background-primary); color:var(--color-text-primary); transition: all 0.2s; }
     .btn:hover { background:var(--color-background-secondary); }
     .btn.primary { background:var(--color-brand); color:#fff; border-color:var(--color-brand); }
     .btn.primary:hover { background:var(--color-brand-hover); box-shadow: 0 2px 6px rgba(16, 185, 129, 0.3); }
-    .btn.sm { padding:6px 10px; font-size:12px; }
     
-    /* Chips */
     .chip { display:inline-flex; align-items:center; gap:4px; padding:4px 10px; border-radius:20px; font-size:11px; font-weight:600; text-transform: uppercase; letter-spacing: 0.02em; }
-    .chip.teal { background:#ecfdf5; color:#047857; }
-    .chip.blue { background:#eff6ff; color:#1d4ed8; }
-    .chip.amber { background:#fffbeb; color:#b45309; }
-    .chip.red { background:#fef2f2; color:#b91c1c; }
+    .chip.teal { background:#ecfdf5; color:#047857; } .chip.blue { background:#eff6ff; color:#1d4ed8; } .chip.amber { background:#fffbeb; color:#b45309; } .chip.red { background:#fef2f2; color:#b91c1c; }
     
-    /* Meta & Bars */
     .meta-row { display:flex; gap:16px; flex-wrap:wrap; font-size:13px; color:var(--color-text-secondary); }
     .meta-row span { display:flex; align-items:center; gap:6px; background: #f9fafb; padding: 4px 8px; border-radius: 6px; }
     .bar-bg { height:6px; background:var(--color-background-secondary); border-radius:3px; margin-top:8px; overflow: hidden; }
     .bar-fill { height:6px; border-radius:3px; background:var(--color-brand); transition:width 0.5s ease; }
-    .bar-fill.warn { background:#f59e0b; }
-    .bar-fill.danger { background:#ef4444; }
+    .bar-fill.warn { background:#f59e0b; } .bar-fill.danger { background:#ef4444; }
     
-    /* Student Rows */
     .avatar { width:36px; height:36px; border-radius:50%; display:flex; align-items:center; justify-content:center; font-size:13px; font-weight:600; flex-shrink:0; }
     .av-t { background:#d1fae5; color:#065f46; } .av-b { background:#dbeafe; color:#1e40af; } .av-a { background:#fef3c7; color:#92400e; }
     .student-row { display:flex; align-items:center; gap:12px; padding:10px 0; border-bottom:1px solid var(--color-border-tertiary); cursor:pointer; transition: background 0.2s; }
@@ -100,18 +86,16 @@
     .empty { text-align:center; padding:48px 20px; color:var(--color-text-secondary); font-size:14px; }
     .empty i { font-size:36px; display:block; margin-bottom:12px; opacity:0.4; }
     
-    /* Modals */
     .modal-wrap { display:none; position:fixed; inset:0; background:rgba(17, 24, 39, 0.6); backdrop-filter: blur(2px); z-index:200; align-items:center; justify-content:center; padding:20px; }
     .modal-wrap.open { display:flex; animation: fadeIn 0.2s; }
-    .modal { background:var(--color-background-primary); border-radius:var(--border-radius-lg); padding:24px; width:460px; max-width:100%; box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04); max-height:90vh; overflow-y:auto; }
+    .modal { background:var(--color-background-primary); border-radius:var(--border-radius-lg); padding:24px; width:460px; max-width:100%; box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1); max-height:90vh; overflow-y:auto; }
     .modal h2 { font-size:18px; font-weight:600; margin-bottom:20px; display:flex; align-items:center; gap:10px; color: #111827; }
     .modal-footer { display:flex; justify-content:flex-end; gap:10px; margin-top:24px; padding-top:16px; border-top:1px solid var(--color-border-tertiary); }
     
-    /* Forms */
     .fg { display:flex; flex-direction:column; gap:6px; margin-bottom:16px; }
     .fg label { font-size:13px; font-weight:500; color:var(--color-text-primary); }
-    .fg input, .fg select, .fg textarea { width:100%; padding:10px 12px; font-size:14px; font-family: var(--font-sans); border:1px solid #d1d5db; border-radius:var(--border-radius-md); background:#fff; color:var(--color-text-primary); transition: border-color 0.2s, box-shadow 0.2s; }
-    .fg input:focus, .fg select:focus, .fg textarea:focus { outline:none; border-color:var(--color-brand); box-shadow: 0 0 0 3px rgba(16, 185, 129, 0.1); }
+    .fg input, .fg select { width:100%; padding:10px 12px; font-size:14px; font-family: var(--font-sans); border:1px solid #d1d5db; border-radius:var(--border-radius-md); background:#fff; transition: border-color 0.2s, box-shadow 0.2s; }
+    .fg input:focus, .fg select:focus { outline:none; border-color:var(--color-brand); box-shadow: 0 0 0 3px rgba(16, 185, 129, 0.1); }
     .form-2col { display:grid; grid-template-columns:1fr 1fr; gap:16px; }
     .section-hd { display:flex; align-items:center; justify-content:space-between; margin-bottom:16px; }
     .section-hd h3 { font-size:16px; font-weight:600; color: #111827; }
@@ -126,7 +110,6 @@
 <body>
 
 <div class="app">
-
 <div class="topbar">
   <div class="topbar-left">
     <i class="ti ti-school" style="font-size:22px;color:var(--color-brand)" aria-hidden="true"></i>
@@ -145,7 +128,6 @@
 </div>
 
 <div class="panel">
-
 <div class="sec active" id="sec-dashboard">
   <div class="stats-grid" id="statsGrid">
     <div class="stat"><div class="lbl">Courses</div><div class="val b" id="st-courses">0</div></div>
@@ -157,29 +139,19 @@
 </div>
 
 <div class="sec" id="sec-courses">
-  <div class="section-hd">
-    <h3>All Courses</h3>
-    <button class="btn primary" onclick="openM('mCourse')"><i class="ti ti-plus"></i> New Course</button>
-  </div>
+  <div class="section-hd"><h3>All Courses</h3><button class="btn primary" onclick="openM('mCourse')"><i class="ti ti-plus"></i> New Course</button></div>
   <div id="courseList"></div>
 </div>
 
 <div class="sec" id="sec-students">
-  <div class="section-hd">
-    <h3>All Students</h3>
-    <button class="btn primary" onclick="openM('mStudent')"><i class="ti ti-user-plus"></i> Enroll Student</button>
-  </div>
+  <div class="section-hd"><h3>All Students</h3><button class="btn primary" onclick="openM('mStudent')"><i class="ti ti-user-plus"></i> Enroll Student</button></div>
   <div id="studentList"></div>
 </div>
 
 <div class="sec" id="sec-payments">
-  <div class="section-hd">
-    <h3>Payment Log</h3>
-    <button class="btn primary" onclick="openM('mPayment')"><i class="ti ti-plus"></i> Record Payment</button>
-  </div>
+  <div class="section-hd"><h3>Payment Log</h3><button class="btn primary" onclick="openM('mPayment')"><i class="ti ti-plus"></i> Record Payment</button></div>
   <div id="paymentList"></div>
 </div>
-
 </div>
 </div>
 
@@ -191,14 +163,12 @@
     <div class="fg"><label>Start date</label><input type="date" id="c-start" /></div>
     <div class="fg"><label>End date</label><input type="date" id="c-end" /></div>
   </div>
-  
   <div class="form-2col">
     <div class="fg"><label>Normal Fee (€) *</label><input type="number" id="c-feeNormal" placeholder="1500" /></div>
     <div class="fg"><label>Early Bird Fee (€) *</label><input type="number" id="c-feeEarly" placeholder="1200" /></div>
   </div>
-
   <div class="form-2col">
-    <div class="fg"><label>Deposit amount</label><input type="number" id="c-deposit" placeholder="300" /></div>
+    <div class="fg"><label>Deposit amount (€)</label><input type="number" id="c-deposit" placeholder="300" /></div>
     <div class="fg"><label>Capacity</label><input type="number" id="c-capacity" placeholder="15" /></div>
   </div>
   <div class="modal-footer">
@@ -223,21 +193,33 @@
   <hr class="divider">
   
   <div style="font-size:14px;font-weight:600;margin-bottom:12px;color:#111827">Payment Details</div>
-  
-  <div class="fg">
-    <label>Price Tier *</label>
-    <select id="s-priceType">
-      <option value="normal">Normal Price</option>
-      <option value="early_bird">Early Bird Price</option>
-    </select>
+  <div class="form-2col">
+    <div class="fg">
+      <label>Price Tier *</label>
+      <select id="s-priceType">
+        <option value="normal">Normal Price</option>
+        <option value="early_bird">Early Bird Price</option>
+      </select>
+    </div>
+    <div class="fg">
+      <label>Deposit Due Date</label>
+      <input type="date" id="s-depositDeadline">
+    </div>
   </div>
 
-  <div class="fg"><label>Payment Plan *</label>
-    <select id="s-payType">
+  <div class="fg">
+    <label>Payment Plan *</label>
+    <select id="s-payType" onchange="toggleInstalmentFields()">
       <option value="one-time">One-time (full amount)</option>
       <option value="instalment">Instalment plan</option>
     </select>
   </div>
+
+  <div id="instalment-fields" style="display:none;" class="form-2col">
+    <div class="fg"><label>Number of Instalments</label><input type="number" id="s-numInstalments" placeholder="3" min="1"></div>
+    <div class="fg"><label>Instalment Start Date</label><input type="date" id="s-instStart"></div>
+  </div>
+
   <div class="modal-footer">
     <button class="btn" onclick="closeM('mStudent')">Cancel</button>
     <button class="btn primary" onclick="saveStudent()">Enroll Student</button>
@@ -282,10 +264,8 @@
 
 <script>
 let S = { courses:[], students:[], payments:[] };
-
-// DİKKAT: URL VE PARA BİRİMİ BURAYA SABİT OLARAK EKLENDİ
 let cfg = { 
-  url: 'https://script.google.com/macros/s/AKfycbxH_J-CWIBaTHQeRkWr5BgOICfh-80u1-egD-L3s5GLrSWbuJcCPoJOQYgFuV8TAb49PQ/exec', 
+  url: 'https://script.google.com/macros/s/AKfycbzLRQt86G8QFSjG04X_LKP0F_88hQvWZG5n8PwMLX4nDRpxRT5xm8q52XURDT1nIV_ncA/exec', 
   currency: '€' 
 };
 
@@ -303,7 +283,7 @@ function goTab(name){
 }
 
 function openM(id){
-  if(id==='mStudent'){ fillCourseSelect(); }
+  if(id==='mStudent') fillCourseSelect();
   if(id==='mPayment'){ fillStudentSelect(); document.getElementById('p-date').value=today(); }
   document.getElementById(id).classList.add('open');
 }
@@ -320,6 +300,12 @@ function fillStudentSelect(){
   S.students.forEach(s=>el.innerHTML+=`<option value="${s.id}">${s.firstName} ${s.lastName}</option>`);
 }
 
+function toggleInstalmentFields() {
+  const payType = document.getElementById('s-payType').value;
+  const fields = document.getElementById('instalment-fields');
+  fields.style.display = (payType === 'instalment') ? 'grid' : 'none';
+}
+
 function saveCourse(){
   const name = document.getElementById('c-name').value.trim();
   const feeNormal = parseFloat(document.getElementById('c-feeNormal').value);
@@ -329,14 +315,8 @@ function saveCourse(){
   if(!name || !feeNormal || !feeEarly) return alert('Course name, Normal Fee, and Early Bird Fee are required.');
   
   const obj = { 
-    id: uid(), 
-    name, 
-    start: document.getElementById('c-start').value, 
-    end: document.getElementById('c-end').value, 
-    feeNormal, 
-    feeEarly,
-    deposit: deposit || 0, 
-    capacity: parseInt(document.getElementById('c-capacity').value) || 0 
+    id: uid(), name, start: document.getElementById('c-start').value, end: document.getElementById('c-end').value, 
+    feeNormal, feeEarly, deposit: deposit || 0, capacity: parseInt(document.getElementById('c-capacity').value) || 0 
   };
   pushData('addCourse', obj);
   closeM('mCourse');
@@ -349,30 +329,25 @@ function saveStudent(){
   const lastName = document.getElementById('s-last').value.trim();
   const email = document.getElementById('s-email').value.trim();
   const priceType = document.getElementById('s-priceType').value;
+  const payType = document.getElementById('s-payType').value;
   
   if(!courseId||!firstName||!lastName||!email) return alert('Course, Name, and Email are required.');
   const course = S.courses.find(c=>c.id===courseId);
-  
   const totalFee = course ? (priceType === 'early_bird' ? course.feeEarly : course.feeNormal) : 0;
 
   const obj = { 
-    id: uid(), 
-    courseId, 
-    firstName, 
-    lastName, 
-    email, 
-    phone: document.getElementById('s-phone').value, 
-    paymentType: document.getElementById('s-payType').value, 
-    priceType: priceType,
-    totalFee: totalFee
+    id: uid(), courseId, firstName, lastName, email, phone: document.getElementById('s-phone').value, 
+    priceType: priceType, totalFee: totalFee, paymentType: payType,
+    depositDeadline: document.getElementById('s-depositDeadline').value,
+    numInstalments: payType === 'instalment' ? document.getElementById('s-numInstalments').value : '',
+    instalmentStartDate: payType === 'instalment' ? document.getElementById('s-instStart').value : ''
   };
   
   pushData('addStudent', obj);
   closeM('mStudent');
-  ['s-first','s-last','s-email','s-phone'].forEach(id=>document.getElementById(id).value='');
-  document.getElementById('s-course').value='';
-  document.getElementById('s-priceType').value='normal';
-  document.getElementById('s-payType').value='one-time';
+  ['s-first','s-last','s-email','s-phone','s-depositDeadline','s-numInstalments','s-instStart'].forEach(id=>document.getElementById(id).value='');
+  document.getElementById('s-course').value=''; document.getElementById('s-priceType').value='normal'; document.getElementById('s-payType').value='one-time';
+  toggleInstalmentFields();
 }
 
 function savePayment(){
@@ -405,23 +380,17 @@ async function syncSheets(){
   render();
 }
 
-function setBadge(s){
+function setBadge(status){
   const el = document.getElementById('syncBadge');
-  if(s==='ok') el.innerHTML='<i class="ti ti-cloud-check" style="color:var(--color-brand)"></i> Live Sync Active';
-  else if(s==='error') el.innerHTML='<i class="ti ti-cloud-x" style="color:#ef4444"></i> Sync Error';
+  if(status==='ok') el.innerHTML='<i class="ti ti-cloud-check" style="color:var(--color-brand)"></i> Live Sync Active';
+  else if(status==='error') el.innerHTML='<i class="ti ti-cloud-x" style="color:#ef4444"></i> Sync Error';
   else el.innerHTML='<i class="ti ti-refresh" style="animation:spin 1s linear infinite"></i> Connecting...';
 }
 
 function getStudentPaid(sId){ return S.payments.filter(p=>p.studentId===sId).reduce((a,p)=>a+Number(p.amount),0); }
 function getCourse(id){ return S.courses.find(c=>c.id===id); }
 
-function render(){
-  renderStats();
-  renderDash();
-  renderCourses();
-  renderStudents();
-  renderPayments();
-}
+function render(){ renderStats(); renderDash(); renderCourses(); renderStudents(); renderPayments(); }
 
 function renderStats(){
   const enrolled = S.students.length;
@@ -445,16 +414,7 @@ function renderDash(){
     const totalPaid = studs.reduce((a,s)=>a+getStudentPaid(s.id),0);
     const pct = totalDue>0?Math.round(totalPaid/totalDue*100):0;
     const barCls = pct>=100?'':pct<50?'danger':'warn';
-    return `<div class="card">
-      <div class="card-hd">
-        <div><div class="card-title">${c.name}</div><div class="card-sub">${studs.length} student(s) enrolled</div></div>
-        <span class="chip ${pct>=100?'teal':pct>=50?'amber':'red'}">${pct}% Collected</span>
-      </div>
-      <div style="display:flex;justify-content:space-between;font-size:12px;color:var(--color-text-secondary);margin-bottom:6px">
-        <span>${fmt(totalPaid)} Paid</span><span>${fmt(totalDue-totalPaid)} Remaining</span>
-      </div>
-      <div class="bar-bg"><div class="bar-fill ${barCls}" style="width:${Math.min(100,pct)}%"></div></div>
-    </div>`;
+    return `<div class="card"><div class="card-hd"><div><div class="card-title">${c.name}</div><div class="card-sub">${studs.length} student(s) enrolled</div></div><span class="chip ${pct>=100?'teal':pct>=50?'amber':'red'}">${pct}% Collected</span></div><div style="display:flex;justify-content:space-between;font-size:12px;color:var(--color-text-secondary);margin-bottom:6px"><span>${fmt(totalPaid)} Paid</span><span>${fmt(totalDue-totalPaid)} Remaining</span></div><div class="bar-bg"><div class="bar-fill ${barCls}" style="width:${Math.min(100,pct)}%"></div></div></div>`;
   }).join('');
 }
 
@@ -464,16 +424,7 @@ function renderCourses(){
   box.innerHTML = S.courses.map((c,i)=>{
     const studs = S.students.filter(s=>s.courseId===c.id).length;
     const clr = ['teal','blue','amber'][i%3];
-    return `<div class="card">
-      <div class="card-hd">
-        <div><div class="card-title">${c.name}</div><div class="card-sub">${c.start||'—'} to ${c.end||'—'}</div></div>
-        <span class="chip ${clr}">${studs}${c.capacity?'/'+c.capacity:''} Students</span>
-      </div>
-      <div class="meta-row">
-        <span><i class="ti ti-tag"></i> Normal: ${fmt(c.feeNormal)}</span>
-        <span><i class="ti ti-discount-check" style="color:var(--color-brand)"></i> Early Bird: ${fmt(c.feeEarly)}</span>
-      </div>
-    </div>`;
+    return `<div class="card"><div class="card-hd"><div><div class="card-title">${c.name}</div><div class="card-sub">${c.start||'—'} to ${c.end||'—'}</div></div><span class="chip ${clr}">${studs}${c.capacity?'/'+c.capacity:''} Students</span></div><div class="meta-row"><span><i class="ti ti-tag"></i> Normal: ${fmt(c.feeNormal)}</span><span><i class="ti ti-discount-check" style="color:var(--color-brand)"></i> Early Bird: ${fmt(c.feeEarly)}</span></div></div>`;
   }).join('');
 }
 
@@ -488,18 +439,7 @@ function renderStudents(){
     const barCls = pct>=100?'':pct<50?'danger':'warn';
     const initials = (s.firstName[0]||'')+(s.lastName[0]||'');
     const course = getCourse(s.courseId);
-    return `<div class="student-row" onclick="showStudentDetail('${s.id}')">
-      <div class="avatar ${avCls[i%3]}">${initials.toUpperCase()}</div>
-      <div class="student-info">
-        <div class="student-name">${s.firstName} ${s.lastName}</div>
-        <div class="student-sub">${course?course.name:'—'} · <span style="color:${s.priceType==='early_bird'?'var(--color-brand)':'inherit'}">${s.priceType==='early_bird'?'Early Bird':'Normal'}</span></div>
-      </div>
-      <div class="pay-summary">
-        <div class="pay-amount ${pct>=100?'g':pct<50?'r':'a'}">${fmt(paid)} / ${fmt(total)}</div>
-        <div class="pay-label">Total Fee</div>
-        <div class="bar-bg"><div class="bar-fill ${barCls}" style="width:${Math.min(100,pct)}%"></div></div>
-      </div>
-    </div>`;
+    return `<div class="student-row" onclick="showStudentDetail('${s.id}')"><div class="avatar ${avCls[i%3]}">${initials.toUpperCase()}</div><div class="student-info"><div class="student-name">${s.firstName} ${s.lastName}</div><div class="student-sub">${course?course.name:'—'} · <span style="color:${s.priceType==='early_bird'?'var(--color-brand)':'inherit'}">${s.priceType==='early_bird'?'Early Bird':'Normal'}</span></div></div><div class="pay-summary"><div class="pay-amount ${pct>=100?'g':pct<50?'r':'a'}">${fmt(paid)} / ${fmt(total)}</div><div class="pay-label">Total Fee</div><div class="bar-bg"><div class="bar-fill ${barCls}" style="width:${Math.min(100,pct)}%"></div></div></div></div>`;
   }).join('')}</div>`;
 }
 
@@ -510,14 +450,18 @@ function showStudentDetail(sId){
   const paid = getStudentPaid(s.id);
   const remaining = Math.max(0,Number(s.totalFee||0)-paid);
   const payments = S.payments.filter(p=>p.studentId===sId).sort((a,b)=>(b.date||'').localeCompare(a.date||''));
+  
+  let planInfo = s.paymentType === 'instalment' ? `Instalment (${s.numInstalments}x) starts on ${s.instalmentStartDate||'—'}` : 'One-time';
+  
   document.getElementById('sd-title').innerHTML = `<i class="ti ti-user"></i> ${s.firstName} ${s.lastName}`;
   document.getElementById('sd-body').innerHTML = `
     <div class="detail-panel">
       <div class="detail-grid">
         <span class="dk">Course</span><span class="dv">${course?course.name:'—'}</span>
-        <span class="dk">Email</span><span class="dv">${s.email}</span>
-        <span class="dk">Phone</span><span class="dv">${s.phone||'—'}</span>
+        <span class="dk">Email / Phone</span><span class="dv">${s.email} / ${s.phone||'—'}</span>
         <span class="dk">Price Tier</span><span class="dv" style="color:${s.priceType==='early_bird'?'var(--color-brand)':'inherit'}">${s.priceType==='early_bird'?'Early Bird Price':'Normal Price'}</span>
+        <span class="dk">Deposit Due</span><span class="dv">${s.depositDeadline || '—'}</span>
+        <span class="dk">Payment Plan</span><span class="dv">${planInfo}</span>
       </div>
     </div>
     <div class="stats-grid" style="margin-bottom:16px">
@@ -527,13 +471,7 @@ function showStudentDetail(sId){
     </div>
     <div style="font-size:14px;font-weight:600;margin-bottom:12px;color:#111827">Payment History</div>
     ${payments.length?`<div class="card" style="padding:4px 16px">${payments.map(p=>`
-      <div class="payment-entry">
-        <div>
-          <span style="font-weight:600; font-size:14px">${fmt(p.amount)}</span>
-          <span class="chip ${p.type==='deposit'?'amber':p.type==='full'?'teal':'blue'}" style="margin-left:8px;font-size:10px">${p.type}</span>
-        </div>
-        <div style="text-align:right;color:var(--color-text-secondary)">${p.date||'—'}${p.note?' · '+p.note:''}</div>
-      </div>`).join('')}</div>`:'<div style="font-size:13px;color:var(--color-text-secondary);padding:10px 0;text-align:center;background:#f9fafb;border-radius:8px">No payments recorded yet.</div>'}
+      <div class="payment-entry"><div><span style="font-weight:600; font-size:14px">${fmt(p.amount)}</span><span class="chip ${p.type==='deposit'?'amber':p.type==='full'?'teal':'blue'}" style="margin-left:8px;font-size:10px">${p.type}</span></div><div style="text-align:right;color:var(--color-text-secondary)">${p.date||'—'}${p.note?' · '+p.note:''}</div></div>`).join('')}</div>`:'<div style="font-size:13px;color:var(--color-text-secondary);padding:10px 0;text-align:center;background:#f9fafb;border-radius:8px">No payments recorded yet.</div>'}
   `;
   openM('mStudentDetail');
 }
@@ -545,17 +483,7 @@ function renderPayments(){
   box.innerHTML = `<div class="card" style="padding:4px 16px">${sorted.map(p=>{
     const s = S.students.find(x=>x.id===p.studentId);
     const clr = p.type==='deposit'?'amber':p.type==='full'?'teal':'blue';
-    return `<div class="payment-entry">
-      <div>
-        <span style="font-weight:600">${s?s.firstName+' '+s.lastName:'—'}</span>
-        <span class="chip ${clr}" style="margin-left:8px;font-size:10px">${p.type}</span>
-        ${p.note?`<div style="font-size:12px;color:var(--color-text-secondary);margin-top:4px">${p.note}</div>`:''}
-      </div>
-      <div style="display:flex;align-items:center;gap:12px">
-        <span style="font-weight:600;color:var(--color-brand);font-size:14px">+${fmt(p.amount)}</span>
-        <span style="font-size:12px;color:var(--color-text-secondary)">${p.date||'—'}</span>
-      </div>
-    </div>`;
+    return `<div class="payment-entry"><div><span style="font-weight:600">${s?s.firstName+' '+s.lastName:'—'}</span><span class="chip ${clr}" style="margin-left:8px;font-size:10px">${p.type}</span>${p.note?`<div style="font-size:12px;color:var(--color-text-secondary);margin-top:4px">${p.note}</div>`:''}</div><div style="display:flex;align-items:center;gap:12px"><span style="font-weight:600;color:var(--color-brand);font-size:14px">+${fmt(p.amount)}</span><span style="font-size:12px;color:var(--color-text-secondary)">${p.date||'—'}</span></div></div>`;
   }).join('')}</div>`;
 }
 
