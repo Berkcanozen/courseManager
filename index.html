@@ -22,7 +22,6 @@
       --color-brand: #10b981; 
       --color-brand-hover: #059669;
     }
-    
     * { box-sizing:border-box; margin:0; padding:0; }
     body { background-color: #f9fafb; }
     .app { font-family:var(--font-sans); font-size:14px; color:var(--color-text-primary); max-width: 1200px; margin: 0 auto; background: var(--color-background-primary); min-height: 100vh; box-shadow: 0 0 20px rgba(0,0,0,0.02); }
@@ -88,7 +87,7 @@
     
     .modal-wrap { display:none; position:fixed; inset:0; background:rgba(17, 24, 39, 0.6); backdrop-filter: blur(2px); z-index:200; align-items:center; justify-content:center; padding:20px; }
     .modal-wrap.open { display:flex; animation: fadeIn 0.2s; }
-    .modal { background:var(--color-background-primary); border-radius:var(--border-radius-lg); padding:24px; width:460px; max-width:100%; box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1); max-height:90vh; overflow-y:auto; }
+    .modal { background:var(--color-background-primary); border-radius:var(--border-radius-lg); padding:24px; width:480px; max-width:100%; box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1); max-height:90vh; overflow-y:auto; }
     .modal h2 { font-size:18px; font-weight:600; margin-bottom:20px; display:flex; align-items:center; gap:10px; color: #111827; }
     .modal-footer { display:flex; justify-content:flex-end; gap:10px; margin-top:24px; padding-top:16px; border-top:1px solid var(--color-border-tertiary); }
     
@@ -105,6 +104,9 @@
     .detail-grid .dk { color:var(--color-text-secondary); font-weight: 500; }
     .detail-grid .dv { font-weight:600; color: #111827; }
     .divider { border:none; border-top:1px solid var(--color-border-tertiary); margin:20px 0; }
+    
+    /* Dynamic fields styling */
+    .dynamic-row { background: #fff; padding: 10px; border-radius: 6px; border-left: 3px solid var(--color-brand); margin-bottom: 8px; box-shadow: 0 1px 2px rgba(0,0,0,0.05); }
     </style>
 </head>
 <body>
@@ -181,7 +183,7 @@
 <div class="modal-wrap" id="mStudent">
 <div class="modal">
   <h2><i class="ti ti-user-plus"></i> Enroll Student</h2>
-  <div class="fg"><label>Course *</label><select id="s-course"><option value="">Select course…</option></select></div>
+  <div class="fg"><label>Course *</label><select id="s-course" onchange="updateInstalments()"><option value="">Select course…</option></select></div>
   <div class="form-2col">
     <div class="fg"><label>First name *</label><input id="s-first" placeholder="Jane" /></div>
     <div class="fg"><label>Last name *</label><input id="s-last" placeholder="Smith" /></div>
@@ -193,31 +195,46 @@
   <hr class="divider">
   
   <div style="font-size:14px;font-weight:600;margin-bottom:12px;color:#111827">Payment Details</div>
+  
   <div class="form-2col">
     <div class="fg">
       <label>Price Tier *</label>
-      <select id="s-priceType">
+      <select id="s-priceType" onchange="updateInstalments()">
         <option value="normal">Normal Price</option>
         <option value="early_bird">Early Bird Price</option>
       </select>
     </div>
     <div class="fg">
+      <label>Total Course Fee</label>
+      <input type="text" id="s-displayTotal" disabled style="background:#f3f4f6; font-weight:600; color:var(--color-brand)">
+    </div>
+  </div>
+
+  <div class="form-2col">
+    <div class="fg">
+      <label>Deposit Amount (€)</label>
+      <input type="number" id="s-depositAmount" oninput="updateInstalments()" placeholder="e.g. 300">
+    </div>
+    <div class="fg">
       <label>Deposit Due Date</label>
-      <input type="date" id="s-depositDeadline">
+      <input type="date" id="s-depositDate">
     </div>
   </div>
 
   <div class="fg">
-    <label>Payment Plan *</label>
+    <label>Remaining Payment Plan *</label>
     <select id="s-payType" onchange="toggleInstalmentFields()">
-      <option value="one-time">One-time (full amount)</option>
-      <option value="instalment">Instalment plan</option>
+      <option value="full_remaining">Full Remaining (One-time)</option>
+      <option value="instalment">Instalment Plan</option>
     </select>
   </div>
 
-  <div id="instalment-fields" style="display:none;" class="form-2col">
-    <div class="fg"><label>Number of Instalments</label><input type="number" id="s-numInstalments" placeholder="3" min="1"></div>
-    <div class="fg"><label>Instalment Start Date</label><input type="date" id="s-instStart"></div>
+  <div id="instalment-container" style="display:none; background:var(--color-background-secondary); padding:16px; border-radius:8px; border:1px solid var(--color-border-secondary);">
+    <div class="fg">
+      <label>Number of Instalments</label>
+      <input type="number" id="s-numInstalments" min="1" max="24" oninput="updateInstalments()" placeholder="e.g. 3">
+    </div>
+    <div id="dynamic-instalments"></div>
   </div>
 
   <div class="modal-footer">
@@ -265,11 +282,11 @@
 <script>
 let S = { courses:[], students:[], payments:[] };
 let cfg = { 
-  url: 'https://script.google.com/macros/s/AKfycbzLRQt86G8QFSjG04X_LKP0F_88hQvWZG5n8PwMLX4nDRpxRT5xm8q52XURDT1nIV_ncA/exec', 
+  url: 'https://script.google.com/macros/s/AKfycbyLrtL7YbvZGQ8oQ1pjtrHrjDZhApOP6xAb52BTFDBI-7kfl7kEgQfpPHe6DlZknckkJQ/exec', 
   currency: '€' 
 };
 
-const fmt = n => cfg.currency + Number(n||0).toLocaleString('en-US');
+const fmt = n => cfg.currency + Number(n||0).toLocaleString('en-US', {minimumFractionDigits: 2, maximumFractionDigits: 2});
 const today = () => new Date().toISOString().split('T')[0];
 const uid = () => Date.now().toString(36) + Math.random().toString(36).slice(2,6);
 
@@ -293,6 +310,7 @@ function fillCourseSelect(){
   const el = document.getElementById('s-course');
   el.innerHTML='<option value="">Select course…</option>';
   S.courses.forEach(c=>el.innerHTML+=`<option value="${c.id}">${c.name}</option>`);
+  updateInstalments();
 }
 function fillStudentSelect(){
   const el = document.getElementById('p-student');
@@ -302,8 +320,43 @@ function fillStudentSelect(){
 
 function toggleInstalmentFields() {
   const payType = document.getElementById('s-payType').value;
-  const fields = document.getElementById('instalment-fields');
-  fields.style.display = (payType === 'instalment') ? 'grid' : 'none';
+  document.getElementById('instalment-container').style.display = (payType === 'instalment') ? 'block' : 'none';
+  updateInstalments();
+}
+
+// BU FONKSİYON DİNAMİK TAKSİT ALANLARINI HESAPLAR VE ÇİZER
+function updateInstalments() {
+  const courseId = document.getElementById('s-course').value;
+  const priceType = document.getElementById('s-priceType').value;
+  const course = S.courses.find(c => c.id === courseId);
+  
+  let totalFee = 0;
+  if (course) {
+    totalFee = priceType === 'early_bird' ? course.feeEarly : course.feeNormal;
+  }
+  document.getElementById('s-displayTotal').value = totalFee ? fmt(totalFee) : '';
+
+  const payType = document.getElementById('s-payType').value;
+  const container = document.getElementById('dynamic-instalments');
+  container.innerHTML = '';
+
+  if (payType !== 'instalment') return;
+
+  const num = parseInt(document.getElementById('s-numInstalments').value) || 0;
+  const deposit = parseFloat(document.getElementById('s-depositAmount').value) || 0;
+  const remaining = Math.max(0, totalFee - deposit);
+
+  if (num > 0) {
+    const amountPerInst = (remaining / num).toFixed(2);
+    for (let i = 1; i <= num; i++) {
+      container.innerHTML += `
+        <div class="form-2col dynamic-row">
+          <div class="fg"><label>Instalment ${i} Amount (€)</label><input type="number" class="inst-amount" value="${amountPerInst}"></div>
+          <div class="fg"><label>Instalment ${i} Date</label><input type="date" class="inst-date"></div>
+        </div>
+      `;
+    }
+  }
 }
 
 function saveCourse(){
@@ -311,13 +364,9 @@ function saveCourse(){
   const feeNormal = parseFloat(document.getElementById('c-feeNormal').value);
   const feeEarly = parseFloat(document.getElementById('c-feeEarly').value);
   const deposit = parseFloat(document.getElementById('c-deposit').value);
-  
   if(!name || !feeNormal || !feeEarly) return alert('Course name, Normal Fee, and Early Bird Fee are required.');
   
-  const obj = { 
-    id: uid(), name, start: document.getElementById('c-start').value, end: document.getElementById('c-end').value, 
-    feeNormal, feeEarly, deposit: deposit || 0, capacity: parseInt(document.getElementById('c-capacity').value) || 0 
-  };
+  const obj = { id: uid(), name, start: document.getElementById('c-start').value, end: document.getElementById('c-end').value, feeNormal, feeEarly, deposit: deposit || 0, capacity: parseInt(document.getElementById('c-capacity').value) || 0 };
   pushData('addCourse', obj);
   closeM('mCourse');
   ['c-name','c-start','c-end','c-feeNormal','c-feeEarly','c-deposit','c-capacity'].forEach(id=>document.getElementById(id).value='');
@@ -330,23 +379,34 @@ function saveStudent(){
   const email = document.getElementById('s-email').value.trim();
   const priceType = document.getElementById('s-priceType').value;
   const payType = document.getElementById('s-payType').value;
+  const depositAmount = parseFloat(document.getElementById('s-depositAmount').value) || 0;
+  const depositDate = document.getElementById('s-depositDate').value;
   
   if(!courseId||!firstName||!lastName||!email) return alert('Course, Name, and Email are required.');
+  
   const course = S.courses.find(c=>c.id===courseId);
   const totalFee = course ? (priceType === 'early_bird' ? course.feeEarly : course.feeNormal) : 0;
 
+  // Dinamik taksit verilerini topla
+  let instalmentPlan = [];
+  if (payType === 'instalment') {
+    const amounts = document.querySelectorAll('.inst-amount');
+    const dates = document.querySelectorAll('.inst-date');
+    for (let i = 0; i < amounts.length; i++) {
+      instalmentPlan.push({ amount: parseFloat(amounts[i].value) || 0, date: dates[i].value });
+    }
+  }
+
   const obj = { 
     id: uid(), courseId, firstName, lastName, email, phone: document.getElementById('s-phone').value, 
-    priceType: priceType, totalFee: totalFee, paymentType: payType,
-    depositDeadline: document.getElementById('s-depositDeadline').value,
-    numInstalments: payType === 'instalment' ? document.getElementById('s-numInstalments').value : '',
-    instalmentStartDate: payType === 'instalment' ? document.getElementById('s-instStart').value : ''
+    priceType: priceType, totalFee: totalFee, depositAmount: depositAmount, depositDate: depositDate, 
+    paymentType: payType, instalmentPlan: JSON.stringify(instalmentPlan) 
   };
   
   pushData('addStudent', obj);
   closeM('mStudent');
-  ['s-first','s-last','s-email','s-phone','s-depositDeadline','s-numInstalments','s-instStart'].forEach(id=>document.getElementById(id).value='');
-  document.getElementById('s-course').value=''; document.getElementById('s-priceType').value='normal'; document.getElementById('s-payType').value='one-time';
+  ['s-first','s-last','s-email','s-phone','s-depositAmount','s-depositDate','s-numInstalments'].forEach(id=>document.getElementById(id).value='');
+  document.getElementById('s-course').value=''; document.getElementById('s-priceType').value='normal'; document.getElementById('s-payType').value='full_remaining';
   toggleInstalmentFields();
 }
 
@@ -451,7 +511,17 @@ function showStudentDetail(sId){
   const remaining = Math.max(0,Number(s.totalFee||0)-paid);
   const payments = S.payments.filter(p=>p.studentId===sId).sort((a,b)=>(b.date||'').localeCompare(a.date||''));
   
-  let planInfo = s.paymentType === 'instalment' ? `Instalment (${s.numInstalments}x) starts on ${s.instalmentStartDate||'—'}` : 'One-time';
+  // Taksit Tablosu Çizimi
+  let planHtml = '';
+  if (s.paymentType === 'instalment' && s.instalmentPlan) {
+    try {
+      const plan = JSON.parse(s.instalmentPlan);
+      planHtml = `<div style="margin-top:12px; padding:10px; background:#fff; border:1px solid var(--color-border-secondary); border-radius:6px;">
+        <strong style="display:block; margin-bottom:6px; color:var(--color-text-primary);">Instalment Schedule</strong>` +
+        plan.map((inst, i) => `<div style="display:flex; justify-content:space-between; font-size:12px; border-bottom:1px solid var(--color-border-tertiary); padding:4px 0;"><span>Instalment ${i+1}</span><span>${fmt(inst.amount)} (Due: ${inst.date || '—'})</span></div>`).join('') +
+        `</div>`;
+    } catch(e) {}
+  }
   
   document.getElementById('sd-title').innerHTML = `<i class="ti ti-user"></i> ${s.firstName} ${s.lastName}`;
   document.getElementById('sd-body').innerHTML = `
@@ -460,9 +530,10 @@ function showStudentDetail(sId){
         <span class="dk">Course</span><span class="dv">${course?course.name:'—'}</span>
         <span class="dk">Email / Phone</span><span class="dv">${s.email} / ${s.phone||'—'}</span>
         <span class="dk">Price Tier</span><span class="dv" style="color:${s.priceType==='early_bird'?'var(--color-brand)':'inherit'}">${s.priceType==='early_bird'?'Early Bird Price':'Normal Price'}</span>
-        <span class="dk">Deposit Due</span><span class="dv">${s.depositDeadline || '—'}</span>
-        <span class="dk">Payment Plan</span><span class="dv">${planInfo}</span>
+        <span class="dk">Deposit Due</span><span class="dv">${s.depositDate || '—'} (${fmt(s.depositAmount)})</span>
+        <span class="dk">Payment Plan</span><span class="dv">${s.paymentType==='instalment'?'Instalments':'Full Remaining'}</span>
       </div>
+      ${planHtml}
     </div>
     <div class="stats-grid" style="margin-bottom:16px">
       <div class="stat"><div class="lbl">Total Fee</div><div class="val b">${fmt(s.totalFee)}</div></div>
