@@ -264,7 +264,7 @@
 
 <script>
 let S = { courses:[], students:[], payments:[] };
-let cfg = { url:'', currency:'$' };
+let cfg = { url:'https://script.google.com/macros/s/AKfycbwT6-N0F5FdECseGx_mqNfIdZJhZH7ptLp9ZiFm7EN7ijic7QTWnRQOVj8DdVxfGoPJkA/exec', currency:'€' };
 try { const c = JSON.parse(localStorage.getItem('cmCfg')||'{}'); cfg = {...cfg,...c}; } catch(e){}
 
 const fmt = n => cfg.currency + Number(n||0).toLocaleString('en-US');
