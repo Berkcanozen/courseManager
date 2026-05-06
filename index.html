@@ -1,100 +1,126 @@
 <!DOCTYPE html>
-<html lang="tr">
+<html lang="en">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Kurs Yönetimi Uygulaması</title>
+    <title>Course Management System</title>
+    
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@latest/tabler-icons.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
     
     <style>
     :root {
-      --font-sans: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
-      --color-text-primary: #333;
-      --color-text-secondary: #666;
-      --color-background-primary: #fff;
-      --color-background-secondary: #f4f6f8;
-      --color-border-secondary: #ddd;
-      --color-border-tertiary: #eee;
-      --border-radius-md: 6px;
-      --border-radius-lg: 10px;
+      --font-sans: 'Inter', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+      --color-text-primary: #1f2937;
+      --color-text-secondary: #6b7280;
+      --color-background-primary: #ffffff;
+      --color-background-secondary: #f3f4f6;
+      --color-border-secondary: #e5e7eb;
+      --color-border-tertiary: #f3f4f6;
+      --border-radius-md: 8px;
+      --border-radius-lg: 12px;
+      --color-brand: #10b981; /* Modern Green */
+      --color-brand-hover: #059669;
     }
-    *{box-sizing:border-box;margin:0;padding:0}
-    .app{font-family:var(--font-sans);font-size:14px;color:var(--color-text-primary)}
-    .topbar{display:flex;align-items:center;justify-content:space-between;padding:12px 16px;border-bottom:0.5px solid var(--color-border-tertiary);background:var(--color-background-primary)}
-    .topbar-left{display:flex;align-items:center;gap:10px}
-    .topbar h1{font-size:15px;font-weight:500}
-    .sync-badge{display:inline-flex;align-items:center;gap:5px;font-size:11px;padding:3px 9px;border-radius:20px;background:var(--color-background-secondary);color:var(--color-text-secondary);border:0.5px solid var(--color-border-tertiary)}
-    .tabs{display:flex;gap:1px;padding:0 16px;border-bottom:0.5px solid var(--color-border-tertiary);background:var(--color-background-secondary)}
-    .tab{padding:10px 14px;font-size:13px;border:none;background:none;cursor:pointer;color:var(--color-text-secondary);border-bottom:2px solid transparent;display:flex;align-items:center;gap:6px}
-    .tab.active{color:var(--color-text-primary);font-weight:500;border-bottom-color:#1D9E75;background:var(--color-background-primary)}
-    .panel{padding:16px}
-    .sec{display:none}.sec.active{display:block}
-    .stats-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(130px,1fr));gap:10px;margin-bottom:16px}
-    .stat{background:var(--color-background-secondary);border-radius:var(--border-radius-md);padding:12px}
-    .stat .lbl{font-size:11px;color:var(--color-text-secondary);letter-spacing:.04em;text-transform:uppercase;margin-bottom:4px}
-    .stat .val{font-size:20px;font-weight:500}
-    .val.g{color:#1D9E75}.val.b{color:#378ADD}.val.a{color:#BA7517}.val.r{color:#A32D2D}
-    .card{background:var(--color-background-primary);border:0.5px solid var(--color-border-tertiary);border-radius:var(--border-radius-lg);padding:14px;margin-bottom:10px}
-    .card-hd{display:flex;align-items:flex-start;justify-content:space-between;margin-bottom:10px}
-    .card-title{font-size:14px;font-weight:500}
-    .card-sub{font-size:12px;color:var(--color-text-secondary);margin-top:2px}
-    .btn{display:inline-flex;align-items:center;gap:6px;padding:7px 12px;font-size:13px;border-radius:var(--border-radius-md);cursor:pointer;border:0.5px solid var(--color-border-secondary);background:var(--color-background-primary);color:var(--color-text-primary)}
-    .btn:hover{background:var(--color-background-secondary)}
-    .btn.primary{background:#1D9E75;color:#fff;border-color:#1D9E75}
-    .btn.primary:hover{background:#085041}
-    .btn.sm{padding:4px 9px;font-size:12px}
-    .btn.ghost{border-color:transparent;padding:4px 6px}
-    .row-actions{display:flex;gap:4px}
-    .chip{display:inline-flex;align-items:center;gap:4px;padding:3px 9px;border-radius:20px;font-size:11px;font-weight:500}
-    .chip.teal{background:#E1F5EE;color:#085041;border:0.5px solid #9FE1CB}
-    .chip.blue{background:#E6F1FB;color:#0C447C;border:0.5px solid #B5D4F4}
-    .chip.amber{background:#FAEEDA;color:#633806;border:0.5px solid #FAC775}
-    .chip.red{background:#FCEBEB;color:#791F1F;border:0.5px solid #F7C1C1}
-    .chip.gray{background:var(--color-background-secondary);color:var(--color-text-secondary);border:0.5px solid var(--color-border-secondary)}
-    .meta-row{display:flex;gap:14px;flex-wrap:wrap;font-size:12px;color:var(--color-text-secondary)}
-    .meta-row span{display:flex;align-items:center;gap:4px}
-    .bar-bg{height:5px;background:var(--color-background-secondary);border-radius:3px;margin-top:6px}
-    .bar-fill{height:5px;border-radius:3px;background:#1D9E75;transition:width .3s}
-    .bar-fill.warn{background:#BA7517}
-    .bar-fill.danger{background:#A32D2D}
-    .avatar{width:30px;height:30px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:500;flex-shrink:0}
-    .av-t{background:#E1F5EE;color:#085041}
-    .av-b{background:#E6F1FB;color:#0C447C}
-    .av-a{background:#FAEEDA;color:#633806}
-    .student-row{display:flex;align-items:center;gap:10px;padding:8px 0;border-bottom:0.5px solid var(--color-border-tertiary);cursor:pointer}
-    .student-row:last-child{border-bottom:none}
-    .student-row:hover{background:var(--color-background-secondary);margin:0 -14px;padding:8px 14px}
-    .student-info{flex:1;min-width:0}
-    .student-name{font-size:13px;font-weight:500;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
-    .student-sub{font-size:11px;color:var(--color-text-secondary)}
-    .pay-summary{flex:0 0 110px;text-align:right}
-    .pay-amount{font-size:12px;font-weight:500}
-    .pay-label{font-size:10px;color:var(--color-text-secondary)}
-    .payment-entry{display:flex;align-items:center;justify-content:space-between;padding:7px 0;border-bottom:0.5px solid var(--color-border-tertiary);font-size:12px}
-    .payment-entry:last-child{border-bottom:none}
-    .empty{text-align:center;padding:36px 16px;color:var(--color-text-secondary);font-size:13px}
-    .empty i{font-size:30px;display:block;margin-bottom:8px;opacity:.5}
-    .modal-wrap{display:none;position:fixed;inset:0;background:rgba(0,0,0,.45);z-index:200;align-items:flex-start;justify-content:center;padding-top:40px}
-    .modal-wrap.open{display:flex}
-    .modal{background:var(--color-background-primary);border-radius:var(--border-radius-lg);padding:20px;width:420px;max-width:96vw;border:0.5px solid var(--color-border-secondary);max-height:90vh;overflow-y:auto}
-    .modal h2{font-size:15px;font-weight:500;margin-bottom:16px;display:flex;align-items:center;gap:8px}
-    .modal-footer{display:flex;justify-content:flex-end;gap:8px;margin-top:16px;padding-top:12px;border-top:0.5px solid var(--color-border-tertiary)}
-    .fg{display:flex;flex-direction:column;gap:4px;margin-bottom:12px}
-    .fg label{font-size:12px;color:var(--color-text-secondary)}
-    .fg input,.fg select,.fg textarea{width:100%;padding:7px 10px;font-size:13px;border:0.5px solid var(--color-border-secondary);border-radius:var(--border-radius-md);background:var(--color-background-primary);color:var(--color-text-primary)}
-    .fg textarea{resize:vertical;min-height:60px}
-    .form-2col{display:grid;grid-template-columns:1fr 1fr;gap:10px}
-    .section-hd{display:flex;align-items:center;justify-content:space-between;margin-bottom:12px}
-    .section-hd h3{font-size:14px;font-weight:500}
-    .detail-panel{background:var(--color-background-secondary);border-radius:var(--border-radius-md);padding:12px;margin-bottom:10px}
-    .detail-grid{display:grid;grid-template-columns:1fr 1fr;gap:6px 14px;font-size:12px}
-    .detail-grid .dk{color:var(--color-text-secondary)}
-    .detail-grid .dv{font-weight:500}
-    .deadline-chip{font-size:11px;padding:2px 7px;border-radius:4px}
-    .overdue{background:#FCEBEB;color:#791F1F}
-    .upcoming{background:#FAEEDA;color:#633806}
-    .ok{background:#E1F5EE;color:#085041}
-    .divider{border:none;border-top:0.5px solid var(--color-border-tertiary);margin:12px 0}
+    
+    * { box-sizing:border-box; margin:0; padding:0; }
+    body { background-color: #f9fafb; }
+    .app { font-family:var(--font-sans); font-size:14px; color:var(--color-text-primary); max-width: 1200px; margin: 0 auto; background: var(--color-background-primary); min-height: 100vh; box-shadow: 0 0 20px rgba(0,0,0,0.02); }
+    
+    /* Topbar */
+    .topbar { display:flex; align-items:center; justify-content:space-between; padding:16px 20px; border-bottom:1px solid var(--color-border-secondary); background:var(--color-background-primary); }
+    .topbar-left { display:flex; align-items:center; gap:12px; }
+    .topbar h1 { font-size:18px; font-weight:600; color: #111827; }
+    .sync-badge { display:inline-flex; align-items:center; gap:5px; font-size:12px; font-weight: 500; padding:4px 10px; border-radius:20px; background:var(--color-background-secondary); color:var(--color-text-secondary); border:1px solid var(--color-border-secondary); transition: all 0.3s; }
+    
+    /* Tabs */
+    .tabs { display:flex; gap:8px; padding:0 20px; border-bottom:1px solid var(--color-border-secondary); background:var(--color-background-primary); margin-top: 10px; }
+    .tab { padding:12px 16px; font-size:14px; font-weight: 500; border:none; background:none; cursor:pointer; color:var(--color-text-secondary); border-bottom:2px solid transparent; display:flex; align-items:center; gap:8px; transition: all 0.2s; }
+    .tab:hover { color: var(--color-text-primary); }
+    .tab.active { color:var(--color-brand); border-bottom-color:var(--color-brand); }
+    
+    /* Panels */
+    .panel { padding:20px; background: #f9fafb; min-height: calc(100vh - 140px); }
+    .sec { display:none; animation: fadeIn 0.3s ease-in-out; }
+    .sec.active { display:block; }
+    @keyframes fadeIn { from { opacity: 0; transform: translateY(5px); } to { opacity: 1; transform: translateY(0); } }
+    
+    /* Stats Grid */
+    .stats-grid { display:grid; grid-template-columns:repeat(auto-fit, minmax(150px, 1fr)); gap:16px; margin-bottom:20px; }
+    .stat { background:var(--color-background-primary); border-radius:var(--border-radius-lg); padding:16px; box-shadow: 0 1px 3px rgba(0,0,0,0.05); border: 1px solid var(--color-border-secondary); }
+    .stat .lbl { font-size:12px; color:var(--color-text-secondary); font-weight: 500; text-transform:uppercase; margin-bottom:8px; }
+    .stat .val { font-size:24px; font-weight:600; }
+    .val.g { color:#10b981; } .val.b { color:#3b82f6; } .val.a { color:#f59e0b; } .val.r { color:#ef4444; }
+    
+    /* Cards */
+    .card { background:var(--color-background-primary); border:1px solid var(--color-border-secondary); border-radius:var(--border-radius-lg); padding:16px; margin-bottom:12px; box-shadow: 0 1px 2px rgba(0,0,0,0.03); transition: transform 0.2s, box-shadow 0.2s; }
+    .card:hover { transform: translateY(-2px); box-shadow: 0 4px 12px rgba(0,0,0,0.05); }
+    .card-hd { display:flex; align-items:flex-start; justify-content:space-between; margin-bottom:12px; }
+    .card-title { font-size:15px; font-weight:600; color: #111827; }
+    .card-sub { font-size:13px; color:var(--color-text-secondary); margin-top:4px; }
+    
+    /* Buttons */
+    .btn { display:inline-flex; align-items:center; gap:6px; padding:8px 14px; font-size:13px; font-weight:500; font-family: var(--font-sans); border-radius:var(--border-radius-md); cursor:pointer; border:1px solid var(--color-border-secondary); background:var(--color-background-primary); color:var(--color-text-primary); transition: all 0.2s; }
+    .btn:hover { background:var(--color-background-secondary); }
+    .btn.primary { background:var(--color-brand); color:#fff; border-color:var(--color-brand); }
+    .btn.primary:hover { background:var(--color-brand-hover); box-shadow: 0 2px 6px rgba(16, 185, 129, 0.3); }
+    .btn.sm { padding:6px 10px; font-size:12px; }
+    
+    /* Chips */
+    .chip { display:inline-flex; align-items:center; gap:4px; padding:4px 10px; border-radius:20px; font-size:11px; font-weight:600; text-transform: uppercase; letter-spacing: 0.02em; }
+    .chip.teal { background:#ecfdf5; color:#047857; }
+    .chip.blue { background:#eff6ff; color:#1d4ed8; }
+    .chip.amber { background:#fffbeb; color:#b45309; }
+    .chip.red { background:#fef2f2; color:#b91c1c; }
+    
+    /* Meta & Bars */
+    .meta-row { display:flex; gap:16px; flex-wrap:wrap; font-size:13px; color:var(--color-text-secondary); }
+    .meta-row span { display:flex; align-items:center; gap:6px; background: #f9fafb; padding: 4px 8px; border-radius: 6px; }
+    .bar-bg { height:6px; background:var(--color-background-secondary); border-radius:3px; margin-top:8px; overflow: hidden; }
+    .bar-fill { height:6px; border-radius:3px; background:var(--color-brand); transition:width 0.5s ease; }
+    .bar-fill.warn { background:#f59e0b; }
+    .bar-fill.danger { background:#ef4444; }
+    
+    /* Student Rows */
+    .avatar { width:36px; height:36px; border-radius:50%; display:flex; align-items:center; justify-content:center; font-size:13px; font-weight:600; flex-shrink:0; }
+    .av-t { background:#d1fae5; color:#065f46; } .av-b { background:#dbeafe; color:#1e40af; } .av-a { background:#fef3c7; color:#92400e; }
+    .student-row { display:flex; align-items:center; gap:12px; padding:10px 0; border-bottom:1px solid var(--color-border-tertiary); cursor:pointer; transition: background 0.2s; }
+    .student-row:last-child { border-bottom:none; }
+    .student-row:hover { background:var(--color-background-secondary); margin:0 -16px; padding:10px 16px; border-radius: var(--border-radius-md); }
+    .student-info { flex:1; min-width:0; }
+    .student-name { font-size:14px; font-weight:600; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+    .student-sub { font-size:12px; color:var(--color-text-secondary); margin-top: 2px; }
+    .pay-summary { flex:0 0 120px; text-align:right; }
+    .pay-amount { font-size:13px; font-weight:600; }
+    .pay-label { font-size:11px; color:var(--color-text-secondary); margin-top: 2px; }
+    
+    .payment-entry { display:flex; align-items:center; justify-content:space-between; padding:10px 0; border-bottom:1px solid var(--color-border-tertiary); font-size:13px; }
+    .payment-entry:last-child { border-bottom:none; }
+    
+    .empty { text-align:center; padding:48px 20px; color:var(--color-text-secondary); font-size:14px; }
+    .empty i { font-size:36px; display:block; margin-bottom:12px; opacity:0.4; }
+    
+    /* Modals */
+    .modal-wrap { display:none; position:fixed; inset:0; background:rgba(17, 24, 39, 0.6); backdrop-filter: blur(2px); z-index:200; align-items:center; justify-content:center; padding:20px; }
+    .modal-wrap.open { display:flex; animation: fadeIn 0.2s; }
+    .modal { background:var(--color-background-primary); border-radius:var(--border-radius-lg); padding:24px; width:460px; max-width:100%; box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04); max-height:90vh; overflow-y:auto; }
+    .modal h2 { font-size:18px; font-weight:600; margin-bottom:20px; display:flex; align-items:center; gap:10px; color: #111827; }
+    .modal-footer { display:flex; justify-content:flex-end; gap:10px; margin-top:24px; padding-top:16px; border-top:1px solid var(--color-border-tertiary); }
+    
+    /* Forms */
+    .fg { display:flex; flex-direction:column; gap:6px; margin-bottom:16px; }
+    .fg label { font-size:13px; font-weight:500; color:var(--color-text-primary); }
+    .fg input, .fg select, .fg textarea { width:100%; padding:10px 12px; font-size:14px; font-family: var(--font-sans); border:1px solid #d1d5db; border-radius:var(--border-radius-md); background:#fff; color:var(--color-text-primary); transition: border-color 0.2s, box-shadow 0.2s; }
+    .fg input:focus, .fg select:focus, .fg textarea:focus { outline:none; border-color:var(--color-brand); box-shadow: 0 0 0 3px rgba(16, 185, 129, 0.1); }
+    .form-2col { display:grid; grid-template-columns:1fr 1fr; gap:16px; }
+    .section-hd { display:flex; align-items:center; justify-content:space-between; margin-bottom:16px; }
+    .section-hd h3 { font-size:16px; font-weight:600; color: #111827; }
+    
+    .detail-panel { background:var(--color-background-secondary); border-radius:var(--border-radius-md); padding:16px; margin-bottom:16px; border: 1px solid var(--color-border-tertiary); }
+    .detail-grid { display:grid; grid-template-columns:1fr 1fr; gap:12px 20px; font-size:13px; }
+    .detail-grid .dk { color:var(--color-text-secondary); font-weight: 500; }
+    .detail-grid .dv { font-weight:600; color: #111827; }
+    .divider { border:none; border-top:1px solid var(--color-border-tertiary); margin:20px 0; }
     </style>
 </head>
 <body>
@@ -103,12 +129,11 @@
 
 <div class="topbar">
   <div class="topbar-left">
-    <i class="ti ti-school" style="font-size:18px;color:#1D9E75" aria-hidden="true"></i>
+    <i class="ti ti-school" style="font-size:22px;color:var(--color-brand)" aria-hidden="true"></i>
     <h1>Course Manager</h1>
   </div>
-  <div style="display:flex;align-items:center;gap:8px">
+  <div style="display:flex;align-items:center;gap:12px">
     <span class="sync-badge" id="syncBadge"><i class="ti ti-cloud-off"></i> Not connected</span>
-    <button class="btn sm" onclick="openM('mSettings')"><i class="ti ti-settings" aria-hidden="true"></i> Settings</button>
   </div>
 </div>
 
@@ -125,32 +150,32 @@
   <div class="stats-grid" id="statsGrid">
     <div class="stat"><div class="lbl">Courses</div><div class="val b" id="st-courses">0</div></div>
     <div class="stat"><div class="lbl">Students</div><div class="val g" id="st-students">0</div></div>
-    <div class="stat"><div class="lbl">Total collected</div><div class="val g" id="st-collected">$0</div></div>
-    <div class="stat"><div class="lbl">Outstanding</div><div class="val a" id="st-outstanding">$0</div></div>
+    <div class="stat"><div class="lbl">Total Collected</div><div class="val g" id="st-collected">€0</div></div>
+    <div class="stat"><div class="lbl">Outstanding</div><div class="val a" id="st-outstanding">€0</div></div>
   </div>
   <div id="dashContent"></div>
 </div>
 
 <div class="sec" id="sec-courses">
   <div class="section-hd">
-    <h3>All courses</h3>
-    <button class="btn primary" onclick="openM('mCourse')"><i class="ti ti-plus"></i> New course</button>
+    <h3>All Courses</h3>
+    <button class="btn primary" onclick="openM('mCourse')"><i class="ti ti-plus"></i> New Course</button>
   </div>
   <div id="courseList"></div>
 </div>
 
 <div class="sec" id="sec-students">
   <div class="section-hd">
-    <h3>All students</h3>
-    <button class="btn primary" onclick="openM('mStudent')"><i class="ti ti-user-plus"></i> Add student</button>
+    <h3>All Students</h3>
+    <button class="btn primary" onclick="openM('mStudent')"><i class="ti ti-user-plus"></i> Enroll Student</button>
   </div>
   <div id="studentList"></div>
 </div>
 
 <div class="sec" id="sec-payments">
   <div class="section-hd">
-    <h3>Payment log</h3>
-    <button class="btn primary" onclick="openM('mPayment')"><i class="ti ti-plus"></i> Record payment</button>
+    <h3>Payment Log</h3>
+    <button class="btn primary" onclick="openM('mPayment')"><i class="ti ti-plus"></i> Record Payment</button>
   </div>
   <div id="paymentList"></div>
 </div>
@@ -158,47 +183,34 @@
 </div>
 </div>
 
-<div class="modal-wrap" id="mSettings">
-<div class="modal">
-  <h2><i class="ti ti-settings"></i> Google Sheets connection</h2>
-  <div style="background:var(--color-background-secondary);border-radius:var(--border-radius-md);padding:10px 12px;font-size:12px;color:var(--color-text-secondary);margin-bottom:14px">
-    Open your Google Sheet → Extensions → Apps Script → paste the provided code → Deploy as Web App → copy the URL here.
-  </div>
-  <div class="fg"><label>Web App URL</label><input id="cfgUrl" type="url" placeholder="https://script.google.com/macros/s/.../exec" /></div>
-  <div class="fg"><label>Currency symbol</label><input id="cfgCurrency" value="$" style="width:60px" /></div>
-  <div class="modal-footer">
-    <button class="btn" onclick="closeM('mSettings')">Cancel</button>
-    <button class="btn primary" onclick="saveSettings()">Save &amp; sync</button>
-  </div>
-</div>
-</div>
-
 <div class="modal-wrap" id="mCourse">
 <div class="modal">
-  <h2><i class="ti ti-books"></i> New course</h2>
-  <div class="fg"><label>Course name *</label><input id="c-name" placeholder="e.g. Beginner Guitar" /></div>
+  <h2><i class="ti ti-books"></i> New Course</h2>
+  <div class="fg"><label>Course name *</label><input id="c-name" placeholder="e.g. Intensive English" /></div>
   <div class="form-2col">
     <div class="fg"><label>Start date</label><input type="date" id="c-start" /></div>
     <div class="fg"><label>End date</label><input type="date" id="c-end" /></div>
   </div>
+  
   <div class="form-2col">
-    <div class="fg"><label>Course fee *</label><input type="number" id="c-fee" placeholder="1500" /></div>
-    <div class="fg"><label>Deposit amount *</label><input type="number" id="c-deposit" placeholder="300" /></div>
+    <div class="fg"><label>Normal Fee (€) *</label><input type="number" id="c-feeNormal" placeholder="1500" /></div>
+    <div class="fg"><label>Early Bird Fee (€) *</label><input type="number" id="c-feeEarly" placeholder="1200" /></div>
   </div>
+
   <div class="form-2col">
-    <div class="fg"><label>Deposit deadline</label><input type="date" id="c-depDeadline" /></div>
-    <div class="fg"><label>Capacity</label><input type="number" id="c-capacity" placeholder="12" /></div>
+    <div class="fg"><label>Deposit amount</label><input type="number" id="c-deposit" placeholder="300" /></div>
+    <div class="fg"><label>Capacity</label><input type="number" id="c-capacity" placeholder="15" /></div>
   </div>
   <div class="modal-footer">
     <button class="btn" onclick="closeM('mCourse')">Cancel</button>
-    <button class="btn primary" onclick="saveCourse()">Create course</button>
+    <button class="btn primary" onclick="saveCourse()">Create Course</button>
   </div>
 </div>
 </div>
 
 <div class="modal-wrap" id="mStudent">
 <div class="modal">
-  <h2><i class="ti ti-user-plus"></i> Enroll student</h2>
+  <h2><i class="ti ti-user-plus"></i> Enroll Student</h2>
   <div class="fg"><label>Course *</label><select id="s-course"><option value="">Select course…</option></select></div>
   <div class="form-2col">
     <div class="fg"><label>First name *</label><input id="s-first" placeholder="Jane" /></div>
@@ -209,33 +221,39 @@
     <div class="fg"><label>Phone</label><input id="s-phone" placeholder="+1 555 000 0000" /></div>
   </div>
   <hr class="divider">
-  <div style="font-size:13px;font-weight:500;margin-bottom:10px;color:var(--color-text-secondary)">Payment plan</div>
-  <div class="fg"><label>Payment type *</label>
-    <select id="s-payType" onchange="toggleInstalment()">
+  
+  <div style="font-size:14px;font-weight:600;margin-bottom:12px;color:#111827">Payment Details</div>
+  
+  <div class="fg">
+    <label>Price Tier *</label>
+    <select id="s-priceType">
+      <option value="normal">Normal Price</option>
+      <option value="early_bird">Early Bird Price</option>
+    </select>
+  </div>
+
+  <div class="fg"><label>Payment Plan *</label>
+    <select id="s-payType">
       <option value="one-time">One-time (full amount)</option>
       <option value="instalment">Instalment plan</option>
     </select>
   </div>
-  <div class="form-2col">
-    <div class="fg"><label>Payment due date *</label><input type="date" id="s-payDeadline" /></div>
-    <div class="fg" id="instGroup" style="display:none"><label>No. of instalments</label><input type="number" id="s-instalments" placeholder="3" min="2" max="24" /></div>
-  </div>
   <div class="modal-footer">
     <button class="btn" onclick="closeM('mStudent')">Cancel</button>
-    <button class="btn primary" onclick="saveStudent()">Enroll</button>
+    <button class="btn primary" onclick="saveStudent()">Enroll Student</button>
   </div>
 </div>
 </div>
 
 <div class="modal-wrap" id="mPayment">
 <div class="modal">
-  <h2><i class="ti ti-coin"></i> Record payment</h2>
+  <h2><i class="ti ti-coin"></i> Record Payment</h2>
   <div class="fg"><label>Student *</label><select id="p-student"><option value="">Select student…</option></select></div>
   <div class="form-2col">
-    <div class="fg"><label>Amount *</label><input type="number" id="p-amount" placeholder="500" /></div>
+    <div class="fg"><label>Amount (€) *</label><input type="number" id="p-amount" placeholder="500" /></div>
     <div class="fg"><label>Date *</label><input type="date" id="p-date" /></div>
   </div>
-  <div class="fg"><label>Type</label>
+  <div class="fg"><label>Payment Type</label>
     <select id="p-type">
       <option value="deposit">Deposit</option>
       <option value="instalment">Instalment</option>
@@ -246,39 +264,34 @@
   <div class="fg"><label>Note (optional)</label><input id="p-note" placeholder="e.g. Cash payment" /></div>
   <div class="modal-footer">
     <button class="btn" onclick="closeM('mPayment')">Cancel</button>
-    <button class="btn primary" onclick="savePayment()">Save payment</button>
+    <button class="btn primary" onclick="savePayment()">Save Payment</button>
   </div>
 </div>
 </div>
 
 <div class="modal-wrap" id="mStudentDetail">
 <div class="modal">
-  <h2 id="sd-title"><i class="ti ti-user"></i> Student detail</h2>
+  <h2 id="sd-title"><i class="ti ti-user"></i> Student Detail</h2>
   <div id="sd-body"></div>
   <div class="modal-footer">
     <button class="btn" onclick="closeM('mStudentDetail')">Close</button>
-    <button class="btn primary" onclick="closeM('mStudentDetail');openM('mPayment')"><i class="ti ti-plus"></i> Add payment</button>
+    <button class="btn primary" onclick="closeM('mStudentDetail');openM('mPayment')"><i class="ti ti-plus"></i> Add Payment</button>
   </div>
 </div>
 </div>
 
 <script>
 let S = { courses:[], students:[], payments:[] };
-let cfg = { url:'https://script.google.com/macros/s/AKfycbwT6-N0F5FdECseGx_mqNfIdZJhZH7ptLp9ZiFm7EN7ijic7QTWnRQOVj8DdVxfGoPJkA/exec', currency:'€' };
-try { const c = JSON.parse(localStorage.getItem('cmCfg')||'{}'); cfg = {...cfg,...c}; } catch(e){}
+
+// DİKKAT: URL VE PARA BİRİMİ BURAYA SABİT OLARAK EKLENDİ
+let cfg = { 
+  url: 'https://script.google.com/macros/s/AKfycbwT6-N0F5FdECseGx_mqNfIdZJhZH7ptLp9ZiFm7EN7ijic7QTWnRQOVj8DdVxfGoPJkA/exec', 
+  currency: '€' 
+};
 
 const fmt = n => cfg.currency + Number(n||0).toLocaleString('en-US');
 const today = () => new Date().toISOString().split('T')[0];
 const uid = () => Date.now().toString(36) + Math.random().toString(36).slice(2,6);
-
-function daysUntil(d){ if(!d) return null; const diff = new Date(d)-new Date(today()); return Math.ceil(diff/86400000); }
-function deadlineChip(d){
-  if(!d) return '';
-  const days = daysUntil(d);
-  if(days < 0) return `<span class="deadline-chip overdue">Overdue ${Math.abs(days)}d</span>`;
-  if(days <= 7) return `<span class="deadline-chip upcoming">Due in ${days}d</span>`;
-  return `<span class="deadline-chip ok">${d}</span>`;
-}
 
 function goTab(name){
   document.querySelectorAll('.tab').forEach((t,i)=>{
@@ -292,7 +305,6 @@ function goTab(name){
 function openM(id){
   if(id==='mStudent'){ fillCourseSelect(); }
   if(id==='mPayment'){ fillStudentSelect(); document.getElementById('p-date').value=today(); }
-  if(id==='mSettings'){ document.getElementById('cfgUrl').value=cfg.url; document.getElementById('cfgCurrency').value=cfg.currency; }
   document.getElementById(id).classList.add('open');
 }
 function closeM(id){ document.getElementById(id).classList.remove('open'); }
@@ -307,29 +319,28 @@ function fillStudentSelect(){
   el.innerHTML='<option value="">Select student…</option>';
   S.students.forEach(s=>el.innerHTML+=`<option value="${s.id}">${s.firstName} ${s.lastName}</option>`);
 }
-function toggleInstalment(){
-  document.getElementById('instGroup').style.display =
-    document.getElementById('s-payType').value==='instalment'?'block':'none';
-}
-
-function saveSettings(){
-  cfg.url = document.getElementById('cfgUrl').value.trim();
-  cfg.currency = document.getElementById('cfgCurrency').value.trim() || '$';
-  localStorage.setItem('cmCfg', JSON.stringify(cfg));
-  closeM('mSettings');
-  if(cfg.url) syncSheets();
-  else render();
-}
 
 function saveCourse(){
   const name = document.getElementById('c-name').value.trim();
-  const fee = parseFloat(document.getElementById('c-fee').value);
+  const feeNormal = parseFloat(document.getElementById('c-feeNormal').value);
+  const feeEarly = parseFloat(document.getElementById('c-feeEarly').value);
   const deposit = parseFloat(document.getElementById('c-deposit').value);
-  if(!name || !fee) return alert('Course name and fee are required.');
-  const obj = { id:uid(), name, start:document.getElementById('c-start').value, end:document.getElementById('c-end').value, fee, deposit:deposit||0, depositDeadline:document.getElementById('c-depDeadline').value, capacity:parseInt(document.getElementById('c-capacity').value)||0 };
+  
+  if(!name || !feeNormal || !feeEarly) return alert('Course name, Normal Fee, and Early Bird Fee are required.');
+  
+  const obj = { 
+    id: uid(), 
+    name, 
+    start: document.getElementById('c-start').value, 
+    end: document.getElementById('c-end').value, 
+    feeNormal, 
+    feeEarly,
+    deposit: deposit || 0, 
+    capacity: parseInt(document.getElementById('c-capacity').value) || 0 
+  };
   pushData('addCourse', obj);
   closeM('mCourse');
-  ['c-name','c-start','c-end','c-fee','c-deposit','c-depDeadline','c-capacity'].forEach(id=>document.getElementById(id).value='');
+  ['c-name','c-start','c-end','c-feeNormal','c-feeEarly','c-deposit','c-capacity'].forEach(id=>document.getElementById(id).value='');
 }
 
 function saveStudent(){
@@ -337,21 +348,37 @@ function saveStudent(){
   const firstName = document.getElementById('s-first').value.trim();
   const lastName = document.getElementById('s-last').value.trim();
   const email = document.getElementById('s-email').value.trim();
-  if(!courseId||!firstName||!lastName||!email) return alert('Course, name, and email are required.');
+  const priceType = document.getElementById('s-priceType').value;
+  
+  if(!courseId||!firstName||!lastName||!email) return alert('Course, Name, and Email are required.');
   const course = S.courses.find(c=>c.id===courseId);
-  const obj = { id:uid(), courseId, firstName, lastName, email, phone:document.getElementById('s-phone').value, paymentType:document.getElementById('s-payType').value, payDeadline:document.getElementById('s-payDeadline').value, instalments:parseInt(document.getElementById('s-instalments').value)||1, enrolledAt:today(), totalFee:course?course.fee:0, depositAmount:course?course.deposit:0, depositDeadline:course?course.depositDeadline:'' };
+  
+  const totalFee = course ? (priceType === 'early_bird' ? course.feeEarly : course.feeNormal) : 0;
+
+  const obj = { 
+    id: uid(), 
+    courseId, 
+    firstName, 
+    lastName, 
+    email, 
+    phone: document.getElementById('s-phone').value, 
+    paymentType: document.getElementById('s-payType').value, 
+    priceType: priceType,
+    totalFee: totalFee
+  };
+  
   pushData('addStudent', obj);
   closeM('mStudent');
-  ['s-first','s-last','s-email','s-phone','s-payDeadline','s-instalments'].forEach(id=>document.getElementById(id).value='');
+  ['s-first','s-last','s-email','s-phone'].forEach(id=>document.getElementById(id).value='');
   document.getElementById('s-course').value='';
+  document.getElementById('s-priceType').value='normal';
   document.getElementById('s-payType').value='one-time';
-  toggleInstalment();
 }
 
 function savePayment(){
   const studentId = document.getElementById('p-student').value;
   const amount = parseFloat(document.getElementById('p-amount').value);
-  if(!studentId||!amount) return alert('Student and amount are required.');
+  if(!studentId||!amount) return alert('Student and Amount are required.');
   const obj = { id:uid(), studentId, amount, date:document.getElementById('p-date').value, type:document.getElementById('p-type').value, note:document.getElementById('p-note').value };
   pushData('addPayment', obj);
   closeM('mPayment');
@@ -380,9 +407,9 @@ async function syncSheets(){
 
 function setBadge(s){
   const el = document.getElementById('syncBadge');
-  if(s==='ok') el.innerHTML='<i class="ti ti-cloud-check" style="color:#1D9E75"></i> Synced';
-  else if(s==='error') el.innerHTML='<i class="ti ti-cloud-x" style="color:#A32D2D"></i> Sync error';
-  else el.innerHTML='<i class="ti ti-refresh" style="animation:spin 1s linear infinite"></i> Syncing…';
+  if(s==='ok') el.innerHTML='<i class="ti ti-cloud-check" style="color:var(--color-brand)"></i> Live Sync Active';
+  else if(s==='error') el.innerHTML='<i class="ti ti-cloud-x" style="color:#ef4444"></i> Sync Error';
+  else el.innerHTML='<i class="ti ti-refresh" style="animation:spin 1s linear infinite"></i> Connecting...';
 }
 
 function getStudentPaid(sId){ return S.payments.filter(p=>p.studentId===sId).reduce((a,p)=>a+Number(p.amount),0); }
@@ -411,24 +438,22 @@ function renderStats(){
 
 function renderDash(){
   const box = document.getElementById('dashContent');
-  if(!S.courses.length){ box.innerHTML='<div class="empty"><i class="ti ti-books"></i>No courses yet. Create one in the Courses tab.</div>'; return; }
+  if(!S.courses.length){ box.innerHTML='<div class="empty"><i class="ti ti-books"></i>No courses yet.</div>'; return; }
   box.innerHTML = S.courses.map(c=>{
     const studs = S.students.filter(s=>s.courseId===c.id);
     const totalDue = studs.reduce((a,s)=>a+Number(s.totalFee||0),0);
     const totalPaid = studs.reduce((a,s)=>a+getStudentPaid(s.id),0);
     const pct = totalDue>0?Math.round(totalPaid/totalDue*100):0;
-    const cls = pct>=100?'':'pct<50?danger:warn';
     const barCls = pct>=100?'':pct<50?'danger':'warn';
     return `<div class="card">
       <div class="card-hd">
-        <div><div class="card-title">${c.name}</div><div class="card-sub">${studs.length} student${studs.length!==1?'s':''} enrolled${c.capacity?' / '+c.capacity+' capacity':''}</div></div>
-        <span class="chip ${pct>=100?'teal':pct>=50?'amber':'red'}">${pct}% collected</span>
+        <div><div class="card-title">${c.name}</div><div class="card-sub">${studs.length} student(s) enrolled</div></div>
+        <span class="chip ${pct>=100?'teal':pct>=50?'amber':'red'}">${pct}% Collected</span>
       </div>
-      <div style="display:flex;justify-content:space-between;font-size:11px;color:var(--color-text-secondary);margin-bottom:2px">
-        <span>${fmt(totalPaid)} paid</span><span>${fmt(totalDue-totalPaid)} remaining</span>
+      <div style="display:flex;justify-content:space-between;font-size:12px;color:var(--color-text-secondary);margin-bottom:6px">
+        <span>${fmt(totalPaid)} Paid</span><span>${fmt(totalDue-totalPaid)} Remaining</span>
       </div>
       <div class="bar-bg"><div class="bar-fill ${barCls}" style="width:${Math.min(100,pct)}%"></div></div>
-      ${c.depositDeadline?`<div style="margin-top:8px;font-size:11px;color:var(--color-text-secondary)">Deposit deadline ${deadlineChip(c.depositDeadline)}</div>`:''}
     </div>`;
   }).join('');
 }
@@ -441,13 +466,12 @@ function renderCourses(){
     const clr = ['teal','blue','amber'][i%3];
     return `<div class="card">
       <div class="card-hd">
-        <div><div class="card-title">${c.name}</div><div class="card-sub">${c.start||'—'} → ${c.end||'—'}</div></div>
-        <span class="chip ${clr}">${studs}${c.capacity?'/'+c.capacity:''} students</span>
+        <div><div class="card-title">${c.name}</div><div class="card-sub">${c.start||'—'} to ${c.end||'—'}</div></div>
+        <span class="chip ${clr}">${studs}${c.capacity?'/'+c.capacity:''} Students</span>
       </div>
       <div class="meta-row">
-        <span><i class="ti ti-coin" aria-hidden="true"></i> Fee ${fmt(c.fee)}</span>
-        <span><i class="ti ti-receipt" aria-hidden="true"></i> Deposit ${fmt(c.deposit)}</span>
-        ${c.depositDeadline?`<span><i class="ti ti-calendar" aria-hidden="true"></i> Dep. deadline ${deadlineChip(c.depositDeadline)}</span>`:''}
+        <span><i class="ti ti-tag"></i> Normal: ${fmt(c.feeNormal)}</span>
+        <span><i class="ti ti-discount-check" style="color:var(--color-brand)"></i> Early Bird: ${fmt(c.feeEarly)}</span>
       </div>
     </div>`;
   }).join('');
@@ -457,7 +481,7 @@ function renderStudents(){
   const box = document.getElementById('studentList');
   if(!S.students.length){ box.innerHTML='<div class="empty"><i class="ti ti-users"></i>No students enrolled yet.</div>'; return; }
   const avCls = ['av-t','av-b','av-a'];
-  box.innerHTML = `<div class="card" style="padding:14px">${S.students.map((s,i)=>{
+  box.innerHTML = `<div class="card" style="padding:4px 16px">${S.students.map((s,i)=>{
     const paid = getStudentPaid(s.id);
     const total = Number(s.totalFee||0);
     const pct = total>0?Math.round(paid/total*100):100;
@@ -465,14 +489,14 @@ function renderStudents(){
     const initials = (s.firstName[0]||'')+(s.lastName[0]||'');
     const course = getCourse(s.courseId);
     return `<div class="student-row" onclick="showStudentDetail('${s.id}')">
-      <div class="avatar ${avCls[i%3]}">${initials}</div>
+      <div class="avatar ${avCls[i%3]}">${initials.toUpperCase()}</div>
       <div class="student-info">
         <div class="student-name">${s.firstName} ${s.lastName}</div>
-        <div class="student-sub">${course?course.name:'—'} · ${s.email}</div>
+        <div class="student-sub">${course?course.name:'—'} · <span style="color:${s.priceType==='early_bird'?'var(--color-brand)':'inherit'}">${s.priceType==='early_bird'?'Early Bird':'Normal'}</span></div>
       </div>
       <div class="pay-summary">
         <div class="pay-amount ${pct>=100?'g':pct<50?'r':'a'}">${fmt(paid)} / ${fmt(total)}</div>
-        <div class="pay-label">${s.paymentType==='instalment'?'Instalment':'One-time'}</div>
+        <div class="pay-label">Total Fee</div>
         <div class="bar-bg"><div class="bar-fill ${barCls}" style="width:${Math.min(100,pct)}%"></div></div>
       </div>
     </div>`;
@@ -485,7 +509,6 @@ function showStudentDetail(sId){
   const course = getCourse(s.courseId);
   const paid = getStudentPaid(s.id);
   const remaining = Math.max(0,Number(s.totalFee||0)-paid);
-  const depositPaid = S.payments.filter(p=>p.studentId===sId&&p.type==='deposit').reduce((a,p)=>a+Number(p.amount),0);
   const payments = S.payments.filter(p=>p.studentId===sId).sort((a,b)=>(b.date||'').localeCompare(a.date||''));
   document.getElementById('sd-title').innerHTML = `<i class="ti ti-user"></i> ${s.firstName} ${s.lastName}`;
   document.getElementById('sd-body').innerHTML = `
@@ -494,27 +517,23 @@ function showStudentDetail(sId){
         <span class="dk">Course</span><span class="dv">${course?course.name:'—'}</span>
         <span class="dk">Email</span><span class="dv">${s.email}</span>
         <span class="dk">Phone</span><span class="dv">${s.phone||'—'}</span>
-        <span class="dk">Enrolled</span><span class="dv">${s.enrolledAt||'—'}</span>
-        <span class="dk">Payment type</span><span class="dv">${s.paymentType==='instalment'?'Instalment ('+s.instalments+'x)':'One-time'}</span>
-        <span class="dk">Payment due</span><span class="dv">${deadlineChip(s.payDeadline)||'—'}</span>
-        <span class="dk">Deposit due</span><span class="dv">${deadlineChip(s.depositDeadline||course?.depositDeadline)||'—'}</span>
+        <span class="dk">Price Tier</span><span class="dv" style="color:${s.priceType==='early_bird'?'var(--color-brand)':'inherit'}">${s.priceType==='early_bird'?'Early Bird Price':'Normal Price'}</span>
       </div>
     </div>
-    <div class="stats-grid" style="margin-bottom:12px">
-      <div class="stat"><div class="lbl">Total fee</div><div class="val b">${fmt(s.totalFee)}</div></div>
-      <div class="stat"><div class="lbl">Deposit</div><div class="val ${depositPaid>=(s.depositAmount||0)?'g':'a'}">${fmt(depositPaid)} / ${fmt(s.depositAmount)}</div></div>
+    <div class="stats-grid" style="margin-bottom:16px">
+      <div class="stat"><div class="lbl">Total Fee</div><div class="val b">${fmt(s.totalFee)}</div></div>
       <div class="stat"><div class="lbl">Paid</div><div class="val g">${fmt(paid)}</div></div>
       <div class="stat"><div class="lbl">Remaining</div><div class="val ${remaining>0?'r':'g'}">${fmt(remaining)}</div></div>
     </div>
-    <div style="font-size:13px;font-weight:500;margin-bottom:8px">Payment history</div>
-    ${payments.length?`<div class="card" style="padding:10px 14px">${payments.map(p=>`
+    <div style="font-size:14px;font-weight:600;margin-bottom:12px;color:#111827">Payment History</div>
+    ${payments.length?`<div class="card" style="padding:4px 16px">${payments.map(p=>`
       <div class="payment-entry">
         <div>
-          <span style="font-weight:500">${fmt(p.amount)}</span>
-          <span class="chip ${p.type==='deposit'?'amber':p.type==='full'?'teal':'blue'}" style="margin-left:6px;font-size:10px">${p.type}</span>
+          <span style="font-weight:600; font-size:14px">${fmt(p.amount)}</span>
+          <span class="chip ${p.type==='deposit'?'amber':p.type==='full'?'teal':'blue'}" style="margin-left:8px;font-size:10px">${p.type}</span>
         </div>
         <div style="text-align:right;color:var(--color-text-secondary)">${p.date||'—'}${p.note?' · '+p.note:''}</div>
-      </div>`).join('')}</div>`:'<div style="font-size:12px;color:var(--color-text-secondary);padding:8px 0">No payments recorded yet.</div>'}
+      </div>`).join('')}</div>`:'<div style="font-size:13px;color:var(--color-text-secondary);padding:10px 0;text-align:center;background:#f9fafb;border-radius:8px">No payments recorded yet.</div>'}
   `;
   openM('mStudentDetail');
 }
@@ -523,18 +542,18 @@ function renderPayments(){
   const box = document.getElementById('paymentList');
   if(!S.payments.length){ box.innerHTML='<div class="empty"><i class="ti ti-coin"></i>No payments recorded yet.</div>'; return; }
   const sorted = [...S.payments].sort((a,b)=>(b.date||'').localeCompare(a.date||''));
-  box.innerHTML = `<div class="card" style="padding:10px 14px">${sorted.map(p=>{
+  box.innerHTML = `<div class="card" style="padding:4px 16px">${sorted.map(p=>{
     const s = S.students.find(x=>x.id===p.studentId);
     const clr = p.type==='deposit'?'amber':p.type==='full'?'teal':'blue';
     return `<div class="payment-entry">
       <div>
-        <span style="font-weight:500">${s?s.firstName+' '+s.lastName:'—'}</span>
-        <span class="chip ${clr}" style="margin-left:6px;font-size:10px">${p.type}</span>
-        ${p.note?`<span style="font-size:11px;color:var(--color-text-secondary);margin-left:4px">${p.note}</span>`:''}
+        <span style="font-weight:600">${s?s.firstName+' '+s.lastName:'—'}</span>
+        <span class="chip ${clr}" style="margin-left:8px;font-size:10px">${p.type}</span>
+        ${p.note?`<div style="font-size:12px;color:var(--color-text-secondary);margin-top:4px">${p.note}</div>`:''}
       </div>
-      <div style="display:flex;align-items:center;gap:10px">
-        <span style="font-weight:500;color:#1D9E75">+${fmt(p.amount)}</span>
-        <span style="font-size:11px;color:var(--color-text-secondary)">${p.date||'—'}</span>
+      <div style="display:flex;align-items:center;gap:12px">
+        <span style="font-weight:600;color:var(--color-brand);font-size:14px">+${fmt(p.amount)}</span>
+        <span style="font-size:12px;color:var(--color-text-secondary)">${p.date||'—'}</span>
       </div>
     </div>`;
   }).join('')}</div>`;
