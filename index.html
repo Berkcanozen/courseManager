@@ -30,6 +30,7 @@
     .topbar-left { display:flex; align-items:center; gap:12px; }
     .topbar h1 { font-size:18px; font-weight:600; color: #111827; }
     .sync-badge { display:inline-flex; align-items:center; gap:5px; font-size:12px; font-weight: 500; padding:4px 10px; border-radius:20px; background:var(--color-background-secondary); color:var(--color-text-secondary); border:1px solid var(--color-border-secondary); transition: all 0.3s; }
+    .version-text { font-size: 10px; color: var(--color-text-secondary); font-weight: 500; letter-spacing: 0.05em; padding-right: 4px; }
     
     .tabs { display:flex; gap:8px; padding:0 20px; border-bottom:1px solid var(--color-border-secondary); background:var(--color-background-primary); margin-top: 10px; }
     .tab { padding:12px 16px; font-size:14px; font-weight: 500; border:none; background:none; cursor:pointer; color:var(--color-text-secondary); border-bottom:2px solid transparent; display:flex; align-items:center; gap:8px; transition: all 0.2s; }
@@ -85,14 +86,12 @@
     .empty { text-align:center; padding:48px 20px; color:var(--color-text-secondary); font-size:14px; }
     .empty i { font-size:36px; display:block; margin-bottom:12px; opacity:0.4; }
     
-    /* MODAL GÜNCELLEMELERİ (Browser hatalarını engellemek için) */
     .modal-wrap { display:none; position:fixed; inset:0; background:rgba(17, 24, 39, 0.7); z-index:9999; align-items:center; justify-content:center; padding:20px; }
     .modal-wrap.open { display:flex; animation: fadeIn 0.2s; }
     .modal { background:var(--color-background-primary); border-radius:var(--border-radius-lg); padding:24px; width:480px; max-width:100%; box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25); max-height:90vh; overflow-y:auto; position: relative; }
     .modal h2 { font-size:18px; font-weight:600; margin-bottom:20px; display:flex; align-items:center; gap:10px; color: #111827; }
     .modal-footer { display:flex; justify-content:flex-end; gap:10px; margin-top:24px; padding-top:16px; border-top:1px solid var(--color-border-tertiary); }
     
-    /* FORMLAR VE İKONLARIN GÜNCELLEMESİ (Tıklanabilirliği artırmak için) */
     .fg { display:flex; flex-direction:column; gap:6px; margin-bottom:16px; }
     .fg label { font-size:13px; font-weight:500; color:var(--color-text-primary); }
     
@@ -102,18 +101,8 @@
     
     .fg input:focus, .fg select:focus { outline:none; border-color:var(--color-brand); box-shadow: 0 0 0 3px rgba(16, 185, 129, 0.1); }
     
-    /* Takvim İkonunu büyüt ve belirginleştir */
-    input[type="date"]::-webkit-calendar-picker-indicator {
-      cursor: pointer;
-      padding: 6px;
-      margin-right: -6px;
-      transform: scale(1.3);
-      opacity: 0.6;
-      transition: opacity 0.2s ease;
-    }
-    input[type="date"]::-webkit-calendar-picker-indicator:hover {
-      opacity: 1;
-    }
+    input[type="date"]::-webkit-calendar-picker-indicator { cursor: pointer; padding: 6px; margin-right: -6px; transform: scale(1.3); opacity: 0.6; transition: opacity 0.2s ease; }
+    input[type="date"]::-webkit-calendar-picker-indicator:hover { opacity: 1; }
     
     .form-2col { display:grid; grid-template-columns:1fr 1fr; gap:16px; }
     .section-hd { display:flex; align-items:center; justify-content:space-between; margin-bottom:16px; }
@@ -136,8 +125,9 @@
     <i class="ti ti-school" style="font-size:22px;color:var(--color-brand)" aria-hidden="true"></i>
     <h1>Course Manager</h1>
   </div>
-  <div style="display:flex;align-items:center;gap:12px">
+  <div style="display:flex; flex-direction:column; align-items:flex-end; gap:4px">
     <span class="sync-badge" id="syncBadge"><i class="ti ti-cloud-off"></i> Not connected</span>
+    <span class="version-text">v1.0.0</span>
   </div>
 </div>
 
@@ -179,7 +169,7 @@
 <div class="modal-wrap" id="mCourse">
 <div class="modal">
   <h2><i class="ti ti-books"></i> New Course</h2>
-  <div class="fg"><label>Course name *</label><input type="text" id="c-name" placeholder="e.g. Advanced" /></div>
+  <div class="fg"><label>Course name *</label><input type="text" id="c-name" placeholder="e.g. Intensive English" /></div>
   <div class="form-2col">
     <div class="fg"><label>Start date</label><input type="date" id="c-start" /></div>
     <div class="fg"><label>End date</label><input type="date" id="c-end" /></div>
