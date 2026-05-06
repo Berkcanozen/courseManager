@@ -96,8 +96,6 @@
     
     .fg { display:flex; flex-direction:column; gap:6px; margin-bottom:16px; }
     .fg label { font-size:13px; font-weight:500; color:var(--color-text-primary); }
-    
-    /* OPERA FIX: input[type="date"] click force and cursor pointer */
     .fg input, .fg select { width:100%; padding:10px 12px; font-size:14px; font-family: var(--font-sans); border:1px solid #d1d5db; border-radius:var(--border-radius-md); background:#fff; transition: border-color 0.2s, box-shadow 0.2s; color: var(--color-text-primary); }
     .fg select, .fg input[type="date"] { cursor: pointer; }
     .fg input[type="text"], .fg input[type="number"], .fg input[type="email"] { cursor: text; }
@@ -116,6 +114,13 @@
     .divider { border:none; border-top:1px solid var(--color-border-tertiary); margin:20px 0; }
     
     .dynamic-row { background: #fff; padding: 12px; border-radius: 8px; border-left: 3px solid var(--color-brand); margin-bottom: 10px; box-shadow: 0 1px 3px rgba(0,0,0,0.05); }
+    
+    .smart-suggestion { background:#eff6ff; border:1px solid #bfdbfe; border-radius:var(--border-radius-md); padding:12px 14px; margin-bottom:16px; display:none; animation: fadeIn 0.3s ease; }
+    .smart-suggestion .s-title { display:flex; align-items:center; gap:6px; color:#1d4ed8; font-weight:600; font-size:13px; margin-bottom:4px; }
+    .smart-suggestion .s-desc { color:#3b82f6; font-size:12px; }
+    .smart-suggestion.success { background:#ecfdf5; border-color:#a7f3d0; }
+    .smart-suggestion.success .s-title { color:#047857; }
+    .smart-suggestion.success .s-desc { color:#059669; }
     </style>
 </head>
 <body>
@@ -128,7 +133,7 @@
   </div>
   <div style="display:flex; flex-direction:column; align-items:flex-end; gap:4px">
     <span class="sync-badge" id="syncBadge"><i class="ti ti-cloud-off"></i> Not connected</span>
-    <span class="version-text">v1.1.0</span>
+    <span class="version-text">v1.3.0</span>
   </div>
 </div>
 
@@ -193,16 +198,10 @@
 <div class="modal-wrap" id="mStudent">
 <div class="modal">
   <h2 id="modal-title-student"><i class="ti ti-user-plus"></i> Enroll Student</h2>
-  <div class="fg">
-    <label>Course *</label>
-    <select id="s-course" onchange="updateInstalments()">
-      <option value="">Select a course...</option>
-    </select>
-  </div>
-  <div class="form-2col">
-    <div class="fg"><label>First name *</label><input type="text" id="s-first" placeholder="Jane" /></div>
-    <div class="fg"><label>Last name *</label><input type="text" id="s-last" placeholder="Smith" /></div>
-  </div>
+  <div class="fg"><label>Course *</label><select id="s-course" onchange="updateInstalments()"><option value="">Select a course...</option></select></div>
+  
+  <div class="fg"><label>Full name *</label><input type="text" id="s-fullname" placeholder="Jane Doe" /></div>
+  
   <div class="form-2col">
     <div class="fg"><label>Email *</label><input type="email" id="s-email" placeholder="jane@email.com" /></div>
     <div class="fg"><label>Phone</label><input type="text" id="s-phone" placeholder="+1 555 000 0000" /></div>
@@ -226,14 +225,8 @@
   </div>
 
   <div class="form-2col">
-    <div class="fg">
-      <label>Deposit Amount (€)</label>
-      <input type="number" id="s-depositAmount" oninput="updateInstalments()" placeholder="e.g. 300">
-    </div>
-    <div class="fg">
-      <label>Deposit Due Date</label>
-      <input type="date" id="s-depositDate" onclick="try{this.showPicker()}catch(e){}">
-    </div>
+    <div class="fg"><label>Deposit Amount (€)</label><input type="number" id="s-depositAmount" oninput="updateInstalments()" placeholder="e.g. 300"></div>
+    <div class="fg"><label>Deposit Due Date</label><input type="date" id="s-depositDate" onclick="try{this.showPicker()}catch(e){}"></div>
   </div>
 
   <div class="fg">
@@ -262,7 +255,13 @@
 <div class="modal-wrap" id="mPayment">
 <div class="modal">
   <h2><i class="ti ti-coin"></i> Record Payment</h2>
-  <div class="fg"><label>Student *</label><select id="p-student"><option value="">Select student…</option></select></div>
+  <div class="fg"><label>Student *</label><select id="p-student" onchange="calculatePaymentSuggestion()"><option value="">Select student…</option></select></div>
+  
+  <div id="smart-suggestion" class="smart-suggestion">
+    <div class="s-title" id="ss-title"><i class="ti ti-bulb"></i> Suggested Payment</div>
+    <div class="s-desc" id="ss-desc">Loading...</div>
+  </div>
+
   <div class="form-2col">
     <div class="fg"><label>Amount (€) *</label><input type="number" id="p-amount" placeholder="500" /></div>
     <div class="fg"><label>Date *</label><input type="date" id="p-date" onclick="try{this.showPicker()}catch(e){}" /></div>
@@ -275,7 +274,7 @@
       <option value="other">Other</option>
     </select>
   </div>
-  <div class="fg"><label>Note (optional)</label><input type="text" id="p-note" placeholder="e.g. Cash payment" /></div>
+  <div class="fg"><label>Note (optional)</label><input type="text" id="p-note" placeholder="e.g. Instalment 1" /></div>
   <div class="modal-footer">
     <button class="btn" onclick="closeM('mPayment')">Cancel</button>
     <button class="btn primary" onclick="savePayment()">Save Payment</button>
@@ -287,19 +286,17 @@
 <div class="modal">
   <h2 id="sd-title"><i class="ti ti-user"></i> Student Detail</h2>
   <div id="sd-body"></div>
-  <div class="modal-footer" id="sd-footer">
-    </div>
+  <div class="modal-footer" id="sd-footer"></div>
 </div>
 </div>
 
 <script>
 let S = { courses:[], students:[], payments:[] };
 let cfg = { 
-  url: 'https://script.google.com/macros/s/AKfycbw0WqVipTyV_Oh6Cqk-OiZhcA1DImsP5QmkM5bQeYn8f7rTMc_elRuth7DtchnOAkiBSw/exec', 
+  url: 'https://script.google.com/macros/s/AKfycbwRX_pg47yUSTscEpS04PCdoaSd6w0TV13f7NZy1E45PFrbbArLYtyL-r7fteML4n45Ww/exec', 
   currency: '€' 
 };
 
-// EDİT MODU İÇİN DEĞİŞKENLER
 let editCourseId = null;
 let editStudentId = null;
 
@@ -316,20 +313,16 @@ function goTab(name){
   render();
 }
 
-function openM(id, editId = null){
+function openM(id, editId = null, extraParam = null){
   if(id==='mCourse'){
     if(editId) {
       editCourseId = editId;
       document.getElementById('modal-title-course').innerHTML = '<i class="ti ti-edit"></i> Edit Course';
       document.getElementById('btn-save-course').textContent = 'Update Course';
       const c = S.courses.find(x => x.id === editId);
-      document.getElementById('c-name').value = c.name;
-      document.getElementById('c-start').value = c.start || '';
-      document.getElementById('c-end').value = c.end || '';
-      document.getElementById('c-feeNormal').value = c.feeNormal;
-      document.getElementById('c-feeEarly').value = c.feeEarly;
-      document.getElementById('c-deposit').value = c.deposit || '';
-      document.getElementById('c-capacity').value = c.capacity || '';
+      document.getElementById('c-name').value = c.name; document.getElementById('c-start').value = c.start || ''; document.getElementById('c-end').value = c.end || '';
+      document.getElementById('c-feeNormal').value = c.feeNormal; document.getElementById('c-feeEarly').value = c.feeEarly;
+      document.getElementById('c-deposit').value = c.deposit || ''; document.getElementById('c-capacity').value = c.capacity || '';
     } else {
       editCourseId = null;
       document.getElementById('modal-title-course').innerHTML = '<i class="ti ti-books"></i> New Course';
@@ -345,15 +338,11 @@ function openM(id, editId = null){
       document.getElementById('modal-title-student').innerHTML = '<i class="ti ti-user-edit"></i> Edit Student';
       document.getElementById('btn-save-student').textContent = 'Update Student';
       const s = S.students.find(x => x.id === editId);
-      document.getElementById('s-course').value = s.courseId;
-      document.getElementById('s-first').value = s.firstName;
-      document.getElementById('s-last').value = s.lastName;
-      document.getElementById('s-email').value = s.email;
-      document.getElementById('s-phone').value = s.phone || '';
-      document.getElementById('s-priceType').value = s.priceType || 'normal';
-      document.getElementById('s-depositAmount').value = s.depositAmount || '';
-      document.getElementById('s-depositDate').value = s.depositDate || '';
-      document.getElementById('s-payType').value = s.paymentType || 'full_remaining';
+      document.getElementById('s-course').value = s.courseId; 
+      document.getElementById('s-fullname').value = s.fullName || '';
+      document.getElementById('s-email').value = s.email; document.getElementById('s-phone').value = s.phone || '';
+      document.getElementById('s-priceType').value = s.priceType || 'normal'; document.getElementById('s-depositAmount').value = s.depositAmount || '';
+      document.getElementById('s-depositDate').value = s.depositDate || ''; document.getElementById('s-payType').value = s.paymentType || 'full_remaining';
       
       toggleInstalmentFields();
       if(s.paymentType === 'instalment') {
@@ -363,27 +352,32 @@ function openM(id, editId = null){
           updateInstalments();
           const amountInputs = document.querySelectorAll('.inst-amount');
           const dateInputs = document.querySelectorAll('.inst-date');
-          plan.forEach((inst, i) => {
-            if(amountInputs[i]) amountInputs[i].value = inst.amount;
-            if(dateInputs[i]) dateInputs[i].value = inst.date;
-          });
+          plan.forEach((inst, i) => { if(amountInputs[i]) amountInputs[i].value = inst.amount; if(dateInputs[i]) dateInputs[i].value = inst.date; });
         } catch(e){}
-      } else {
-        document.getElementById('s-numInstalments').value = '';
-      }
+      } else { document.getElementById('s-numInstalments').value = ''; }
       document.getElementById('s-displayTotal').value = fmt(s.totalFee);
     } else {
       editStudentId = null;
       document.getElementById('modal-title-student').innerHTML = '<i class="ti ti-user-plus"></i> Enroll Student';
       document.getElementById('btn-save-student').textContent = 'Enroll Student';
-      ['s-first','s-last','s-email','s-phone','s-depositAmount','s-depositDate','s-numInstalments'].forEach(x=>document.getElementById(x).value='');
+      ['s-fullname','s-email','s-phone','s-depositAmount','s-depositDate','s-numInstalments'].forEach(x=>document.getElementById(x).value='');
       document.getElementById('s-course').value=''; document.getElementById('s-priceType').value='normal'; document.getElementById('s-payType').value='full_remaining';
-      toggleInstalmentFields();
-      document.getElementById('s-displayTotal').value = '';
+      toggleInstalmentFields(); document.getElementById('s-displayTotal').value = '';
     }
   }
   
-  if(id==='mPayment'){ fillStudentSelect(); document.getElementById('p-date').value=today(); }
+  if(id==='mPayment'){ 
+    fillStudentSelect(); 
+    document.getElementById('p-date').value = today(); 
+    document.getElementById('smart-suggestion').style.display = 'none';
+    document.getElementById('p-amount').value = '';
+    document.getElementById('p-note').value = '';
+    
+    if(extraParam) {
+      document.getElementById('p-student').value = extraParam;
+      calculatePaymentSuggestion();
+    }
+  }
   document.getElementById(id).classList.add('open');
 }
 
@@ -398,7 +392,7 @@ function fillCourseSelect(){
 function fillStudentSelect(){
   const el = document.getElementById('p-student');
   el.innerHTML='<option value="">Select student...</option>';
-  S.students.forEach(s=>el.innerHTML+=`<option value="${s.id}">${s.firstName} ${s.lastName}</option>`);
+  S.students.forEach(s=>el.innerHTML+=`<option value="${s.id}">${s.fullName}</option>`);
 }
 
 function toggleInstalmentFields() {
@@ -439,6 +433,100 @@ function updateInstalments() {
   }
 }
 
+function calculatePaymentSuggestion() {
+  const sId = document.getElementById('p-student').value;
+  const suggBox = document.getElementById('smart-suggestion');
+  const suggTitle = document.getElementById('ss-title');
+  const suggDesc = document.getElementById('ss-desc');
+  const amtInput = document.getElementById('p-amount');
+  const typeInput = document.getElementById('p-type');
+  const noteInput = document.getElementById('p-note');
+  
+  suggBox.classList.remove('success');
+
+  if(!sId) {
+    suggBox.style.display = 'none';
+    amtInput.value = ''; noteInput.value = '';
+    return;
+  }
+  
+  const s = S.students.find(x => x.id === sId);
+  const paid = getStudentPaid(sId);
+  const total = Number(s.totalFee || 0);
+  const remaining = Math.max(0, total - paid);
+  
+  if(remaining === 0) {
+    suggBox.style.display = 'block';
+    suggBox.classList.add('success');
+    suggTitle.innerHTML = '<i class="ti ti-circle-check"></i> Fully Paid!';
+    suggDesc.innerHTML = 'This student has no outstanding balance.';
+    amtInput.value = 0; typeInput.value = 'other'; noteInput.value = '';
+    return;
+  }
+
+  let nextAmount = remaining;
+  let nextType = 'full';
+  let note = '';
+  let descText = '';
+
+  const depAmt = Number(s.depositAmount || 0);
+  
+  if(depAmt > 0 && paid < depAmt) {
+     nextAmount = depAmt - paid;
+     nextType = 'deposit';
+     note = 'Deposit Payment';
+     descText = `Student needs to pay their deposit. Expected: <b>${fmt(nextAmount)}</b>`;
+  } 
+  else if (s.paymentType === 'instalment' && s.instalmentPlan) {
+     try {
+        const plan = JSON.parse(s.instalmentPlan);
+        let accountedFor = depAmt; 
+        let targetInstalmentIndex = -1;
+
+        for(let i=0; i<plan.length; i++) {
+           const instAmount = Number(plan[i].amount);
+           accountedFor += instAmount;
+           
+           if (paid < accountedFor) {
+              const paidTowardsThisInstalment = Math.max(0, paid - (accountedFor - instAmount));
+              nextAmount = instAmount - paidTowardsThisInstalment;
+              nextType = 'instalment';
+              targetInstalmentIndex = i;
+              note = `Instalment ${i + 1}`;
+              
+              let dateTxt = plan[i].date ? ` by ${plan[i].date}` : '';
+              descText = `Next due: <b>Instalment ${i + 1}</b> (${fmt(nextAmount)})${dateTxt}`;
+              break;
+           }
+        }
+        
+        if(targetInstalmentIndex === -1) {
+           nextAmount = remaining;
+           nextType = 'instalment';
+           descText = `Remaining Balance: ${fmt(remaining)}`;
+        }
+     } catch(e) {
+        nextAmount = remaining;
+        nextType = 'instalment';
+        descText = `Remaining Balance: ${fmt(remaining)}`;
+     }
+  } 
+  else {
+     nextAmount = remaining;
+     nextType = 'full';
+     note = 'Full Payment';
+     descText = `Remaining Balance: <b>${fmt(remaining)}</b>`;
+  }
+
+  suggBox.style.display = 'block';
+  suggTitle.innerHTML = '<i class="ti ti-bulb"></i> Suggested Payment';
+  suggDesc.innerHTML = descText + `<div style="margin-top:4px;font-size:11px;color:var(--color-text-secondary)">Total outstanding for this course: ${fmt(remaining)}</div>`;
+  
+  amtInput.value = parseFloat(nextAmount).toFixed(2);
+  typeInput.value = nextType;
+  noteInput.value = note;
+}
+
 function saveCourse(){
   const name = document.getElementById('c-name').value.trim();
   const start = document.getElementById('c-start').value;
@@ -462,8 +550,7 @@ function saveCourse(){
 
 function saveStudent(){
   const courseId = document.getElementById('s-course').value;
-  const firstName = document.getElementById('s-first').value.trim();
-  const lastName = document.getElementById('s-last').value.trim();
+  const fullName = document.getElementById('s-fullname').value.trim();
   const email = document.getElementById('s-email').value.trim();
   const phone = document.getElementById('s-phone').value;
   const priceType = document.getElementById('s-priceType').value;
@@ -471,7 +558,7 @@ function saveStudent(){
   const depositAmount = parseFloat(document.getElementById('s-depositAmount').value) || 0;
   const depositDate = document.getElementById('s-depositDate').value;
   
-  if(!courseId||!firstName||!lastName||!email) return alert('Course, Name, and Email are required.');
+  if(!courseId||!fullName||!email) return alert('Course, Full Name, and Email are required.');
   
   const course = S.courses.find(c=>c.id===courseId);
   const totalFee = course ? (priceType === 'early_bird' ? course.feeEarly : course.feeNormal) : 0;
@@ -486,10 +573,10 @@ function saveStudent(){
   }
 
   if (editStudentId) {
-    const obj = { id: editStudentId, courseId, firstName, lastName, email, phone, priceType, totalFee, depositAmount, depositDate, paymentType: payType, instalmentPlan: JSON.stringify(instalmentPlan) };
+    const obj = { id: editStudentId, courseId, fullName, email, phone, priceType, totalFee, depositAmount, depositDate, paymentType: payType, instalmentPlan: JSON.stringify(instalmentPlan) };
     pushData('updateStudent', obj);
   } else {
-    const obj = { id: uid(), courseId, firstName, lastName, email, phone, priceType, totalFee, depositAmount, depositDate, paymentType: payType, instalmentPlan: JSON.stringify(instalmentPlan) };
+    const obj = { id: uid(), courseId, fullName, email, phone, priceType, totalFee, depositAmount, depositDate, paymentType: payType, instalmentPlan: JSON.stringify(instalmentPlan) };
     pushData('addStudent', obj);
   }
   closeM('mStudent');
@@ -585,9 +672,13 @@ function renderStudents(){
     const total = Number(s.totalFee||0);
     const pct = total>0?Math.round(paid/total*100):100;
     const barCls = pct>=100?'':pct<50?'danger':'warn';
-    const initials = (s.firstName[0]||'')+(s.lastName[0]||'');
+    
+    // İsmin baş harflerini (Initials) hesaplayan yeni kod
+    const nameParts = (s.fullName||'').trim().split(' ');
+    const initials = (nameParts[0]?.[0]||'') + (nameParts.length>1 ? nameParts[nameParts.length-1][0] : '');
+    
     const course = getCourse(s.courseId);
-    return `<div class="student-row" onclick="showStudentDetail('${s.id}')"><div class="avatar ${avCls[i%3]}">${initials.toUpperCase()}</div><div class="student-info"><div class="student-name">${s.firstName} ${s.lastName}</div><div class="student-sub">${course?course.name:'—'} · <span style="color:${s.priceType==='early_bird'?'var(--color-brand)':'inherit'}">${s.priceType==='early_bird'?'Early Bird':'Normal'}</span></div></div><div class="pay-summary"><div class="pay-amount ${pct>=100?'g':pct<50?'r':'a'}">${fmt(paid)} / ${fmt(total)}</div><div class="pay-label">Total Fee</div><div class="bar-bg"><div class="bar-fill ${barCls}" style="width:${Math.min(100,pct)}%"></div></div></div></div>`;
+    return `<div class="student-row" onclick="showStudentDetail('${s.id}')"><div class="avatar ${avCls[i%3]}">${initials.toUpperCase()}</div><div class="student-info"><div class="student-name">${s.fullName}</div><div class="student-sub">${course?course.name:'—'} · <span style="color:${s.priceType==='early_bird'?'var(--color-brand)':'inherit'}">${s.priceType==='early_bird'?'Early Bird':'Normal'}</span></div></div><div class="pay-summary"><div class="pay-amount ${pct>=100?'g':pct<50?'r':'a'}">${fmt(paid)} / ${fmt(total)}</div><div class="pay-label">Total Fee</div><div class="bar-bg"><div class="bar-fill ${barCls}" style="width:${Math.min(100,pct)}%"></div></div></div></div>`;
   }).join('')}</div>`;
 }
 
@@ -610,7 +701,7 @@ function showStudentDetail(sId){
     } catch(e) {}
   }
   
-  document.getElementById('sd-title').innerHTML = `<i class="ti ti-user"></i> ${s.firstName} ${s.lastName}`;
+  document.getElementById('sd-title').innerHTML = `<i class="ti ti-user"></i> ${s.fullName}`;
   document.getElementById('sd-body').innerHTML = `
     <div class="detail-panel">
       <div class="detail-grid">
@@ -632,11 +723,10 @@ function showStudentDetail(sId){
       <div class="payment-entry"><div><span style="font-weight:600; font-size:14px">${fmt(p.amount)}</span><span class="chip ${p.type==='deposit'?'amber':p.type==='full'?'teal':'blue'}" style="margin-left:8px;font-size:10px">${p.type}</span></div><div style="text-align:right;color:var(--color-text-secondary)">${p.date||'—'}${p.note?' · '+p.note:''}</div></div>`).join('')}</div>`:'<div style="font-size:13px;color:var(--color-text-secondary);padding:10px 0;text-align:center;background:#f9fafb;border-radius:8px">No payments recorded yet.</div>'}
   `;
   
-  // Footer güncelleniyor (Edit butonu eklendi)
   document.getElementById('sd-footer').innerHTML = `
     <button class="btn ghost" onclick="closeM('mStudentDetail')">Close</button>
     <button class="btn" onclick="closeM('mStudentDetail'); openM('mStudent', '${s.id}')"><i class="ti ti-edit"></i> Edit</button>
-    <button class="btn primary" onclick="closeM('mStudentDetail'); openM('mPayment')"><i class="ti ti-plus"></i> Payment</button>
+    <button class="btn primary" onclick="closeM('mStudentDetail'); openM('mPayment', null, '${s.id}')"><i class="ti ti-plus"></i> Payment</button>
   `;
   
   openM('mStudentDetail');
@@ -649,7 +739,7 @@ function renderPayments(){
   box.innerHTML = `<div class="card" style="padding:4px 16px">${sorted.map(p=>{
     const s = S.students.find(x=>x.id===p.studentId);
     const clr = p.type==='deposit'?'amber':p.type==='full'?'teal':'blue';
-    return `<div class="payment-entry"><div><span style="font-weight:600">${s?s.firstName+' '+s.lastName:'—'}</span><span class="chip ${clr}" style="margin-left:8px;font-size:10px">${p.type}</span>${p.note?`<div style="font-size:12px;color:var(--color-text-secondary);margin-top:4px">${p.note}</div>`:''}</div><div style="display:flex;align-items:center;gap:12px"><span style="font-weight:600;color:var(--color-brand);font-size:14px">+${fmt(p.amount)}</span><span style="font-size:12px;color:var(--color-text-secondary)">${p.date||'—'}</span></div></div>`;
+    return `<div class="payment-entry"><div><span style="font-weight:600">${s?s.fullName:'—'}</span><span class="chip ${clr}" style="margin-left:8px;font-size:10px">${p.type}</span>${p.note?`<div style="font-size:12px;color:var(--color-text-secondary);margin-top:4px">${p.note}</div>`:''}</div><div style="display:flex;align-items:center;gap:12px"><span style="font-weight:600;color:var(--color-brand);font-size:14px">+${fmt(p.amount)}</span><span style="font-size:12px;color:var(--color-text-secondary)">${p.date||'—'}</span></div></div>`;
   }).join('')}</div>`;
 }
 
