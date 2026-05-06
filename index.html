@@ -1,0 +1,564 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD HTML 4.01//EN" "http://www.w3.org/TR/html4/strict.dtd">
+<html>
+<head>
+  <meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+  <meta http-equiv="Content-Style-Type" content="text/css">
+  <title></title>
+  <meta name="Generator" content="Cocoa HTML Writer">
+  <meta name="CocoaVersion" content="2685.4">
+  <style type="text/css">
+    p.p1 {margin: 0.0px 0.0px 0.0px 0.0px; font: 12.0px Times; -webkit-text-stroke: #000000}
+    p.p2 {margin: 0.0px 0.0px 0.0px 0.0px; font: 12.0px Times; -webkit-text-stroke: #000000; min-height: 14.0px}
+    span.s1 {font-kerning: none}
+  </style>
+</head>
+<body>
+<p class="p1"><span class="s1">&lt;style&gt;</span></p>
+<p class="p1"><span class="s1">/* CSS kodlarınız aynen kalıyor... İçeriği şişirmemek için bu aralığı aynı kabul ediyorum. Sadece alt kısımlardaki HTML/JS'yi değiştiriyoruz. */</span></p>
+<p class="p1"><span class="s1">*{box-sizing:border-box;margin:0;padding:0}</span></p>
+<p class="p1"><span class="s1">.app{font-family:var(--font-sans);font-size:14px;color:var(--color-text-primary)}</span></p>
+<p class="p1"><span class="s1">.topbar{display:flex;align-items:center;justify-content:space-between;padding:12px 16px;border-bottom:0.5px solid var(--color-border-tertiary);background:var(--color-background-primary)}</span></p>
+<p class="p1"><span class="s1">.topbar-left{display:flex;align-items:center;gap:10px}</span></p>
+<p class="p1"><span class="s1">.topbar h1{font-size:15px;font-weight:500}</span></p>
+<p class="p1"><span class="s1">.sync-badge{display:inline-flex;align-items:center;gap:5px;font-size:11px;padding:3px 9px;border-radius:20px;background:var(--color-background-secondary);color:var(--color-text-secondary);border:0.5px solid var(--color-border-tertiary)}</span></p>
+<p class="p1"><span class="s1">.tabs{display:flex;gap:1px;padding:0 16px;border-bottom:0.5px solid var(--color-border-tertiary);background:var(--color-background-secondary)}</span></p>
+<p class="p1"><span class="s1">.tab{padding:10px 14px;font-size:13px;border:none;background:none;cursor:pointer;color:var(--color-text-secondary);border-bottom:2px solid transparent;display:flex;align-items:center;gap:6px}</span></p>
+<p class="p1"><span class="s1">.tab.active{color:var(--color-text-primary);font-weight:500;border-bottom-color:#1D9E75;background:var(--color-background-primary)}</span></p>
+<p class="p1"><span class="s1">.panel{padding:16px}</span></p>
+<p class="p1"><span class="s1">.sec{display:none}.sec.active{display:block}</span></p>
+<p class="p1"><span class="s1">.stats-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(130px,1fr));gap:10px;margin-bottom:16px}</span></p>
+<p class="p1"><span class="s1">.stat{background:var(--color-background-secondary);border-radius:var(--border-radius-md);padding:12px}</span></p>
+<p class="p1"><span class="s1">.stat .lbl{font-size:11px;color:var(--color-text-secondary);letter-spacing:.04em;text-transform:uppercase;margin-bottom:4px}</span></p>
+<p class="p1"><span class="s1">.stat .val{font-size:20px;font-weight:500}</span></p>
+<p class="p1"><span class="s1">.val.g{color:#1D9E75}.val.b{color:#378ADD}.val.a{color:#BA7517}.val.r{color:#A32D2D}</span></p>
+<p class="p1"><span class="s1">.card{background:var(--color-background-primary);border:0.5px solid var(--color-border-tertiary);border-radius:var(--border-radius-lg);padding:14px;margin-bottom:10px}</span></p>
+<p class="p1"><span class="s1">.card-hd{display:flex;align-items:flex-start;justify-content:space-between;margin-bottom:10px}</span></p>
+<p class="p1"><span class="s1">.card-title{font-size:14px;font-weight:500}</span></p>
+<p class="p1"><span class="s1">.card-sub{font-size:12px;color:var(--color-text-secondary);margin-top:2px}</span></p>
+<p class="p1"><span class="s1">.btn{display:inline-flex;align-items:center;gap:6px;padding:7px 12px;font-size:13px;border-radius:var(--border-radius-md);cursor:pointer;border:0.5px solid var(--color-border-secondary);background:var(--color-background-primary);color:var(--color-text-primary)}</span></p>
+<p class="p1"><span class="s1">.btn:hover{background:var(--color-background-secondary)}</span></p>
+<p class="p1"><span class="s1">.btn.primary{background:#1D9E75;color:#fff;border-color:#1D9E75}</span></p>
+<p class="p1"><span class="s1">.btn.primary:hover{background:#085041}</span></p>
+<p class="p1"><span class="s1">.btn.sm{padding:4px 9px;font-size:12px}</span></p>
+<p class="p1"><span class="s1">.btn.ghost{border-color:transparent;padding:4px 6px}</span></p>
+<p class="p1"><span class="s1">.row-actions{display:flex;gap:4px}</span></p>
+<p class="p1"><span class="s1">.chip{display:inline-flex;align-items:center;gap:4px;padding:3px 9px;border-radius:20px;font-size:11px;font-weight:500}</span></p>
+<p class="p1"><span class="s1">.chip.teal{background:#E1F5EE;color:#085041;border:0.5px solid #9FE1CB}</span></p>
+<p class="p1"><span class="s1">.chip.blue{background:#E6F1FB;color:#0C447C;border:0.5px solid #B5D4F4}</span></p>
+<p class="p1"><span class="s1">.chip.amber{background:#FAEEDA;color:#633806;border:0.5px solid #FAC775}</span></p>
+<p class="p1"><span class="s1">.chip.red{background:#FCEBEB;color:#791F1F;border:0.5px solid #F7C1C1}</span></p>
+<p class="p1"><span class="s1">.chip.gray{background:var(--color-background-secondary);color:var(--color-text-secondary);border:0.5px solid var(--color-border-secondary)}</span></p>
+<p class="p1"><span class="s1">.meta-row{display:flex;gap:14px;flex-wrap:wrap;font-size:12px;color:var(--color-text-secondary)}</span></p>
+<p class="p1"><span class="s1">.meta-row span{display:flex;align-items:center;gap:4px}</span></p>
+<p class="p1"><span class="s1">.bar-bg{height:5px;background:var(--color-background-secondary);border-radius:3px;margin-top:6px}</span></p>
+<p class="p1"><span class="s1">.bar-fill{height:5px;border-radius:3px;background:#1D9E75;transition:width .3s}</span></p>
+<p class="p1"><span class="s1">.bar-fill.warn{background:#BA7517}</span></p>
+<p class="p1"><span class="s1">.bar-fill.danger{background:#A32D2D}</span></p>
+<p class="p1"><span class="s1">.avatar{width:30px;height:30px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:500;flex-shrink:0}</span></p>
+<p class="p1"><span class="s1">.av-t{background:#E1F5EE;color:#085041}</span></p>
+<p class="p1"><span class="s1">.av-b{background:#E6F1FB;color:#0C447C}</span></p>
+<p class="p1"><span class="s1">.av-a{background:#FAEEDA;color:#633806}</span></p>
+<p class="p1"><span class="s1">.student-row{display:flex;align-items:center;gap:10px;padding:8px 0;border-bottom:0.5px solid var(--color-border-tertiary);cursor:pointer}</span></p>
+<p class="p1"><span class="s1">.student-row:last-child{border-bottom:none}</span></p>
+<p class="p1"><span class="s1">.student-row:hover{background:var(--color-background-secondary);margin:0 -14px;padding:8px 14px}</span></p>
+<p class="p1"><span class="s1">.student-info{flex:1;min-width:0}</span></p>
+<p class="p1"><span class="s1">.student-name{font-size:13px;font-weight:500;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}</span></p>
+<p class="p1"><span class="s1">.student-sub{font-size:11px;color:var(--color-text-secondary)}</span></p>
+<p class="p1"><span class="s1">.pay-summary{flex:0 0 110px;text-align:right}</span></p>
+<p class="p1"><span class="s1">.pay-amount{font-size:12px;font-weight:500}</span></p>
+<p class="p1"><span class="s1">.pay-label{font-size:10px;color:var(--color-text-secondary)}</span></p>
+<p class="p1"><span class="s1">.payment-entry{display:flex;align-items:center;justify-content:space-between;padding:7px 0;border-bottom:0.5px solid var(--color-border-tertiary);font-size:12px}</span></p>
+<p class="p1"><span class="s1">.payment-entry:last-child{border-bottom:none}</span></p>
+<p class="p1"><span class="s1">.empty{text-align:center;padding:36px 16px;color:var(--color-text-secondary);font-size:13px}</span></p>
+<p class="p1"><span class="s1">.empty i{font-size:30px;display:block;margin-bottom:8px;opacity:.5}</span></p>
+<p class="p1"><span class="s1">.modal-wrap{display:none;position:fixed;inset:0;background:rgba(0,0,0,.45);z-index:200;align-items:flex-start;justify-content:center;padding-top:40px}</span></p>
+<p class="p1"><span class="s1">.modal-wrap.open{display:flex}</span></p>
+<p class="p1"><span class="s1">.modal{background:var(--color-background-primary);border-radius:var(--border-radius-lg);padding:20px;width:420px;max-width:96vw;border:0.5px solid var(--color-border-secondary);max-height:90vh;overflow-y:auto}</span></p>
+<p class="p1"><span class="s1">.modal h2{font-size:15px;font-weight:500;margin-bottom:16px;display:flex;align-items:center;gap:8px}</span></p>
+<p class="p1"><span class="s1">.modal-footer{display:flex;justify-content:flex-end;gap:8px;margin-top:16px;padding-top:12px;border-top:0.5px solid var(--color-border-tertiary)}</span></p>
+<p class="p1"><span class="s1">.fg{display:flex;flex-direction:column;gap:4px;margin-bottom:12px}</span></p>
+<p class="p1"><span class="s1">.fg label{font-size:12px;color:var(--color-text-secondary)}</span></p>
+<p class="p1"><span class="s1">.fg input,.fg select,.fg textarea{width:100%;padding:7px 10px;font-size:13px;border:0.5px solid var(--color-border-secondary);border-radius:var(--border-radius-md);background:var(--color-background-primary);color:var(--color-text-primary)}</span></p>
+<p class="p1"><span class="s1">.fg textarea{resize:vertical;min-height:60px}</span></p>
+<p class="p1"><span class="s1">.form-2col{display:grid;grid-template-columns:1fr 1fr;gap:10px}</span></p>
+<p class="p1"><span class="s1">.section-hd{display:flex;align-items:center;justify-content:space-between;margin-bottom:12px}</span></p>
+<p class="p1"><span class="s1">.section-hd h3{font-size:14px;font-weight:500}</span></p>
+<p class="p1"><span class="s1">.detail-panel{background:var(--color-background-secondary);border-radius:var(--border-radius-md);padding:12px;margin-bottom:10px}</span></p>
+<p class="p1"><span class="s1">.detail-grid{display:grid;grid-template-columns:1fr 1fr;gap:6px 14px;font-size:12px}</span></p>
+<p class="p1"><span class="s1">.detail-grid .dk{color:var(--color-text-secondary)}</span></p>
+<p class="p1"><span class="s1">.detail-grid .dv{font-weight:500}</span></p>
+<p class="p1"><span class="s1">.deadline-chip{font-size:11px;padding:2px 7px;border-radius:4px}</span></p>
+<p class="p1"><span class="s1">.overdue{background:#FCEBEB;color:#791F1F}</span></p>
+<p class="p1"><span class="s1">.upcoming{background:#FAEEDA;color:#633806}</span></p>
+<p class="p1"><span class="s1">.ok{background:#E1F5EE;color:#085041}</span></p>
+<p class="p1"><span class="s1">.divider{border:none;border-top:0.5px solid var(--color-border-tertiary);margin:12px 0}</span></p>
+<p class="p1"><span class="s1">&lt;/style&gt;</span></p>
+<p class="p2"><span class="s1"></span><br></p>
+<p class="p1"><span class="s1">&lt;div class="app"&gt;</span></p>
+<p class="p2"><span class="s1"></span><br></p>
+<p class="p1"><span class="s1">&lt;div class="topbar"&gt;</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">  </span>&lt;div class="topbar-left"&gt;</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">    </span>&lt;i class="ti ti-school" style="font-size:18px;color:#1D9E75" aria-hidden="true"&gt;&lt;/i&gt;</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">    </span>&lt;h1&gt;Course Manager&lt;/h1&gt;</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">  </span>&lt;/div&gt;</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">  </span>&lt;div style="display:flex;align-items:center;gap:8px"&gt;</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">    </span>&lt;span class="sync-badge" id="syncBadge"&gt;&lt;i class="ti ti-cloud-off"&gt;&lt;/i&gt; Not connected&lt;/span&gt;</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">    </span>&lt;button class="btn sm" onclick="openM('mSettings')"&gt;&lt;i class="ti ti-settings" aria-hidden="true"&gt;&lt;/i&gt; Settings&lt;/button&gt;</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">  </span>&lt;/div&gt;</span></p>
+<p class="p1"><span class="s1">&lt;/div&gt;</span></p>
+<p class="p2"><span class="s1"></span><br></p>
+<p class="p1"><span class="s1">&lt;div class="tabs"&gt;</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">  </span>&lt;button class="tab active" onclick="goTab('dashboard')"&gt;&lt;i class="ti ti-layout-dashboard"&gt;&lt;/i&gt; Overview&lt;/button&gt;</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">  </span>&lt;button class="tab" onclick="goTab('courses')"&gt;&lt;i class="ti ti-books"&gt;&lt;/i&gt; Courses&lt;/button&gt;</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">  </span>&lt;button class="tab" onclick="goTab('students')"&gt;&lt;i class="ti ti-users"&gt;&lt;/i&gt; Students&lt;/button&gt;</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">  </span>&lt;button class="tab" onclick="goTab('payments')"&gt;&lt;i class="ti ti-coin"&gt;&lt;/i&gt; Payments&lt;/button&gt;</span></p>
+<p class="p1"><span class="s1">&lt;/div&gt;</span></p>
+<p class="p2"><span class="s1"></span><br></p>
+<p class="p1"><span class="s1">&lt;div class="panel"&gt;</span></p>
+<p class="p2"><span class="s1"></span><br></p>
+<p class="p1"><span class="s1">&lt;div class="sec active" id="sec-dashboard"&gt;</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">  </span>&lt;div class="stats-grid" id="statsGrid"&gt;</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">    </span>&lt;div class="stat"&gt;&lt;div class="lbl"&gt;Courses&lt;/div&gt;&lt;div class="val b" id="st-courses"&gt;0&lt;/div&gt;&lt;/div&gt;</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">    </span>&lt;div class="stat"&gt;&lt;div class="lbl"&gt;Students&lt;/div&gt;&lt;div class="val g" id="st-students"&gt;0&lt;/div&gt;&lt;/div&gt;</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">    </span>&lt;div class="stat"&gt;&lt;div class="lbl"&gt;Total collected&lt;/div&gt;&lt;div class="val g" id="st-collected"&gt;$0&lt;/div&gt;&lt;/div&gt;</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">    </span>&lt;div class="stat"&gt;&lt;div class="lbl"&gt;Outstanding&lt;/div&gt;&lt;div class="val a" id="st-outstanding"&gt;$0&lt;/div&gt;&lt;/div&gt;</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">  </span>&lt;/div&gt;</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">  </span>&lt;div id="dashContent"&gt;&lt;/div&gt;</span></p>
+<p class="p1"><span class="s1">&lt;/div&gt;</span></p>
+<p class="p2"><span class="s1"></span><br></p>
+<p class="p1"><span class="s1">&lt;div class="sec" id="sec-courses"&gt;</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">  </span>&lt;div class="section-hd"&gt;</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">    </span>&lt;h3&gt;All courses&lt;/h3&gt;</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">    </span>&lt;button class="btn primary" onclick="openM('mCourse')"&gt;&lt;i class="ti ti-plus"&gt;&lt;/i&gt; New course&lt;/button&gt;</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">  </span>&lt;/div&gt;</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">  </span>&lt;div id="courseList"&gt;&lt;/div&gt;</span></p>
+<p class="p1"><span class="s1">&lt;/div&gt;</span></p>
+<p class="p2"><span class="s1"></span><br></p>
+<p class="p1"><span class="s1">&lt;div class="sec" id="sec-students"&gt;</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">  </span>&lt;div class="section-hd"&gt;</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">    </span>&lt;h3&gt;All students&lt;/h3&gt;</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">    </span>&lt;button class="btn primary" onclick="openM('mStudent')"&gt;&lt;i class="ti ti-user-plus"&gt;&lt;/i&gt; Add student&lt;/button&gt;</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">  </span>&lt;/div&gt;</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">  </span>&lt;div id="studentList"&gt;&lt;/div&gt;</span></p>
+<p class="p1"><span class="s1">&lt;/div&gt;</span></p>
+<p class="p2"><span class="s1"></span><br></p>
+<p class="p1"><span class="s1">&lt;div class="sec" id="sec-payments"&gt;</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">  </span>&lt;div class="section-hd"&gt;</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">    </span>&lt;h3&gt;Payment log&lt;/h3&gt;</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">    </span>&lt;button class="btn primary" onclick="openM('mPayment')"&gt;&lt;i class="ti ti-plus"&gt;&lt;/i&gt; Record payment&lt;/button&gt;</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">  </span>&lt;/div&gt;</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">  </span>&lt;div id="paymentList"&gt;&lt;/div&gt;</span></p>
+<p class="p1"><span class="s1">&lt;/div&gt;</span></p>
+<p class="p2"><span class="s1"></span><br></p>
+<p class="p1"><span class="s1">&lt;/div&gt;</span></p>
+<p class="p1"><span class="s1">&lt;/div&gt;</span></p>
+<p class="p2"><span class="s1"></span><br></p>
+<p class="p1"><span class="s1">&lt;!-- Modal: Ayarlar --&gt;</span></p>
+<p class="p1"><span class="s1">&lt;div class="modal-wrap" id="mSettings"&gt;</span></p>
+<p class="p1"><span class="s1">&lt;div class="modal"&gt;</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">  </span>&lt;h2&gt;&lt;i class="ti ti-settings"&gt;&lt;/i&gt; Google Sheets connection&lt;/h2&gt;</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">  </span>&lt;div class="fg"&gt;&lt;label&gt;Web App URL&lt;/label&gt;&lt;input id="cfgUrl" type="url" placeholder="https://script.google.com/macros/s/.../exec" /&gt;&lt;/div&gt;</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">  </span>&lt;div class="fg"&gt;&lt;label&gt;Currency symbol&lt;/label&gt;&lt;input id="cfgCurrency" value="$" style="width:60px" /&gt;&lt;/div&gt;</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">  </span>&lt;div class="modal-footer"&gt;</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">    </span>&lt;button class="btn" onclick="closeM('mSettings')"&gt;Cancel&lt;/button&gt;</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">    </span>&lt;button class="btn primary" onclick="saveSettings()"&gt;Save &amp;amp; sync&lt;/button&gt;</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">  </span>&lt;/div&gt;</span></p>
+<p class="p1"><span class="s1">&lt;/div&gt;</span></p>
+<p class="p1"><span class="s1">&lt;/div&gt;</span></p>
+<p class="p2"><span class="s1"></span><br></p>
+<p class="p1"><span class="s1">&lt;!-- Modal: Yeni Kurs Ekleme --&gt;</span></p>
+<p class="p1"><span class="s1">&lt;div class="modal-wrap" id="mCourse"&gt;</span></p>
+<p class="p1"><span class="s1">&lt;div class="modal"&gt;</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">  </span>&lt;h2&gt;&lt;i class="ti ti-books"&gt;&lt;/i&gt; New course&lt;/h2&gt;</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">  </span>&lt;div class="fg"&gt;&lt;label&gt;Course name *&lt;/label&gt;&lt;input id="c-name" placeholder="e.g. Beginner Guitar" /&gt;&lt;/div&gt;</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">  </span>&lt;div class="form-2col"&gt;</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">    </span>&lt;div class="fg"&gt;&lt;label&gt;Start date&lt;/label&gt;&lt;input type="date" id="c-start" /&gt;&lt;/div&gt;</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">    </span>&lt;div class="fg"&gt;&lt;label&gt;End date&lt;/label&gt;&lt;input type="date" id="c-end" /&gt;&lt;/div&gt;</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">  </span>&lt;/div&gt;</span></p>
+<p class="p2"><span class="s1"><span class="Apple-converted-space">  </span></span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">  </span>&lt;!-- YENİ: İki farklı fiyat girdisi --&gt;</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">  </span>&lt;div class="form-2col"&gt;</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">    </span>&lt;div class="fg"&gt;&lt;label&gt;Normal Fee *&lt;/label&gt;&lt;input type="number" id="c-feeNormal" placeholder="1500" /&gt;&lt;/div&gt;</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">    </span>&lt;div class="fg"&gt;&lt;label&gt;Early Bird Fee *&lt;/label&gt;&lt;input type="number" id="c-feeEarly" placeholder="1200" /&gt;&lt;/div&gt;</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">  </span>&lt;/div&gt;</span></p>
+<p class="p2"><span class="s1"></span><br></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">  </span>&lt;div class="form-2col"&gt;</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">    </span>&lt;div class="fg"&gt;&lt;label&gt;Deposit amount&lt;/label&gt;&lt;input type="number" id="c-deposit" placeholder="300" /&gt;&lt;/div&gt;</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">    </span>&lt;div class="fg"&gt;&lt;label&gt;Capacity&lt;/label&gt;&lt;input type="number" id="c-capacity" placeholder="12" /&gt;&lt;/div&gt;</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">  </span>&lt;/div&gt;</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">  </span>&lt;div class="modal-footer"&gt;</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">    </span>&lt;button class="btn" onclick="closeM('mCourse')"&gt;Cancel&lt;/button&gt;</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">    </span>&lt;button class="btn primary" onclick="saveCourse()"&gt;Create course&lt;/button&gt;</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">  </span>&lt;/div&gt;</span></p>
+<p class="p1"><span class="s1">&lt;/div&gt;</span></p>
+<p class="p1"><span class="s1">&lt;/div&gt;</span></p>
+<p class="p2"><span class="s1"></span><br></p>
+<p class="p1"><span class="s1">&lt;!-- Modal: Öğrenci Ekleme --&gt;</span></p>
+<p class="p1"><span class="s1">&lt;div class="modal-wrap" id="mStudent"&gt;</span></p>
+<p class="p1"><span class="s1">&lt;div class="modal"&gt;</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">  </span>&lt;h2&gt;&lt;i class="ti ti-user-plus"&gt;&lt;/i&gt; Enroll student&lt;/h2&gt;</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">  </span>&lt;div class="fg"&gt;&lt;label&gt;Course *&lt;/label&gt;&lt;select id="s-course"&gt;&lt;option value=""&gt;Select course…&lt;/option&gt;&lt;/select&gt;&lt;/div&gt;</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">  </span>&lt;div class="form-2col"&gt;</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">    </span>&lt;div class="fg"&gt;&lt;label&gt;First name *&lt;/label&gt;&lt;input id="s-first" placeholder="Jane" /&gt;&lt;/div&gt;</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">    </span>&lt;div class="fg"&gt;&lt;label&gt;Last name *&lt;/label&gt;&lt;input id="s-last" placeholder="Smith" /&gt;&lt;/div&gt;</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">  </span>&lt;/div&gt;</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">  </span>&lt;div class="form-2col"&gt;</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">    </span>&lt;div class="fg"&gt;&lt;label&gt;Email *&lt;/label&gt;&lt;input type="email" id="s-email" placeholder="jane@email.com" /&gt;&lt;/div&gt;</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">    </span>&lt;div class="fg"&gt;&lt;label&gt;Phone&lt;/label&gt;&lt;input id="s-phone" placeholder="+1 555 000 0000" /&gt;&lt;/div&gt;</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">  </span>&lt;/div&gt;</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">  </span>&lt;hr class="divider"&gt;</span></p>
+<p class="p2"><span class="s1"><span class="Apple-converted-space">  </span></span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">  </span>&lt;div style="font-size:13px;font-weight:500;margin-bottom:10px;color:var(--color-text-secondary)"&gt;Payment Details&lt;/div&gt;</span></p>
+<p class="p2"><span class="s1"><span class="Apple-converted-space">  </span></span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">  </span>&lt;!-- YENİ: Fiyat tipi seçimi --&gt;</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">  </span>&lt;div class="fg"&gt;</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">    </span>&lt;label&gt;Price Tier *&lt;/label&gt;</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">    </span>&lt;select id="s-priceType"&gt;</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">      </span>&lt;option value="normal"&gt;Normal Price&lt;/option&gt;</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">      </span>&lt;option value="early_bird"&gt;Early Bird Price&lt;/option&gt;</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">    </span>&lt;/select&gt;</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">  </span>&lt;/div&gt;</span></p>
+<p class="p2"><span class="s1"></span><br></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">  </span>&lt;div class="fg"&gt;&lt;label&gt;Payment Plan *&lt;/label&gt;</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">    </span>&lt;select id="s-payType" onchange="toggleInstalment()"&gt;</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">      </span>&lt;option value="one-time"&gt;One-time (full amount)&lt;/option&gt;</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">      </span>&lt;option value="instalment"&gt;Instalment plan&lt;/option&gt;</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">    </span>&lt;/select&gt;</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">  </span>&lt;/div&gt;</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">  </span>&lt;div class="modal-footer"&gt;</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">    </span>&lt;button class="btn" onclick="closeM('mStudent')"&gt;Cancel&lt;/button&gt;</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">    </span>&lt;button class="btn primary" onclick="saveStudent()"&gt;Enroll&lt;/button&gt;</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">  </span>&lt;/div&gt;</span></p>
+<p class="p1"><span class="s1">&lt;/div&gt;</span></p>
+<p class="p1"><span class="s1">&lt;/div&gt;</span></p>
+<p class="p2"><span class="s1"></span><br></p>
+<p class="p1"><span class="s1">&lt;!-- Modal: Ödeme Kaydı --&gt;</span></p>
+<p class="p1"><span class="s1">&lt;div class="modal-wrap" id="mPayment"&gt;</span></p>
+<p class="p1"><span class="s1">&lt;div class="modal"&gt;</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">  </span>&lt;h2&gt;&lt;i class="ti ti-coin"&gt;&lt;/i&gt; Record payment&lt;/h2&gt;</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">  </span>&lt;div class="fg"&gt;&lt;label&gt;Student *&lt;/label&gt;&lt;select id="p-student"&gt;&lt;option value=""&gt;Select student…&lt;/option&gt;&lt;/select&gt;&lt;/div&gt;</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">  </span>&lt;div class="form-2col"&gt;</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">    </span>&lt;div class="fg"&gt;&lt;label&gt;Amount *&lt;/label&gt;&lt;input type="number" id="p-amount" placeholder="500" /&gt;&lt;/div&gt;</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">    </span>&lt;div class="fg"&gt;&lt;label&gt;Date *&lt;/label&gt;&lt;input type="date" id="p-date" /&gt;&lt;/div&gt;</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">  </span>&lt;/div&gt;</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">  </span>&lt;div class="fg"&gt;&lt;label&gt;Type&lt;/label&gt;</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">    </span>&lt;select id="p-type"&gt;</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">      </span>&lt;option value="deposit"&gt;Deposit&lt;/option&gt;</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">      </span>&lt;option value="instalment"&gt;Instalment&lt;/option&gt;</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">      </span>&lt;option value="full"&gt;Full payment&lt;/option&gt;</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">      </span>&lt;option value="other"&gt;Other&lt;/option&gt;</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">    </span>&lt;/select&gt;</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">  </span>&lt;/div&gt;</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">  </span>&lt;div class="fg"&gt;&lt;label&gt;Note (optional)&lt;/label&gt;&lt;input id="p-note" placeholder="e.g. Cash payment" /&gt;&lt;/div&gt;</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">  </span>&lt;div class="modal-footer"&gt;</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">    </span>&lt;button class="btn" onclick="closeM('mPayment')"&gt;Cancel&lt;/button&gt;</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">    </span>&lt;button class="btn primary" onclick="savePayment()"&gt;Save payment&lt;/button&gt;</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">  </span>&lt;/div&gt;</span></p>
+<p class="p1"><span class="s1">&lt;/div&gt;</span></p>
+<p class="p1"><span class="s1">&lt;/div&gt;</span></p>
+<p class="p2"><span class="s1"></span><br></p>
+<p class="p1"><span class="s1">&lt;!-- Modal: Öğrenci Detayları --&gt;</span></p>
+<p class="p1"><span class="s1">&lt;div class="modal-wrap" id="mStudentDetail"&gt;</span></p>
+<p class="p1"><span class="s1">&lt;div class="modal"&gt;</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">  </span>&lt;h2 id="sd-title"&gt;&lt;i class="ti ti-user"&gt;&lt;/i&gt; Student detail&lt;/h2&gt;</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">  </span>&lt;div id="sd-body"&gt;&lt;/div&gt;</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">  </span>&lt;div class="modal-footer"&gt;</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">    </span>&lt;button class="btn" onclick="closeM('mStudentDetail')"&gt;Close&lt;/button&gt;</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">    </span>&lt;button class="btn primary" onclick="closeM('mStudentDetail');openM('mPayment')"&gt;&lt;i class="ti ti-plus"&gt;&lt;/i&gt; Add payment&lt;/button&gt;</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">  </span>&lt;/div&gt;</span></p>
+<p class="p1"><span class="s1">&lt;/div&gt;</span></p>
+<p class="p1"><span class="s1">&lt;/div&gt;</span></p>
+<p class="p2"><span class="s1"></span><br></p>
+<p class="p1"><span class="s1">&lt;script&gt;</span></p>
+<p class="p1"><span class="s1">let S = { courses:[], students:[], payments:[] };</span></p>
+<p class="p1"><span class="s1">let cfg = { url:'', currency:'$' };</span></p>
+<p class="p1"><span class="s1">try { const c = JSON.parse(localStorage.getItem('cmCfg')||'{}'); cfg = {...cfg,...c}; } catch(e){}</span></p>
+<p class="p2"><span class="s1"></span><br></p>
+<p class="p1"><span class="s1">const fmt = n =&gt; cfg.currency + Number(n||0).toLocaleString('en-US');</span></p>
+<p class="p1"><span class="s1">const today = () =&gt; new Date().toISOString().split('T')[0];</span></p>
+<p class="p1"><span class="s1">const uid = () =&gt; Date.now().toString(36) + Math.random().toString(36).slice(2,6);</span></p>
+<p class="p2"><span class="s1"></span><br></p>
+<p class="p1"><span class="s1">function goTab(name){</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">  </span>document.querySelectorAll('.tab').forEach((t,i)=&gt;{</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">    </span>t.classList.toggle('active',['dashboard','courses','students','payments'][i]===name);</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">  </span>});</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">  </span>document.querySelectorAll('.sec').forEach(s=&gt;s.classList.remove('active'));</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">  </span>document.getElementById('sec-'+name).classList.add('active');</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">  </span>render();</span></p>
+<p class="p1"><span class="s1">}</span></p>
+<p class="p2"><span class="s1"></span><br></p>
+<p class="p1"><span class="s1">function openM(id){</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">  </span>if(id==='mStudent'){ fillCourseSelect(); }</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">  </span>if(id==='mPayment'){ fillStudentSelect(); document.getElementById('p-date').value=today(); }</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">  </span>if(id==='mSettings'){ document.getElementById('cfgUrl').value=cfg.url; document.getElementById('cfgCurrency').value=cfg.currency; }</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">  </span>document.getElementById(id).classList.add('open');</span></p>
+<p class="p1"><span class="s1">}</span></p>
+<p class="p1"><span class="s1">function closeM(id){ document.getElementById(id).classList.remove('open'); }</span></p>
+<p class="p2"><span class="s1"></span><br></p>
+<p class="p1"><span class="s1">function fillCourseSelect(){</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">  </span>const el = document.getElementById('s-course');</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">  </span>el.innerHTML='&lt;option value=""&gt;Select course…&lt;/option&gt;';</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">  </span>S.courses.forEach(c=&gt;el.innerHTML+=`&lt;option value="${c.id}"&gt;${c.name}&lt;/option&gt;`);</span></p>
+<p class="p1"><span class="s1">}</span></p>
+<p class="p1"><span class="s1">function fillStudentSelect(){</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">  </span>const el = document.getElementById('p-student');</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">  </span>el.innerHTML='&lt;option value=""&gt;Select student…&lt;/option&gt;';</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">  </span>S.students.forEach(s=&gt;el.innerHTML+=`&lt;option value="${s.id}"&gt;${s.firstName} ${s.lastName}&lt;/option&gt;`);</span></p>
+<p class="p1"><span class="s1">}</span></p>
+<p class="p2"><span class="s1"></span><br></p>
+<p class="p1"><span class="s1">function saveSettings(){</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">  </span>cfg.url = document.getElementById('cfgUrl').value.trim();</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">  </span>cfg.currency = document.getElementById('cfgCurrency').value.trim() || '$';</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">  </span>localStorage.setItem('cmCfg', JSON.stringify(cfg));</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">  </span>closeM('mSettings');</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">  </span>if(cfg.url) syncSheets();</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">  </span>else render();</span></p>
+<p class="p1"><span class="s1">}</span></p>
+<p class="p2"><span class="s1"></span><br></p>
+<p class="p1"><span class="s1">function saveCourse(){</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">  </span>const name = document.getElementById('c-name').value.trim();</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">  </span>const feeNormal = parseFloat(document.getElementById('c-feeNormal').value);</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">  </span>const feeEarly = parseFloat(document.getElementById('c-feeEarly').value);</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">  </span>const deposit = parseFloat(document.getElementById('c-deposit').value);</span></p>
+<p class="p2"><span class="s1"><span class="Apple-converted-space">  </span></span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">  </span>if(!name || !feeNormal || !feeEarly) return alert('Course name, Normal Fee, and Early Bird Fee are required.');</span></p>
+<p class="p2"><span class="s1"><span class="Apple-converted-space">  </span></span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">  </span>const obj = {<span class="Apple-converted-space"> </span></span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">    </span>id: uid(),<span class="Apple-converted-space"> </span></span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">    </span>name,<span class="Apple-converted-space"> </span></span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">    </span>start: document.getElementById('c-start').value,<span class="Apple-converted-space"> </span></span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">    </span>end: document.getElementById('c-end').value,<span class="Apple-converted-space"> </span></span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">    </span>feeNormal,<span class="Apple-converted-space"> </span></span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">    </span>feeEarly,</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">    </span>deposit: deposit || 0,<span class="Apple-converted-space"> </span></span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">    </span>capacity: parseInt(document.getElementById('c-capacity').value) || 0<span class="Apple-converted-space"> </span></span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">  </span>};</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">  </span>pushData('addCourse', obj);</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">  </span>closeM('mCourse');</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">  </span>['c-name','c-start','c-end','c-feeNormal','c-feeEarly','c-deposit','c-capacity'].forEach(id=&gt;document.getElementById(id).value='');</span></p>
+<p class="p1"><span class="s1">}</span></p>
+<p class="p2"><span class="s1"></span><br></p>
+<p class="p1"><span class="s1">function saveStudent(){</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">  </span>const courseId = document.getElementById('s-course').value;</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">  </span>const firstName = document.getElementById('s-first').value.trim();</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">  </span>const lastName = document.getElementById('s-last').value.trim();</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">  </span>const email = document.getElementById('s-email').value.trim();</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">  </span>const priceType = document.getElementById('s-priceType').value;</span></p>
+<p class="p2"><span class="s1"><span class="Apple-converted-space">  </span></span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">  </span>if(!courseId||!firstName||!lastName||!email) return alert('Course, name, and email are required.');</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">  </span>const course = S.courses.find(c=&gt;c.id===courseId);</span></p>
+<p class="p2"><span class="s1"><span class="Apple-converted-space">  </span></span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">  </span>// Seçime göre toplam ücreti belirle</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">  </span>const totalFee = course ? (priceType === 'early_bird' ? course.feeEarly : course.feeNormal) : 0;</span></p>
+<p class="p2"><span class="s1"></span><br></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">  </span>const obj = {<span class="Apple-converted-space"> </span></span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">    </span>id: uid(),<span class="Apple-converted-space"> </span></span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">    </span>courseId,<span class="Apple-converted-space"> </span></span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">    </span>firstName,<span class="Apple-converted-space"> </span></span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">    </span>lastName,<span class="Apple-converted-space"> </span></span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">    </span>email,<span class="Apple-converted-space"> </span></span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">    </span>phone: document.getElementById('s-phone').value,<span class="Apple-converted-space"> </span></span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">    </span>paymentType: document.getElementById('s-payType').value,<span class="Apple-converted-space"> </span></span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">    </span>priceType: priceType,</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">    </span>totalFee: totalFee</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">  </span>};</span></p>
+<p class="p2"><span class="s1"><span class="Apple-converted-space">  </span></span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">  </span>pushData('addStudent', obj);</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">  </span>closeM('mStudent');</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">  </span>['s-first','s-last','s-email','s-phone'].forEach(id=&gt;document.getElementById(id).value='');</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">  </span>document.getElementById('s-course').value='';</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">  </span>document.getElementById('s-priceType').value='normal';</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">  </span>document.getElementById('s-payType').value='one-time';</span></p>
+<p class="p1"><span class="s1">}</span></p>
+<p class="p2"><span class="s1"></span><br></p>
+<p class="p1"><span class="s1">function savePayment(){</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">  </span>const studentId = document.getElementById('p-student').value;</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">  </span>const amount = parseFloat(document.getElementById('p-amount').value);</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">  </span>if(!studentId||!amount) return alert('Student and amount are required.');</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">  </span>const obj = { id:uid(), studentId, amount, date:document.getElementById('p-date').value, type:document.getElementById('p-type').value, note:document.getElementById('p-note').value };</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">  </span>pushData('addPayment', obj);</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">  </span>closeM('mPayment');</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">  </span>['p-amount','p-note'].forEach(id=&gt;document.getElementById(id).value='');</span></p>
+<p class="p1"><span class="s1">}</span></p>
+<p class="p2"><span class="s1"></span><br></p>
+<p class="p1"><span class="s1">function pushData(action, payload){</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">  </span>if(action==='addCourse') S.courses.push(payload);</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">  </span>if(action==='addStudent') S.students.push(payload);</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">  </span>if(action==='addPayment') S.payments.push(payload);</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">  </span>render();</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">  </span>if(!cfg.url) return;</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">  </span>fetch(cfg.url,{method:'POST',body:JSON.stringify({action,payload})}).catch(()=&gt;{});</span></p>
+<p class="p1"><span class="s1">}</span></p>
+<p class="p2"><span class="s1"></span><br></p>
+<p class="p1"><span class="s1">async function syncSheets(){</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">  </span>setBadge('loading');</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">  </span>try{</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">    </span>const r = await fetch(cfg.url+'?action=getAll');</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">    </span>const d = await r.json();</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">    </span>S = { courses:d.courses||[], students:d.students||[], payments:d.payments||[] };</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">    </span>setBadge('ok');</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">  </span>}catch(e){ setBadge('error'); }</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">  </span>render();</span></p>
+<p class="p1"><span class="s1">}</span></p>
+<p class="p2"><span class="s1"></span><br></p>
+<p class="p1"><span class="s1">function setBadge(s){</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">  </span>const el = document.getElementById('syncBadge');</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">  </span>if(s==='ok') el.innerHTML='&lt;i class="ti ti-cloud-check" style="color:#1D9E75"&gt;&lt;/i&gt; Synced';</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">  </span>else if(s==='error') el.innerHTML='&lt;i class="ti ti-cloud-x" style="color:#A32D2D"&gt;&lt;/i&gt; Sync error';</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">  </span>else el.innerHTML='&lt;i class="ti ti-refresh" style="animation:spin 1s linear infinite"&gt;&lt;/i&gt; Syncing…';</span></p>
+<p class="p1"><span class="s1">}</span></p>
+<p class="p2"><span class="s1"></span><br></p>
+<p class="p1"><span class="s1">function getStudentPaid(sId){ return S.payments.filter(p=&gt;p.studentId===sId).reduce((a,p)=&gt;a+Number(p.amount),0); }</span></p>
+<p class="p1"><span class="s1">function getCourse(id){ return S.courses.find(c=&gt;c.id===id); }</span></p>
+<p class="p2"><span class="s1"></span><br></p>
+<p class="p1"><span class="s1">function render(){</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">  </span>renderStats();</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">  </span>renderDash();</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">  </span>renderCourses();</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">  </span>renderStudents();</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">  </span>renderPayments();</span></p>
+<p class="p1"><span class="s1">}</span></p>
+<p class="p2"><span class="s1"></span><br></p>
+<p class="p1"><span class="s1">function renderStats(){</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">  </span>const enrolled = S.students.length;</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">  </span>const collected = S.payments.reduce((a,p)=&gt;a+Number(p.amount),0);</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">  </span>const outstanding = S.students.reduce((a,s)=&gt;{</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">    </span>const paid = getStudentPaid(s.id);</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">    </span>return a + Math.max(0, Number(s.totalFee||0)-paid);</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">  </span>},0);</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">  </span>document.getElementById('st-courses').textContent = S.courses.length;</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">  </span>document.getElementById('st-students').textContent = enrolled;</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">  </span>document.getElementById('st-collected').textContent = fmt(collected);</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">  </span>document.getElementById('st-outstanding').textContent = fmt(outstanding);</span></p>
+<p class="p1"><span class="s1">}</span></p>
+<p class="p2"><span class="s1"></span><br></p>
+<p class="p1"><span class="s1">function renderDash(){</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">  </span>const box = document.getElementById('dashContent');</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">  </span>if(!S.courses.length){ box.innerHTML='&lt;div class="empty"&gt;&lt;i class="ti ti-books"&gt;&lt;/i&gt;No courses yet.&lt;/div&gt;'; return; }</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">  </span>box.innerHTML = S.courses.map(c=&gt;{</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">    </span>const studs = S.students.filter(s=&gt;s.courseId===c.id);</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">    </span>const totalDue = studs.reduce((a,s)=&gt;a+Number(s.totalFee||0),0);</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">    </span>const totalPaid = studs.reduce((a,s)=&gt;a+getStudentPaid(s.id),0);</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">    </span>const pct = totalDue&gt;0?Math.round(totalPaid/totalDue*100):0;</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">    </span>const barCls = pct&gt;=100?'':pct&lt;50?'danger':'warn';</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">    </span>return `&lt;div class="card"&gt;</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">      </span>&lt;div class="card-hd"&gt;</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">        </span>&lt;div&gt;&lt;div class="card-title"&gt;${c.name}&lt;/div&gt;&lt;div class="card-sub"&gt;${studs.length} student(s)&lt;/div&gt;&lt;/div&gt;</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">        </span>&lt;span class="chip ${pct&gt;=100?'teal':pct&gt;=50?'amber':'red'}"&gt;${pct}% collected&lt;/span&gt;</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">      </span>&lt;/div&gt;</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">      </span>&lt;div style="display:flex;justify-content:space-between;font-size:11px;color:var(--color-text-secondary);margin-bottom:2px"&gt;</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">        </span>&lt;span&gt;${fmt(totalPaid)} paid&lt;/span&gt;&lt;span&gt;${fmt(totalDue-totalPaid)} remaining&lt;/span&gt;</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">      </span>&lt;/div&gt;</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">      </span>&lt;div class="bar-bg"&gt;&lt;div class="bar-fill ${barCls}" style="width:${Math.min(100,pct)}%"&gt;&lt;/div&gt;&lt;/div&gt;</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">    </span>&lt;/div&gt;`;</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">  </span>}).join('');</span></p>
+<p class="p1"><span class="s1">}</span></p>
+<p class="p2"><span class="s1"></span><br></p>
+<p class="p1"><span class="s1">function renderCourses(){</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">  </span>const box = document.getElementById('courseList');</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">  </span>if(!S.courses.length){ box.innerHTML='&lt;div class="empty"&gt;&lt;i class="ti ti-books"&gt;&lt;/i&gt;No courses yet.&lt;/div&gt;'; return; }</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">  </span>box.innerHTML = S.courses.map((c,i)=&gt;{</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">    </span>const studs = S.students.filter(s=&gt;s.courseId===c.id).length;</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">    </span>const clr = ['teal','blue','amber'][i%3];</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">    </span>return `&lt;div class="card"&gt;</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">      </span>&lt;div class="card-hd"&gt;</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">        </span>&lt;div&gt;&lt;div class="card-title"&gt;${c.name}&lt;/div&gt;&lt;div class="card-sub"&gt;${c.start||'—'} → ${c.end||'—'}&lt;/div&gt;&lt;/div&gt;</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">        </span>&lt;span class="chip ${clr}"&gt;${studs}${c.capacity?'/'+c.capacity:''} students&lt;/span&gt;</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">      </span>&lt;/div&gt;</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">      </span>&lt;div class="meta-row"&gt;</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">        </span>&lt;span&gt;&lt;i class="ti ti-coin"&gt;&lt;/i&gt; Normal: ${fmt(c.feeNormal)}&lt;/span&gt;</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">        </span>&lt;span&gt;&lt;i class="ti ti-discount-check"&gt;&lt;/i&gt; Early Bird: ${fmt(c.feeEarly)}&lt;/span&gt;</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">      </span>&lt;/div&gt;</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">    </span>&lt;/div&gt;`;</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">  </span>}).join('');</span></p>
+<p class="p1"><span class="s1">}</span></p>
+<p class="p2"><span class="s1"></span><br></p>
+<p class="p1"><span class="s1">function renderStudents(){</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">  </span>const box = document.getElementById('studentList');</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">  </span>if(!S.students.length){ box.innerHTML='&lt;div class="empty"&gt;&lt;i class="ti ti-users"&gt;&lt;/i&gt;No students enrolled yet.&lt;/div&gt;'; return; }</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">  </span>const avCls = ['av-t','av-b','av-a'];</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">  </span>box.innerHTML = `&lt;div class="card" style="padding:14px"&gt;${S.students.map((s,i)=&gt;{</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">    </span>const paid = getStudentPaid(s.id);</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">    </span>const total = Number(s.totalFee||0);</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">    </span>const pct = total&gt;0?Math.round(paid/total*100):100;</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">    </span>const barCls = pct&gt;=100?'':pct&lt;50?'danger':'warn';</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">    </span>const initials = (s.firstName[0]||'')+(s.lastName[0]||'');</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">    </span>const course = getCourse(s.courseId);</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">    </span>return `&lt;div class="student-row" onclick="showStudentDetail('${s.id}')"&gt;</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">      </span>&lt;div class="avatar ${avCls[i%3]}"&gt;${initials}&lt;/div&gt;</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">      </span>&lt;div class="student-info"&gt;</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">        </span>&lt;div class="student-name"&gt;${s.firstName} ${s.lastName}&lt;/div&gt;</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">        </span>&lt;div class="student-sub"&gt;${course?course.name:'—'} · ${s.priceType==='early_bird'?'Early Bird':'Normal'}&lt;/div&gt;</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">      </span>&lt;/div&gt;</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">      </span>&lt;div class="pay-summary"&gt;</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">        </span>&lt;div class="pay-amount ${pct&gt;=100?'g':pct&lt;50?'r':'a'}"&gt;${fmt(paid)} / ${fmt(total)}&lt;/div&gt;</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">        </span>&lt;div class="pay-label"&gt;Total Fee&lt;/div&gt;</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">        </span>&lt;div class="bar-bg"&gt;&lt;div class="bar-fill ${barCls}" style="width:${Math.min(100,pct)}%"&gt;&lt;/div&gt;&lt;/div&gt;</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">      </span>&lt;/div&gt;</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">    </span>&lt;/div&gt;`;</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">  </span>}).join('')}&lt;/div&gt;`;</span></p>
+<p class="p1"><span class="s1">}</span></p>
+<p class="p2"><span class="s1"></span><br></p>
+<p class="p1"><span class="s1">function showStudentDetail(sId){</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">  </span>const s = S.students.find(x=&gt;x.id===sId);</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">  </span>if(!s) return;</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">  </span>const course = getCourse(s.courseId);</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">  </span>const paid = getStudentPaid(s.id);</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">  </span>const remaining = Math.max(0,Number(s.totalFee||0)-paid);</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">  </span>const payments = S.payments.filter(p=&gt;p.studentId===sId).sort((a,b)=&gt;(b.date||'').localeCompare(a.date||''));</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">  </span>document.getElementById('sd-title').innerHTML = `&lt;i class="ti ti-user"&gt;&lt;/i&gt; ${s.firstName} ${s.lastName}`;</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">  </span>document.getElementById('sd-body').innerHTML = `</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">    </span>&lt;div class="detail-panel"&gt;</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">      </span>&lt;div class="detail-grid"&gt;</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">        </span>&lt;span class="dk"&gt;Course&lt;/span&gt;&lt;span class="dv"&gt;${course?course.name:'—'}&lt;/span&gt;</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">        </span>&lt;span class="dk"&gt;Email&lt;/span&gt;&lt;span class="dv"&gt;${s.email}&lt;/span&gt;</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">        </span>&lt;span class="dk"&gt;Phone&lt;/span&gt;&lt;span class="dv"&gt;${s.phone||'—'}&lt;/span&gt;</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">        </span>&lt;span class="dk"&gt;Price Tier&lt;/span&gt;&lt;span class="dv" style="color:#1D9E75"&gt;${s.priceType==='early_bird'?'Early Bird Price':'Normal Price'}&lt;/span&gt;</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">      </span>&lt;/div&gt;</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">    </span>&lt;/div&gt;</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">    </span>&lt;div class="stats-grid" style="margin-bottom:12px"&gt;</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">      </span>&lt;div class="stat"&gt;&lt;div class="lbl"&gt;Total fee&lt;/div&gt;&lt;div class="val b"&gt;${fmt(s.totalFee)}&lt;/div&gt;&lt;/div&gt;</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">      </span>&lt;div class="stat"&gt;&lt;div class="lbl"&gt;Paid&lt;/div&gt;&lt;div class="val g"&gt;${fmt(paid)}&lt;/div&gt;&lt;/div&gt;</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">      </span>&lt;div class="stat"&gt;&lt;div class="lbl"&gt;Remaining&lt;/div&gt;&lt;div class="val ${remaining&gt;0?'r':'g'}"&gt;${fmt(remaining)}&lt;/div&gt;&lt;/div&gt;</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">    </span>&lt;/div&gt;</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">    </span>&lt;div style="font-size:13px;font-weight:500;margin-bottom:8px"&gt;Payment history&lt;/div&gt;</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">    </span>${payments.length?`&lt;div class="card" style="padding:10px 14px"&gt;${payments.map(p=&gt;`</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">      </span>&lt;div class="payment-entry"&gt;</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">        </span>&lt;div&gt;</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">          </span>&lt;span style="font-weight:500"&gt;${fmt(p.amount)}&lt;/span&gt;</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">          </span>&lt;span class="chip ${p.type==='deposit'?'amber':p.type==='full'?'teal':'blue'}" style="margin-left:6px;font-size:10px"&gt;${p.type}&lt;/span&gt;</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">        </span>&lt;/div&gt;</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">        </span>&lt;div style="text-align:right;color:var(--color-text-secondary)"&gt;${p.date||'—'}${p.note?' · '+p.note:''}&lt;/div&gt;</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">      </span>&lt;/div&gt;`).join('')}&lt;/div&gt;`:'&lt;div style="font-size:12px;color:var(--color-text-secondary);padding:8px 0"&gt;No payments recorded yet.&lt;/div&gt;'}</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">  </span>`;</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">  </span>openM('mStudentDetail');</span></p>
+<p class="p1"><span class="s1">}</span></p>
+<p class="p2"><span class="s1"></span><br></p>
+<p class="p1"><span class="s1">function renderPayments(){</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">  </span>const box = document.getElementById('paymentList');</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">  </span>if(!S.payments.length){ box.innerHTML='&lt;div class="empty"&gt;&lt;i class="ti ti-coin"&gt;&lt;/i&gt;No payments recorded yet.&lt;/div&gt;'; return; }</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">  </span>const sorted = [...S.payments].sort((a,b)=&gt;(b.date||'').localeCompare(a.date||''));</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">  </span>box.innerHTML = `&lt;div class="card" style="padding:10px 14px"&gt;${sorted.map(p=&gt;{</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">    </span>const s = S.students.find(x=&gt;x.id===p.studentId);</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">    </span>const clr = p.type==='deposit'?'amber':p.type==='full'?'teal':'blue';</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">    </span>return `&lt;div class="payment-entry"&gt;</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">      </span>&lt;div&gt;</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">        </span>&lt;span style="font-weight:500"&gt;${s?s.firstName+' '+s.lastName:'—'}&lt;/span&gt;</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">        </span>&lt;span class="chip ${clr}" style="margin-left:6px;font-size:10px"&gt;${p.type}&lt;/span&gt;</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">        </span>${p.note?`&lt;span style="font-size:11px;color:var(--color-text-secondary);margin-left:4px"&gt;${p.note}&lt;/span&gt;`:''}</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">      </span>&lt;/div&gt;</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">      </span>&lt;div style="display:flex;align-items:center;gap:10px"&gt;</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">        </span>&lt;span style="font-weight:500;color:#1D9E75"&gt;+${fmt(p.amount)}&lt;/span&gt;</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">        </span>&lt;span style="font-size:11px;color:var(--color-text-secondary)"&gt;${p.date||'—'}&lt;/span&gt;</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">      </span>&lt;/div&gt;</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">    </span>&lt;/div&gt;`;</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">  </span>}).join('')}&lt;/div&gt;`;</span></p>
+<p class="p1"><span class="s1">}</span></p>
+<p class="p2"><span class="s1"></span><br></p>
+<p class="p1"><span class="s1">if(cfg.url){ syncSheets(); } else { render(); }</span></p>
+<p class="p1"><span class="s1">const s=document.createElement('style');</span></p>
+<p class="p1"><span class="s1">s.textContent='@keyframes spin{from{transform:rotate(0)}to{transform:rotate(360deg)}}';</span></p>
+<p class="p1"><span class="s1">document.head.appendChild(s);</span></p>
+<p class="p1"><span class="s1">&lt;/script&gt;</span></p>
+</body>
+</html>
