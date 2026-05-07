@@ -58,7 +58,7 @@ const formatDate = dateStr => {
 };
 
 const getStatusBadge = statusId => {
-  const colors = { active: 'teal', completed: 'blue', draft: 'amber', cancelled: 'red' };
+  const colors = { open: 'green', completed: 'blue', draft: 'amber', cancelled: 'red' };
   const st = (S.generalStatus || []).find(s => s.id == statusId);
   const label     = st ? st.name : (statusId || 'Unknown');
   const colorCode = st ? st.code : 'blue';
