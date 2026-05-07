@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Course Management System - v2.3.0</title>
+    <title>Course Management System</title>
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@latest/tabler-icons.min.css">
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="style.css">
@@ -20,7 +20,7 @@
     <div id="login-err" style="color: #ef4444; font-size: 13px; margin-bottom: 12px; display: none;">Invalid credentials.</div>
     <button class="btn primary" style="width: 100%; justify-content: center; padding: 12px;" id="l-btn" onclick="handleLogin()">Sign In</button>
     <div style="margin-top: 24px; text-align: center;">
-      <span style="font-size: 11px; color: var(--color-text-secondary);">v2.3.0 Advanced</span>
+      <span style="font-size: 11px; color: var(--color-text-secondary);">v2.4.0 Stable</span>
       <div id="loginSyncBadge" class="sync-badge" style="margin-top:8px;"><i class="ti ti-loader"></i> Syncing...</div>
     </div>
   </div>
@@ -58,7 +58,7 @@
       </div>
 
       <div class="sec" id="sec-students">
-        <div class="section-hd"><h3>Student Database</h3><input type="text" id="s-search" placeholder="Search students..." onkeyup="renderStudents()"></div>
+        <div class="section-hd"><h3>Student Database</h3><input type="text" id="s-search" placeholder="Search students..." onkeyup="renderStudents()" style="padding:8px; border:1px solid #ccc; border-radius:4px;"></div>
         <div id="studentDBList"></div>
       </div>
 
@@ -93,10 +93,21 @@
   <div class="modal-footer"><button class="btn" onclick="closeM('mCourse')">Cancel</button><button class="btn primary" id="btn-save-course" onclick="saveCourse()">Save</button></div>
 </div></div>
 
+<div class="modal-wrap" id="mStudentEdit"><div class="modal">
+  <h2>Edit Student Profile</h2>
+  <div class="fg"><label>Full name *</label><input type="text" id="se-fullname"></div>
+  <div class="form-2col">
+    <div class="fg"><label>Email *</label><input type="email" id="se-email"></div>
+    <div class="fg"><label>Phone</label><input type="text" id="se-phone"></div>
+  </div>
+  <div class="modal-footer"><button class="btn" onclick="closeM('mStudentEdit')">Cancel</button><button class="btn primary" id="btn-save-st" onclick="saveStudentIdentity()">Update</button></div>
+</div></div>
+
 <div class="modal-wrap" id="mEnrollment"><div class="modal">
-  <h2>Enroll Student</h2>
+  <h2 id="modal-title-enrollment">Enroll Student</h2>
   <div class="fg"><label>Course *</label><select id="e-course" onchange="updateInstalments()"></select></div>
-  <div class="fg">
+  
+  <div class="fg" id="e-type-box">
     <label>Student Type</label>
     <div style="display:flex; gap:16px;">
       <label><input type="radio" name="eType" value="existing" onchange="toggleStudentMode()" checked> Existing</label>
@@ -106,7 +117,7 @@
 
   <div id="e-existing-box" class="fg">
     <label>Search Existing Student *</label>
-    <input type="text" id="e-search-input" list="student-datalist" placeholder="Type name to search..." onchange="captureSelectedStudent()">
+    <input type="text" id="e-search-input" list="student-datalist" placeholder="Type name..." onchange="captureSelectedStudent()">
     <datalist id="student-datalist"></datalist>
     <input type="hidden" id="e-selected-student-id">
   </div>
@@ -134,6 +145,26 @@
     <div id="dynamic-instalments"></div>
   </div>
   <div class="modal-footer"><button class="btn" onclick="closeM('mEnrollment')">Cancel</button><button class="btn primary" id="btn-save-enrollment" onclick="saveEnrollment()">Enroll</button></div>
+</div></div>
+
+<div class="modal-wrap" id="mPayment"><div class="modal">
+  <h2>Record Payment</h2>
+  <div class="fg"><label>Student *</label><select id="p-student" onchange="loadStudentCourses()"></select></div>
+  <div class="fg" id="p-course-box" style="display:none;"><label>Course *</label><select id="p-course" onchange="calculatePaymentSuggestion()"></select></div>
+  <div id="smart-suggestion" class="smart-suggestion"><div class="s-title" id="ss-title"></div><div class="s-desc" id="ss-desc"></div></div>
+  <div class="form-2col">
+    <div class="fg"><label>Amount (€) *</label><input type="number" id="p-amount"></div>
+    <div class="fg"><label>Date *</label><input type="date" id="p-date"></div>
+  </div>
+  <div class="fg"><label>Type</label><select id="p-type"><option value="deposit">Deposit</option><option value="instalment">Instalment</option><option value="full">Full</option><option value="other">Other</option></select></div>
+  <div class="fg"><label>Note</label><input type="text" id="p-note"></div>
+  <div class="modal-footer"><button class="btn" onclick="closeM('mPayment')">Cancel</button><button class="btn primary" id="btn-save-payment" onclick="savePayment()">Save</button></div>
+</div></div>
+
+<div class="modal-wrap" id="mStudentDetail"><div class="modal">
+  <h2 id="sd-title">Enrollment Detail</h2>
+  <div id="sd-body"></div>
+  <div class="modal-footer" id="sd-footer"></div>
 </div></div>
 
 </body>
