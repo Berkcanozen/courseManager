@@ -234,6 +234,26 @@ body { background-color: #f9fafb; font-family: var(--font-sans); }
 .smart-suggestion.success .s-title { color: #047857; }
 .smart-suggestion.success .s-desc  { color: #059669; }
 
+/* ── TOGGLE GROUP (student type selector) ── */
+.toggle-group {
+  display: flex; gap: 0; border: 1px solid var(--color-border-secondary);
+  border-radius: var(--border-radius-md); overflow: hidden; margin-top: 2px;
+}
+.toggle-btn {
+  flex: 1; padding: 9px 14px; font-size: 13px; font-weight: 500;
+  border: none; background: var(--color-background-primary);
+  color: var(--color-text-secondary); cursor: pointer;
+  display: flex; align-items: center; justify-content: center; gap: 6px;
+  transition: background .15s, color .15s;
+  -webkit-appearance: none; appearance: none;
+}
+.toggle-btn:first-child { border-right: 1px solid var(--color-border-secondary); }
+.toggle-btn:hover { background: var(--color-background-secondary); color: var(--color-text-primary); }
+.toggle-btn.active {
+  background: #ecfdf5; color: #047857;
+  font-weight: 600;
+}
+
 /* ── ANIMATIONS ── */
 @keyframes spin { from { transform: rotate(0); } to { transform: rotate(360deg); } }
 .ti-loader { animation: spin 1s linear infinite; display: inline-block; }
