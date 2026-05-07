@@ -105,7 +105,8 @@ function renderCourses(){
   box.innerHTML = S.courses.map((c,i)=>{
     const studs = S.students.filter(s=>s.courseId===c.id).length;
     const clr = ['teal','blue','amber'][i%3];
-    return `<div class="card"><div class="card-hd"><div><div class="card-title">${c.name}</div><div class="card-sub">${formatDate(c.start)} to ${formatDate(c.end)}</div></div><div style="display:flex;gap:6px;align-items:center"><span class="chip ${clr}">${studs}${c.capacity?'/'+c.capacity:''} Students</span><button class="btn ghost sm" onclick="openM('mCourse', '${c.id}')"><i class="ti ti-edit" style="font-size:16px"></i></button></div></div><div class="meta-row"><span><i class="ti ti-tag"></i> Normal: ${fmt(c.feeNormal)}</span><span><i class="ti ti-discount-check" style="color:var(--color-brand)"></i> Early Bird: ${fmt(c.feeEarly)}</span></div></div>`;
+    // DÜZELTME BURADA YAPILDI (c.startDate ve c.endDate)
+    return `<div class="card"><div class="card-hd"><div><div class="card-title">${c.name}</div><div class="card-sub">${formatDate(c.startDate)} to ${formatDate(c.endDate)}</div></div><div style="display:flex;gap:6px;align-items:center"><span class="chip ${clr}">${studs}${c.capacity?'/'+c.capacity:''} Students</span><button class="btn ghost sm" onclick="openM('mCourse', '${c.id}')"><i class="ti ti-edit" style="font-size:16px"></i></button></div></div><div class="meta-row"><span><i class="ti ti-tag"></i> Normal: ${fmt(c.feeNormal)}</span><span><i class="ti ti-discount-check" style="color:var(--color-brand)"></i> Early Bird: ${fmt(c.feeEarly)}</span></div></div>`;
   }).join('');
 }
 
@@ -153,9 +154,13 @@ function openM(id, editId = null, extraParam = null){
       document.getElementById('modal-title-course').innerHTML = '<i class="ti ti-edit"></i> Edit Course';
       document.getElementById('btn-save-course').textContent = 'Update Course';
       const c = S.courses.find(x => x.id === editId);
-      document.getElementById('c-name').value = c.name; document.getElementById('c-start').value = c.start || ''; document.getElementById('c-end').value = c.end || '';
-      document.getElementById('c-feeNormal').value = c.feeNormal; document.getElementById('c-feeEarly').value = c.feeEarly;
-      document.getElementById('c-deposit').value = c.deposit || ''; document.getElementById('c-capacity').value = c.capacity || '';
+      document.getElementById('c-name').value = c.name; 
+      document.getElementById('c-start').value = c.startDate || ''; // DÜZELTME BURADA YAPILDI
+      document.getElementById('c-end').value = c.endDate || '';     // DÜZELTME BURADA YAPILDI
+      document.getElementById('c-feeNormal').value = c.feeNormal; 
+      document.getElementById('c-feeEarly').value = c.feeEarly;
+      document.getElementById('c-deposit').value = c.deposit || ''; 
+      document.getElementById('c-capacity').value = c.capacity || '';
     } else {
       editCourseId = null;
       document.getElementById('modal-title-course').innerHTML = '<i class="ti ti-books"></i> New Course';
@@ -209,13 +214,10 @@ function openM(id, editId = null, extraParam = null){
   document.getElementById(id).classList.add('open');
 }
 
-function showStudentDetail(sId){
-  const s = S.students.find(x=>x.id===sId);
-  if(!s) return;
+function showStudentDetail(sid) {
+  const s = S.students.find(x=>x.id===sid), paid = getStudentPaid(sid), rem = Number(s.totalFee) - paid;
   const course = getCourse(s.courseId);
-  const paid = getStudentPaid(s.id);
-  const remaining = Math.max(0,Number(s.totalFee||0)-paid);
-  const payments = S.payments.filter(p=>p.studentId===sId).sort((a,b)=>(b.date||'').localeCompare(a.date||''));
+  const payments = S.payments.filter(p=>p.studentId===sid).sort((a,b)=>(b.date||'').localeCompare(a.date||''));
   
   let planHtml = '';
   if (s.paymentType === 'instalment' && s.instalmentPlan) {
@@ -243,7 +245,7 @@ function showStudentDetail(sId){
     <div class="stats-grid" style="margin-bottom:16px">
       <div class="stat"><div class="lbl">Total Fee</div><div class="val b">${fmt(s.totalFee)}</div></div>
       <div class="stat"><div class="lbl">Paid</div><div class="val g">${fmt(paid)}</div></div>
-      <div class="stat"><div class="lbl">Remaining</div><div class="val ${remaining>0?'r':'g'}">${fmt(remaining)}</div></div>
+      <div class="stat"><div class="lbl">Remaining</div><div class="val ${rem>0?'r':'g'}">${fmt(rem)}</div></div>
     </div>
     <div style="font-size:14px;font-weight:600;margin-bottom:12px;color:#111827">Payment History</div>
     ${payments.length?`<div class="card" style="padding:4px 16px">${payments.map(p=>`
@@ -284,7 +286,7 @@ function updateInstalments() {
   if (num > 0) {
     const amountPerInst = (remaining / num).toFixed(2);
     for (let i = 1; i <= num; i++) {
-      container.innerHTML += `<div class="form-2col dynamic-row"><div class="fg"><label>Instalment ${i} Amount (€)</label><input type="number" class="inst-amount" value="${amountPerInst}"></div><div class="fg"><label>Instalment ${i} Date</label><input type="date" class="inst-date"></div></div>`;
+      container.innerHTML += `<div class="form-2col dynamic-row"><div class="fg"><label>Instalment ${i} Amount (€)</label><input type="number" class="inst-amount" value="${amountPerInst}"></div><div class="fg"><label>Instalment ${i} Date</label><input type="date" class="inst-date" onclick="try{this.showPicker()}catch(e){}"></div></div>`;
     }
   }
 }
@@ -354,7 +356,7 @@ async function saveCourse(){
   const name = document.getElementById('c-name').value.trim();
   if(!name) return alert('Course name is required.');
   
-  const p = { id: editCourseId||uid(), name, start: document.getElementById('c-start').value, end: document.getElementById('c-end').value, feeNormal: document.getElementById('c-feeNormal').value, feeEarly: document.getElementById('c-feeEarly').value, deposit: document.getElementById('c-deposit').value, capacity: document.getElementById('c-capacity').value };
+  const p = { id: editCourseId||uid(), name, startDate: document.getElementById('c-start').value, endDate: document.getElementById('c-end').value, feeNormal: document.getElementById('c-feeNormal').value, feeEarly: document.getElementById('c-feeEarly').value, deposit: document.getElementById('c-deposit').value, capacity: document.getElementById('c-capacity').value };
   
   await fetch(cfg.url, { method:'POST', body: JSON.stringify({ action: editCourseId?'updateCourse':'addCourse', payload: p, currentUser }) });
   closeM('mCourse'); syncSheets();
