@@ -6,7 +6,7 @@
 let S = { courses:[], students:[], enrollments:[], payments:[], generalStatus:[] };
 
 // DİKKAT: BURAYA KENDİ GOOGLE APPS SCRIPT URL'Nİ YAPIŞTIR!
-let cfg = { url: 'https://script.google.com/macros/s/AKfycbxndr1dMS3PJlKPGB9d0KylW9oSkCz61sWjls2DX5yYOULPnIFdguUED-8Jy9662V-1kQ/exec', currency: '€' };
+let cfg = { url: 'https://script.google.com/macros/s/AKfycby_M0RzCqlXogBlwdI6BI0dsQc65Eouv_9ENg2rzdlzz6X-oOdJibkpEUs0ggkf6wAIuQ/exec', currency: '€' };
 
 let editCourseId = null;
 let editEnrollmentId = null;
