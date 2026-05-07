@@ -1,113 +1,65 @@
-Here is a comprehensive and professional README.md file for your project in English. You can create a new file named README.md in your GitHub repository and paste this directly.
+# 🏫 Meisner Studio - Course Management System (v2.0.0)
 
-Markdown
+A professional, modular, and relational course management application. This version (v2.0.0) introduces a relational database model allowing students to enroll in multiple courses with independent payment plans and tracking.
 
-# 🏫 Meisner Studio - Course Management System
+![Version](https://img.shields.io/badge/version-2.0.0-blue.svg)
+![Architecture](https://img.shields.io/badge/architecture-Relational--Serverless-success.svg)
 
-A lightweight, modular, and serverless web application designed to manage courses, enroll students, and track payments. The application uses **Google Sheets** as a database and **Google Apps Script** as the backend API.
+## 🚀 Key Updates in v2.0.0
 
-![Version](https://img.shields.io/badge/version-1.7.0-blue.svg)
-![Architecture](https://img.shields.io/badge/architecture-Serverless-success.svg)
+* **Relational Data Model:** Moved from a flat structure to a relational model (`Students`, `Courses`, `Enrollments`, and `Payments`).
+* **Multi-Course Enrollment:** A single student can now be enrolled in multiple different courses. Each enrollment has its own independent price tier, deposit, and instalment plan.
+* **New Enrollment Workflow:** When adding a student to a course, the system asks whether they are a **New Student** or an **Existing Student**, preventing duplicate records.
+* **Course-Specific Payments:** Payments are now linked to a specific enrollment. When recording a payment, you select the student and then choose which of their enrolled courses they are paying for.
+* **Enhanced Audit Logging:** Every action tracks who (`createUser`/`updateUser`) and when (`createDate`/`updateDate`) a record was handled.
 
 ## ✨ Features
 
-* **Secure Admin Login:** Access is restricted via a login screen, authenticated against the database.
-* **Live Dashboard:** Real-time statistics displaying active courses, total students, collected revenue, and outstanding balances.
-* **Course Management:** Create and edit courses with parameters like Start/End dates, Normal & Early Bird fees, capacity, and deposit amounts.
-* **Student Enrollment & Payment Plans:** * Assign students to courses with flexible pricing tiers.
-    * Set up one-time payments or dynamic instalment plans.
-    * Track deposit due dates and total outstanding balances automatically.
-* **Smart Payment Assistant:** Automatically calculates and suggests the next logical payment amount (e.g., remaining deposit, next instalment, or full remaining balance).
-* **Audit Logging:** Automatically records `createUser`, `createDate`, `updateUser`, and `updateDate` for all entries to keep a secure audit trail.
-* **Automated Email Reminders:** A daily cron job checks for due payments (deposits or instalments) and sends summary reminder emails to administrators.
-* **Live Connection Status:** Real-time ping system to verify the connection between the frontend and the Google Apps Script backend.
+* **Secure Admin Login:** Authenticated via the `Admins` sheet.
+* **Live Dashboard:** Real-time stats for unique students, total revenue, and global outstanding balance.
+* **Smart Payment Assistant:** Suggests the next due payment (Deposit or specific Instalment) based on the specific course enrollment.
+* **Automated Daily Reminders:** A daily cron job scans all enrollments and emails admins about payments due today.
+* **Modular Frontend:** Clean separation of concerns with `index.html`, `style.css`, and `app.js`.
 
-## 🛠️ Tech Stack
+## 📂 Database Structure (Google Sheets)
 
-* **Frontend:** HTML5, CSS3, Vanilla JavaScript (ES6)
-* **Backend / API:** Google Apps Script (GAS)
-* **Database:** Google Sheets
-* **Icons:** Tabler Icons
+The system automatically manages 5 main sheets:
+1.  **`Admins`**: Admin credentials and notification emails.
+2.  **`Courses`**: Course details, fees, and capacity.
+3.  **`Students`**: Unique student identity records (Name, Email, Phone).
+4.  **`Enrollments`**: Links Students to Courses with specific fees and payment plans.
+5.  **`Payments`**: Ledger of all transactions linked to both a Student and a Course.
 
-## 📂 Project Structure
+## 🛠️ Setup & Installation
 
-The frontend is fully modularized for better maintainability:
+### 1. Database Preparation
+1. Create a new Google Sheet.
+2. Create a tab named exactly **`Admins`**.
+3. Set the columns: `A: email`, `B: username`, `C: password`.
+4. Add your admin user in Row 2.
 
-```text
-📦 meisner-studio-manager
- ┣ 📜 index.html   # Main layout, login screen, and modals structure
- ┣ 📜 style.css    # All styling, UI elements, and animations
- ┣ 📜 app.js       # Frontend logic, API calls, and DOM manipulation
- ┣ 📜 Kod.gs       # Google Apps Script (Backend) - deployed separately
- ┗ 📜 README.md    # Documentation
-🚀 Setup & Installation
-1. Database Setup (Google Sheets)
-Create a new Google Sheet.
+### 2. Backend Deployment (Google Apps Script)
+1. Go to **Extensions > Apps Script**.
+2. Paste the `Kod.gs` (v2.0.0) code.
+3. **Crucial:** Click **Deploy > New Deployment**.
+    * **Type:** Web App
+    * **Execute as:** Me
+    * **Who has access:** Anyone
+4. Copy the **Web App URL**.
 
-Create a tab named exactly Admins.
+### 3. Frontend Configuration
+1. Open `app.js`.
+2. Update the `cfg.url` with your new Web App URL:
+   ```javascript
+   let cfg = { url: 'YOUR_URL_HERE', currency: '€' };
+4. Daily Reminders
+In Apps Script, go to Triggers (Clock icon).
 
-Set up the first three columns in the Admins sheet:
+Add a trigger for checkPaymentsAndNotify.
 
-Column A: email (Used for daily payment reminder emails)
+Set it to Time-driven -> Day timer -> 8am to 9am.
 
-Column B: username (Used for login)
+⚠️ Migration Note
+If you are upgrading from v1.x, you must clear or delete your old Students and Payments sheets in Google Sheets, as the data structure is fundamentally different in v2.0.0.
 
-Column C: password (Used for login)
-
-Add at least one admin user starting from Row 2. (The system will auto-generate the Courses, Students, and Payments sheets upon first use).
-
-2. Backend Setup (Google Apps Script)
-In your Google Sheet, go to Extensions > Apps Script.
-
-Delete any existing code and paste the contents of Kod.gs.
-
-Click on Deploy > New Deployment.
-
-Set the following configuration:
-
-Type: Web App
-
-Execute as: Me (Your Google Account)
-
-Who has access: Anyone (Crucial for avoiding CORS issues)
-
-Click Deploy, authorize the required permissions, and copy the Web App URL.
-
-3. Frontend Setup
-Open app.js in your text editor.
-
-Locate the cfg object at the top of the file:
-
-JavaScript
-
-let cfg = { 
-  url: 'YOUR_GOOGLE_APPS_SCRIPT_WEB_APP_URL_HERE', 
-  currency: '€' 
-};
-Replace the placeholder URL with the Web App URL you copied in the previous step.
-
-4. Setting up Daily Email Reminders (Cron Job)
-Go back to your Google Apps Script editor.
-
-Click the Triggers icon (the clock icon) on the left sidebar.
-
-Click Add Trigger (bottom right).
-
-Configure as follows:
-
-Choose which function to run: checkPaymentsAndNotify
-
-Select event source: Time-driven
-
-Select type of time based trigger: Day timer
-
-Select time of day: 8am to 9am (or your preference)
-
-Click Save.
-
-📝 Usage Notes
-Date Formats: Dates are displayed in the European standard DD/MM/YYYY.
-
-Updates: Whenever you make a change to Kod.gs, you must deploy it as a New Version via Deploy > Manage Deployments > Edit (Pencil icon) > New Version. Otherwise, the changes will not reflect on the frontend.
-
-Security: Ensure your Web App URL is kept private, as anyone with the URL and valid credentials can access the system.
+Built with ❤️ for Meisner Studio.
