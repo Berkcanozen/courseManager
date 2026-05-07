@@ -26,7 +26,7 @@ const formatDate = (dateStr) => {
 };
 
 const getStatusBadge = (statusId) => {
-    const colors = { open: 'green', completed: 'blue', draft: 'amber', cancelled: 'red' };
+    const colors = { active: 'teal', completed: 'blue', draft: 'amber', cancelled: 'red' };
     const st = (S.generalStatus || []).find(s => s.id == statusId);
     const label = st ? st.name : (statusId || 'Unknown');
     const colorCode = st ? st.code : 'blue'; 
@@ -304,7 +304,7 @@ function showEnrollmentDetail(enId) {
     <div style="font-size:14px;font-weight:600;margin-bottom:12px">Payment History (This Course)</div>
     ${payments.length?`<div class="card" style="padding:4px 16px">${payments.map(p=>`<div class="payment-entry"><div><span style="font-weight:600; font-size:14px">${fmt(p.amount)}</span><span class="chip ${p.type==='deposit'?'amber':p.type==='full'?'teal':'blue'}" style="margin-left:8px;font-size:10px">${p.type}</span></div><div style="text-align:right;color:var(--color-text-secondary)">${formatDate(p.date)}${p.note?' · '+p.note:''}</div></div>`).join('')}</div>`:'<div style="font-size:13px;color:var(--color-text-secondary);padding:10px 0;text-align:center;background:#f9fafb;border-radius:8px">No payments recorded.</div>'}
   `;
-  document.getElementById('sd-footer').innerHTML = `<button class="btn ghost" onclick="closeM('mStudentDetail')">Close</button><button class="btn" onclick="closeM('mStudentDetail'); openM('mEnrollment', '${en.id}')"><i class="ti ti-edit"></i> Edit </button><button class="btn primary" onclick="closeM('mStudentDetail'); openM('mPayment', null, '${en.id}')">Add Payment</button>`;
+  document.getElementById('sd-footer').innerHTML = `<button class="btn ghost" onclick="closeM('mStudentDetail')">Close</button><button class="btn" onclick="closeM('mStudentDetail'); openM('mEnrollment', '${en.id}')"><i class="ti ti-edit"></i> Edit Plan</button><button class="btn primary" onclick="closeM('mStudentDetail'); openM('mPayment', null, '${en.id}')">Add Payment</button>`;
   openM('mStudentDetail');
 }
 
@@ -360,4 +360,83 @@ async function deleteRecord(type) {
 
     if(type === 'course') {
         id = editCourseId; modalId = 'mCourse'; backendAction = 'deleteCourse';
-        if(S.enrollments.some(e => e.courseId == id)) return alert("Cannot delete: This
+        if(S.enrollments.some(e => e.courseId == id)) return alert("Cannot delete: This course has active enrollments!");
+        confirmMsg = "Are you sure you want to permanently delete this course?";
+    } 
+    else if(type === 'student') {
+        id = editStudentIdentityId; modalId = 'mStudentEdit'; backendAction = 'deleteStudent';
+        if(S.enrollments.some(e => e.studentId == id)) return alert("Cannot delete: This student is enrolled in one or more courses. Delete their enrollments first.");
+        confirmMsg = "Are you sure you want to permanently delete this student record?";
+    }
+    else if(type === 'enrollment') {
+        id = editEnrollmentId; modalId = 'mEnrollment'; backendAction = 'deleteEnrollment';
+        const en = S.enrollments.find(e => e.id == id);
+        if(en && S.payments.some(p => p.studentId == en.studentId && p.courseId == en.courseId)) return alert("Cannot delete: There are payments recorded for this enrollment. Delete the payments first.");
+        confirmMsg = "Are you sure you want to delete this course enrollment?";
+    }
+
+    if(!id) return;
+    if(!confirm(confirmMsg)) return;
+
+    try {
+        await fetch(cfg.url, { method:'POST', body: JSON.stringify({ action: backendAction, payload: { id: id }, currentUser: sessionStorage.getItem('username') }) });
+        closeM(modalId); syncSheets();
+    } catch(e) { alert("Delete operation failed."); }
+}
+
+async function saveCourse(){
+  const name = document.getElementById('c-name').value.trim(); if(!name) return alert('Name is required.');
+  const btn = document.getElementById('btn-save-course'), oldTxt = btn.innerHTML; btn.innerHTML = '<i class="ti ti-loader"></i> Saving...'; btn.disabled = true;
+  const p = { id: editCourseId, name, status: document.getElementById('c-status').value, startDate: document.getElementById('c-start').value, endDate: document.getElementById('c-end').value, feeNormal: document.getElementById('c-feeNormal').value, feeEarly: document.getElementById('c-feeEarly').value, deposit: document.getElementById('c-deposit').value, capacity: document.getElementById('c-capacity').value };
+  try { await fetch(cfg.url, { method:'POST', body: JSON.stringify({ action: editCourseId?'updateCourse':'addCourse', payload: p, currentUser: sessionStorage.getItem('username') }) }); closeM('mCourse'); syncSheets(); } catch(e) { alert("Error saving"); } finally { btn.innerHTML = oldTxt; btn.disabled = false; }
+}
+
+async function saveStudentIdentity(){
+  const fullName = document.getElementById('se-fullname').value.trim(); if(!fullName) return alert('Name required');
+  const email = document.getElementById('se-email').value.trim(); if(!email) return alert('Email required');
+  const btn = document.getElementById('btn-save-st'), oldTxt = btn.innerHTML; btn.innerHTML = '<i class="ti ti-loader"></i> Saving...'; btn.disabled = true;
+  const p = { id: editStudentIdentityId, fullName, email, phone: document.getElementById('se-phone').value };
+  try { 
+      const res = await fetch(cfg.url, { method:'POST', body: JSON.stringify({ action: editStudentIdentityId?'updateStudent':'addStudent', payload: p, currentUser: sessionStorage.getItem('username') }) }); 
+      const data = await res.json();
+      if(!data.success) alert(data.error); else { closeM('mStudentEdit'); syncSheets(); }
+  } catch(e) { alert("Error saving"); } finally { btn.innerHTML = oldTxt; btn.disabled = false; }
+}
+
+async function saveEnrollment(){
+  const courseId = document.getElementById('e-course').value; if(!courseId) return alert('Course is required.');
+  let studentId = '', studentData = {};
+  
+  if(!editEnrollmentId) {
+      const isExisting = document.querySelector('input[name="eType"]:checked').value === 'existing';
+      if(isExisting) { 
+          studentId = document.getElementById('e-selected-student-id').value; 
+          if(!studentId) return alert("Select a student from the list."); 
+      } else {
+          const fn = document.getElementById('e-fullname').value.trim(), em = document.getElementById('e-email').value.trim();
+          if(!fn || !em) return alert("Name and email required.");
+          studentData = { fullName: fn, email: em, phone: document.getElementById('e-phone').value };
+      }
+      if(studentId && S.enrollments.find(e => e.studentId == studentId && e.courseId == courseId)) return alert("Already enrolled in this course!");
+  }
+
+  let instPlan = [];
+  document.querySelectorAll('.dynamic-row').forEach(row => { instPlan.push({ amount: row.querySelector('.inst-amount').value, date: row.querySelector('.inst-date').value }); });
+
+  const btn = document.getElementById('btn-save-enrollment'), oldTxt = btn.innerHTML; btn.innerHTML = '<i class="ti ti-loader"></i> Saving...'; btn.disabled = true;
+  const p = { enrollmentId: editEnrollmentId, isNew: (!editEnrollmentId && document.querySelector('input[name="eType"]:checked').value === 'new'), studentId, studentData, courseId, priceType: document.getElementById('e-priceType').value, totalFee: document.getElementById('e-displayTotal').value.replace(/[^0-9.]/g,''), depositAmount: document.getElementById('e-depositAmount').value, depositDate: document.getElementById('e-depositDate').value, paymentType: document.getElementById('e-payType').value, instalmentPlan: JSON.stringify(instPlan) };
+  
+  try {
+    const res = await fetch(cfg.url, { method:'POST', body: JSON.stringify({ action: editEnrollmentId?'updateEnrollment':'enrollStudent', payload: p, currentUser: sessionStorage.getItem('username') }) });
+    const data = await res.json();
+    if(!data.success) alert(data.error); else { closeM('mEnrollment'); syncSheets(); }
+  } catch(e) { alert("Connection Error"); } finally { btn.innerHTML = oldTxt; btn.disabled = false; }
+}
+
+async function savePayment(){
+  const sId = document.getElementById('p-student').value, cId = document.getElementById('p-course').value, amt = parseFloat(document.getElementById('p-amount').value);
+  if(!sId || !cId || !amt) return alert('Student, Course, and Amount required.');
+  const btn = document.getElementById('btn-save-payment'), oldTxt = btn.innerHTML; btn.innerHTML = '<i class="ti ti-loader"></i> Saving...'; btn.disabled = true;
+  const p = { studentId: sId, courseId: cId, amount: amt, date: document.getElementById('p-date').value, type: document.getElementById('p-type').value, note: document.getElementById('p-note').value };
+  try { await fetch(cfg.url, { method:'POST', body: JSON.stringify({ action: 'addPayment', payload: p, currentUser: sessionStorage.getItem('username') }) }); closeM('mPayment'); syncSheets(); } catch(e) { alert("Connection Error"); } finally { btn.innerHTML = oldTxt; btn.disabled = false; }
+}
