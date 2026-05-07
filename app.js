@@ -2,7 +2,7 @@ let S = { courses:[], students:[], payments:[] };
 
 // DİKKAT: BURAYA KENDİ GOOGLE APPS SCRIPT URL'Nİ YAPIŞTIR!
 let cfg = { 
-  url: 'https://script.google.com/macros/s/AKfycbxPEqt1_8FJ5IAk8ThULl6omUxeF6wLjgBq7mxEmQE7lMQSH4ah86i7WcQ95YKzJJpwQQ/exec', 
+  url: 'https://script.google.com/macros/s/AKfycbzHrSpCl5H4Ujl_YnK3uhJY4X9MzAuNSOmYZ-bjM_9xks6ozyEIFy13mQ6A3qW6MhICig/exec', 
   currency: '€' 
 };
 
@@ -13,7 +13,6 @@ const fmt = n => cfg.currency + Number(n||0).toLocaleString('en-US', {minimumFra
 const today = () => new Date().toISOString().split('T')[0];
 const uid = () => Date.now().toString(36) + Math.random().toString(36).slice(2,6);
 
-// Tarihi dd/mm/yyyy yapan fonksiyon
 const formatDate = (dateStr) => {
     if (!dateStr) return '—';
     const d = new Date(dateStr);
@@ -23,12 +22,30 @@ const formatDate = (dateStr) => {
     return `${day}/${month}/${d.getFullYear()}`;
 };
 
-// --- LOGIN DOĞRULAMA ---
+// --- BAĞLANTI TESTİ (PING) VE LOGIN ---
+async function testConnection() {
+    const badge = document.getElementById('loginSyncBadge');
+    if(!badge || !cfg.url) return;
+    try {
+        const r = await fetch(cfg.url + "?action=ping");
+        if(r.ok) {
+            badge.innerHTML = '<i class="ti ti-cloud-check" style="color:var(--color-brand)"></i> Server Connected';
+            badge.style.borderColor = 'var(--color-brand)';
+        } else {
+            throw new Error("Bad Response");
+        }
+    } catch(e) {
+        badge.innerHTML = '<i class="ti ti-cloud-x" style="color:#ef4444"></i> Connection Failed';
+        badge.style.borderColor = '#ef4444';
+        console.error("Connection error: ", e);
+    }
+}
+
 async function handleLogin() {
   const u = document.getElementById('l-user').value;
   const p = document.getElementById('l-pass').value;
   const b = document.getElementById('l-btn');
-  const e = document.getElementById('login-error');
+  const e = document.getElementById('login-err');
   if(!u || !p) return;
 
   b.innerHTML = '<i class="ti ti-loader"></i> Verifying...';
@@ -39,13 +56,15 @@ async function handleLogin() {
     const d = await r.json();
     if (d.success) {
       sessionStorage.setItem('isLoggedIn', 'true');
-      sessionStorage.setItem('username', u); // Audit Log için kullanıcı adı
+      sessionStorage.setItem('username', u);
       initApp();
     } else {
+      e.innerText = "Invalid credentials. Please try again.";
       e.style.display = "block"; b.innerText = "Sign In"; b.disabled = false;
     }
   } catch (err) {
-    e.innerText = "Connection Error"; e.style.display = "block"; b.innerText = "Sign In"; b.disabled = false;
+    e.innerText = "Connection Error! Check URL or CORS settings."; 
+    e.style.display = "block"; b.innerText = "Sign In"; b.disabled = false;
   }
 }
 
@@ -55,7 +74,13 @@ function initApp() {
   syncSheets();
 }
 
-window.onload = () => { if (sessionStorage.getItem('isLoggedIn') === 'true') initApp(); };
+window.onload = () => { 
+    if (sessionStorage.getItem('isLoggedIn') === 'true') {
+        initApp(); 
+    } else {
+        testConnection(); // Sayfa yüklendiğinde bağlantıyı sına
+    }
+};
 
 // --- VERİ ÇEKME & RENDER ---
 async function syncSheets(){
@@ -105,7 +130,6 @@ function renderCourses(){
   box.innerHTML = S.courses.map((c,i)=>{
     const studs = S.students.filter(s=>s.courseId===c.id).length;
     const clr = ['teal','blue','amber'][i%3];
-    // DÜZELTME BURADA YAPILDI (c.startDate ve c.endDate)
     return `<div class="card"><div class="card-hd"><div><div class="card-title">${c.name}</div><div class="card-sub">${formatDate(c.startDate)} to ${formatDate(c.endDate)}</div></div><div style="display:flex;gap:6px;align-items:center"><span class="chip ${clr}">${studs}${c.capacity?'/'+c.capacity:''} Students</span><button class="btn ghost sm" onclick="openM('mCourse', '${c.id}')"><i class="ti ti-edit" style="font-size:16px"></i></button></div></div><div class="meta-row"><span><i class="ti ti-tag"></i> Normal: ${fmt(c.feeNormal)}</span><span><i class="ti ti-discount-check" style="color:var(--color-brand)"></i> Early Bird: ${fmt(c.feeEarly)}</span></div></div>`;
   }).join('');
 }
@@ -155,8 +179,8 @@ function openM(id, editId = null, extraParam = null){
       document.getElementById('btn-save-course').textContent = 'Update Course';
       const c = S.courses.find(x => x.id === editId);
       document.getElementById('c-name').value = c.name; 
-      document.getElementById('c-start').value = c.startDate || ''; // DÜZELTME BURADA YAPILDI
-      document.getElementById('c-end').value = c.endDate || '';     // DÜZELTME BURADA YAPILDI
+      document.getElementById('c-start').value = c.startDate || ''; 
+      document.getElementById('c-end').value = c.endDate || '';     
       document.getElementById('c-feeNormal').value = c.feeNormal; 
       document.getElementById('c-feeEarly').value = c.feeEarly;
       document.getElementById('c-deposit').value = c.deposit || ''; 
