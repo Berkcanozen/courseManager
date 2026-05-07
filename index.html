@@ -17,11 +17,10 @@
     <h2>Admin Login</h2>
     <div class="fg"><input type="text" id="l-user" placeholder="Username"></div>
     <div class="fg"><input type="password" id="l-pass" placeholder="Password"></div>
-    <div id="login-err" style="color: #ef4444; font-size: 13px; margin-bottom: 12px; display: none; font-weight:500;">Invalid credentials or connection error.</div>
+    <div id="login-err" style="color: #ef4444; font-size: 13px; margin-bottom: 12px; display: none; font-weight:500;">Invalid credentials.</div>
     <button class="btn primary" style="width: 100%; justify-content: center; padding: 12px; margin-top: 8px;" id="l-btn" onclick="handleLogin()">Sign In</button>
-    
     <div style="margin-top: 24px; display: flex; flex-direction: column; align-items: center; gap: 8px;">
-      <span style="font-size: 11px; color: var(--color-text-secondary); font-weight: 500; letter-spacing: 0.05em;">v2.0.0 Relational</span>
+      <span style="font-size: 11px; color: var(--color-text-secondary); font-weight: 500; letter-spacing: 0.05em;">v2.2.0 Complete DB</span>
       <div id="loginSyncBadge" class="sync-badge" style="background: transparent; border: 1px solid var(--color-border-secondary);">
         <i class="ti ti-loader"></i> Testing connection...
       </div>
@@ -38,14 +37,15 @@
     </div>
     <div style="display:flex; flex-direction:column; align-items:flex-end; gap:4px">
       <span class="sync-badge" id="syncBadge"><i class="ti ti-cloud-off"></i> Not connected</span>
-      <span class="version-text">v2.0.0 Relational</span>
+      <span class="version-text">v2.2.0 Complete DB</span>
     </div>
   </div>
 
   <div class="tabs">
     <button class="tab active" onclick="goTab('dashboard')"><i class="ti ti-layout-dashboard"></i> Overview</button>
     <button class="tab" onclick="goTab('courses')"><i class="ti ti-books"></i> Courses</button>
-    <button class="tab" onclick="goTab('students')"><i class="ti ti-users"></i> Enrollments</button>
+    <button class="tab" onclick="goTab('students')"><i class="ti ti-address-book"></i> Student DB</button>
+    <button class="tab" onclick="goTab('enrollments')"><i class="ti ti-users"></i> Enrollments</button>
     <button class="tab" onclick="goTab('payments')"><i class="ti ti-coin"></i> Payments</button>
   </div>
 
@@ -66,8 +66,16 @@
   </div>
 
   <div class="sec" id="sec-students">
-    <div class="section-hd"><h3>All Enrollments</h3><button class="btn primary" onclick="openM('mStudent')"><i class="ti ti-user-plus"></i> Enroll Student</button></div>
-    <div id="studentList"></div>
+    <div class="section-hd">
+      <h3>Student Database</h3>
+      <input type="text" id="s-search" placeholder="Search by name..." onkeyup="renderStudents()" style="padding:8px 12px; border:1px solid var(--color-border-secondary); border-radius:6px; font-size:13px; width:250px;">
+    </div>
+    <div id="studentDBList"></div>
+  </div>
+
+  <div class="sec" id="sec-enrollments">
+    <div class="section-hd"><h3>Course Enrollments</h3><button class="btn primary" onclick="openM('mEnrollment')"><i class="ti ti-user-plus"></i> Enroll Student</button></div>
+    <div id="enrollmentList"></div>
   </div>
 
   <div class="sec" id="sec-payments">
@@ -93,59 +101,65 @@
     <div class="fg"><label>Deposit amount (€)</label><input type="number" id="c-deposit"></div>
     <div class="fg"><label>Capacity</label><input type="number" id="c-capacity"></div>
   </div>
-  <div class="modal-footer"><button class="btn" onclick="closeM('mCourse')">Cancel</button><button class="btn primary" id="btn-save-course" onclick="saveCourse()">Create Course</button></div>
+  <div class="modal-footer"><button class="btn" onclick="closeM('mCourse')">Cancel</button><button class="btn primary" id="btn-save-course" onclick="saveCourse()">Save Course</button></div>
 </div></div>
 
-<div class="modal-wrap" id="mStudent"><div class="modal">
-  <h2 id="modal-title-student"><i class="ti ti-user-plus"></i> Enroll Student</h2>
+<div class="modal-wrap" id="mStudentEdit"><div class="modal">
+  <h2><i class="ti ti-address-book"></i> Edit Student Identity</h2>
+  <div class="fg"><label>Full name *</label><input type="text" id="se-fullname"></div>
+  <div class="form-2col">
+    <div class="fg"><label>Email *</label><input type="email" id="se-email"></div>
+    <div class="fg"><label>Phone</label><input type="text" id="se-phone"></div>
+  </div>
+  <div class="modal-footer"><button class="btn" onclick="closeM('mStudentEdit')">Cancel</button><button class="btn primary" id="btn-save-st" onclick="saveStudentIdentity()">Update Student</button></div>
+</div></div>
+
+<div class="modal-wrap" id="mEnrollment"><div class="modal">
+  <h2 id="modal-title-enrollment"><i class="ti ti-user-plus"></i> Enroll Student</h2>
   
-  <div class="fg"><label>Course *</label><select id="s-course" onchange="updateInstalments()"></select></div>
-  <hr class="divider">
+  <div class="fg"><label>Course *</label><select id="e-course" onchange="updateInstalments()"></select></div>
+  <hr class="divider" id="e-divider-1">
   
-  <div class="fg">
+  <div class="fg" id="e-type-box">
     <label>Student Type</label>
     <div style="display:flex; gap:16px; margin-top:4px;">
-      <label style="font-weight:400; cursor:pointer;"><input type="radio" name="sType" value="existing" onchange="toggleStudentMode()" checked> Existing Student</label>
-      <label style="font-weight:400; cursor:pointer;"><input type="radio" name="sType" value="new" onchange="toggleStudentMode()"> New Student</label>
+      <label style="font-weight:400; cursor:pointer;"><input type="radio" name="eType" value="existing" onchange="toggleStudentMode()" checked> Existing Student</label>
+      <label style="font-weight:400; cursor:pointer;"><input type="radio" name="eType" value="new" onchange="toggleStudentMode()"> New Student</label>
     </div>
   </div>
 
-  <div id="existing-student-box" class="fg">
-    <label>Select Student *</label>
-    <select id="s-existingId"></select>
-  </div>
+  <div id="e-existing-box" class="fg"><label>Select Student *</label><select id="e-existingId"></select></div>
 
-  <div id="new-student-box" style="display:none;">
-    <div class="fg"><label>Full name *</label><input type="text" id="s-fullname" placeholder="Jane Doe"></div>
+  <div id="e-new-box" style="display:none;">
+    <div class="fg"><label>Full name *</label><input type="text" id="e-fullname" placeholder="Jane Doe"></div>
     <div class="form-2col">
-      <div class="fg"><label>Email *</label><input type="email" id="s-email"></div>
-      <div class="fg"><label>Phone</label><input type="text" id="s-phone"></div>
+      <div class="fg"><label>Email *</label><input type="email" id="e-email"></div>
+      <div class="fg"><label>Phone</label><input type="text" id="e-phone"></div>
     </div>
   </div>
 
   <hr class="divider">
-  <div style="font-size:14px;font-weight:600;margin-bottom:12px;color:#111827">Payment Details for this Course</div>
+  <div style="font-size:14px;font-weight:600;margin-bottom:12px;color:#111827">Payment Plan</div>
   <div class="form-2col">
-    <div class="fg"><label>Price Tier *</label><select id="s-priceType" onchange="updateInstalments()"><option value="normal">Normal Price</option><option value="early_bird">Early Bird Price</option></select></div>
-    <div class="fg"><label>Total Course Fee</label><input type="text" id="s-displayTotal" disabled style="background:#f3f4f6; font-weight:600; color:var(--color-brand)"></div>
+    <div class="fg"><label>Price Tier *</label><select id="e-priceType" onchange="updateInstalments()"><option value="normal">Normal Price</option><option value="early_bird">Early Bird Price</option></select></div>
+    <div class="fg"><label>Total Course Fee</label><input type="text" id="e-displayTotal" disabled style="background:#f3f4f6; font-weight:600; color:var(--color-brand)"></div>
   </div>
   <div class="form-2col">
-    <div class="fg"><label>Deposit Amount (€)</label><input type="number" id="s-depositAmount" oninput="updateInstalments()"></div>
-    <div class="fg"><label>Deposit Due Date</label><input type="date" id="s-depositDate"></div>
+    <div class="fg"><label>Deposit Amount (€)</label><input type="number" id="e-depositAmount" oninput="updateInstalments()"></div>
+    <div class="fg"><label>Deposit Due Date</label><input type="date" id="e-depositDate"></div>
   </div>
-  <div class="fg"><label>Remaining Payment Plan *</label><select id="s-payType" onchange="toggleInstalmentFields()"><option value="full_remaining">Full Remaining</option><option value="instalment">Instalment Plan</option></select></div>
+  <div class="fg"><label>Remaining Payment Plan *</label><select id="e-payType" onchange="toggleInstalmentFields()"><option value="full_remaining">Full Remaining</option><option value="instalment">Instalment Plan</option></select></div>
   <div id="instalment-container" style="display:none; background:var(--color-background-secondary); padding:16px; border-radius:8px; border:1px solid var(--color-border-secondary);">
-    <div class="fg"><label>Number of Instalments</label><input type="number" id="s-numInstalments" min="1" max="24" oninput="updateInstalments()"></div>
+    <div class="fg"><label>Number of Instalments</label><input type="number" id="e-numInstalments" min="1" max="24" oninput="updateInstalments()"></div>
     <div id="dynamic-instalments"></div>
   </div>
-  <div class="modal-footer"><button class="btn" onclick="closeM('mStudent')">Cancel</button><button class="btn primary" id="btn-save-student" onclick="enrollStudent()">Complete Enrollment</button></div>
+  <div class="modal-footer"><button class="btn" onclick="closeM('mEnrollment')">Cancel</button><button class="btn primary" id="btn-save-enrollment" onclick="saveEnrollment()">Save Enrollment</button></div>
 </div></div>
 
 <div class="modal-wrap" id="mPayment"><div class="modal">
   <h2><i class="ti ti-coin"></i> Record Payment</h2>
   <div class="fg"><label>Student *</label><select id="p-student" onchange="loadStudentCourses()"></select></div>
   <div class="fg" id="p-course-box" style="display:none;"><label>Paying for Course *</label><select id="p-course" onchange="calculatePaymentSuggestion()"></select></div>
-  
   <div id="smart-suggestion" class="smart-suggestion"><div class="s-title" id="ss-title"></div><div class="s-desc" id="ss-desc"></div></div>
   <div class="form-2col">
     <div class="fg"><label>Amount (€) *</label><input type="number" id="p-amount"></div>
@@ -153,11 +167,11 @@
   </div>
   <div class="fg"><label>Payment Type</label><select id="p-type"><option value="deposit">Deposit</option><option value="instalment">Instalment</option><option value="full">Full payment</option><option value="other">Other</option></select></div>
   <div class="fg"><label>Note (optional)</label><input type="text" id="p-note"></div>
-  <div class="modal-footer"><button class="btn" onclick="closeM('mPayment')">Cancel</button><button class="btn primary" onclick="savePayment()">Save Payment</button></div>
+  <div class="modal-footer"><button class="btn" onclick="closeM('mPayment')">Cancel</button><button class="btn primary" id="btn-save-payment" onclick="savePayment()">Save Payment</button></div>
 </div></div>
 
 <div class="modal-wrap" id="mStudentDetail"><div class="modal">
-  <h2 id="sd-title"><i class="ti ti-user"></i> Enrollment Detail</h2>
+  <h2 id="sd-title"><i class="ti ti-file-certificate"></i> Enrollment Detail</h2>
   <div id="sd-body"></div>
   <div class="modal-footer" id="sd-footer"></div>
 </div></div>
