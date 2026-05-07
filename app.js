@@ -13,7 +13,7 @@
  */
 
 const cfg = {
-  url:      'YOUR_GOOGLE_APPS_SCRIPT_WEB_APP_URL_HERE',
+  url:      'https://script.google.com/macros/s/AKfycbwnJ4kNsveMn4Gn7R7LzOLOcfYthm04jzXVOkDD-7Wr3cKQTuYJvodKG-qMYLrBiK0-dw/exec',
   currency: '€'
 };
 
