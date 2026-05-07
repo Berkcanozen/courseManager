@@ -159,14 +159,15 @@
     </div>
     <div class="fg" id="e-type-box">
       <label>Student type</label>
-      <div style="display:flex;gap:20px;padding:4px 0">
-        <label style="display:flex;align-items:center;gap:6px;font-weight:400;cursor:pointer">
-          <input type="radio" name="eType" value="existing" onchange="toggleStudentMode()" checked> Existing student
-        </label>
-        <label style="display:flex;align-items:center;gap:6px;font-weight:400;cursor:pointer">
-          <input type="radio" name="eType" value="new" onchange="toggleStudentMode()"> New student
-        </label>
+      <div class="toggle-group">
+        <button type="button" id="toggle-existing" class="toggle-btn active" onclick="setStudentMode('existing')">
+          <i class="ti ti-users"></i> Existing student
+        </button>
+        <button type="button" id="toggle-new" class="toggle-btn" onclick="setStudentMode('new')">
+          <i class="ti ti-user-plus"></i> New student
+        </button>
       </div>
+      <input type="hidden" name="eType" id="eTypeValue" value="existing">
     </div>
     <div id="e-existing-box" class="fg">
       <label>Search existing student *</label>
@@ -184,7 +185,7 @@
     <hr class="divider">
     <div style="font-size:13px;font-weight:600;margin-bottom:12px;color:var(--color-text-secondary)">Payment plan</div>
     <div class="form-2col">
-      <div class="fg"><label>Price tier</label>
+      <div class="fg"><label>Course price type</label>
         <select id="e-priceType" onchange="updateInstalments()">
           <option value="normal">Normal</option>
           <option value="early_bird">Early Bird</option>
@@ -201,6 +202,11 @@
         <option value="full_remaining">Full payment</option>
         <option value="instalment">Instalment plan</option>
       </select>
+    </div>
+    <!-- Full payment due date — shown when Full payment is selected -->
+    <div class="fg" id="full-payment-date-box">
+      <label>Full payment due date</label>
+      <input type="date" id="e-fullPayDate">
     </div>
     <div id="instalment-container" style="display:none;background:#f9fafb;padding:14px;border-radius:8px;border:1px solid var(--color-border-secondary)">
       <div class="fg"><label>Number of instalments</label>
