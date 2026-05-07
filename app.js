@@ -1,6 +1,6 @@
 let S = { courses:[], students:[], payments:[] };
 
-// DİKKAT: BURAYA KENDİ GOOGLE APPS SCRIPT URL'Nİ YAPIŞTIR!
+// DİKKAT: BURAYA YENİ ALDIĞIN GOOGLE APPS SCRIPT URL'Nİ YAPIŞTIR!
 let cfg = { 
   url: 'https://script.google.com/macros/s/AKfycbzHrSpCl5H4Ujl_YnK3uhJY4X9MzAuNSOmYZ-bjM_9xks6ozyEIFy13mQ6A3qW6MhICig/exec', 
   currency: '€' 
@@ -22,12 +22,18 @@ const formatDate = (dateStr) => {
     return `${day}/${month}/${d.getFullYear()}`;
 };
 
-// --- BAĞLANTI TESTİ (PING) VE LOGIN ---
+// --- BAĞLANTI TESTİ (PING) ---
 async function testConnection() {
     const badge = document.getElementById('loginSyncBadge');
     if(!badge || !cfg.url) return;
     try {
-        const r = await fetch(cfg.url + "?action=ping");
+        // 5 saniye içinde cevap gelmezse iptal et (Sonsuza kadar dönmesin)
+        const controller = new AbortController();
+        const timeoutId = setTimeout(() => controller.abort(), 5000);
+        
+        const r = await fetch(cfg.url + "?action=ping", { signal: controller.signal });
+        clearTimeout(timeoutId);
+        
         if(r.ok) {
             badge.innerHTML = '<i class="ti ti-cloud-check" style="color:var(--color-brand)"></i> Server Connected';
             badge.style.borderColor = 'var(--color-brand)';
@@ -35,7 +41,7 @@ async function testConnection() {
             throw new Error("Bad Response");
         }
     } catch(e) {
-        badge.innerHTML = '<i class="ti ti-cloud-x" style="color:#ef4444"></i> Connection Failed';
+        badge.innerHTML = '<i class="ti ti-cloud-x" style="color:#ef4444"></i> Connection Error (Check CORS/URL)';
         badge.style.borderColor = '#ef4444';
         console.error("Connection error: ", e);
     }
@@ -63,7 +69,7 @@ async function handleLogin() {
       e.style.display = "block"; b.innerText = "Sign In"; b.disabled = false;
     }
   } catch (err) {
-    e.innerText = "Connection Error! Check URL or CORS settings."; 
+    e.innerText = "Connection Error! Ensure Apps Script is deployed to 'Anyone'."; 
     e.style.display = "block"; b.innerText = "Sign In"; b.disabled = false;
   }
 }
@@ -78,7 +84,7 @@ window.onload = () => {
     if (sessionStorage.getItem('isLoggedIn') === 'true') {
         initApp(); 
     } else {
-        testConnection(); // Sayfa yüklendiğinde bağlantıyı sına
+        testConnection();
     }
 };
 
@@ -130,7 +136,10 @@ function renderCourses(){
   box.innerHTML = S.courses.map((c,i)=>{
     const studs = S.students.filter(s=>s.courseId===c.id).length;
     const clr = ['teal','blue','amber'][i%3];
-    return `<div class="card"><div class="card-hd"><div><div class="card-title">${c.name}</div><div class="card-sub">${formatDate(c.startDate)} to ${formatDate(c.endDate)}</div></div><div style="display:flex;gap:6px;align-items:center"><span class="chip ${clr}">${studs}${c.capacity?'/'+c.capacity:''} Students</span><button class="btn ghost sm" onclick="openM('mCourse', '${c.id}')"><i class="ti ti-edit" style="font-size:16px"></i></button></div></div><div class="meta-row"><span><i class="ti ti-tag"></i> Normal: ${fmt(c.feeNormal)}</span><span><i class="ti ti-discount-check" style="color:var(--color-brand)"></i> Early Bird: ${fmt(c.feeEarly)}</span></div></div>`;
+    // Eski veya yeni her türlü veriyi (startDate veya start) yakalayacak sistem
+    const sDate = c.startDate || c.start || '';
+    const eDate = c.endDate || c.end || '';
+    return `<div class="card"><div class="card-hd"><div><div class="card-title">${c.name}</div><div class="card-sub">${formatDate(sDate)} to ${formatDate(eDate)}</div></div><div style="display:flex;gap:6px;align-items:center"><span class="chip ${clr}">${studs}${c.capacity?'/'+c.capacity:''} Students</span><button class="btn ghost sm" onclick="openM('mCourse', '${c.id}')"><i class="ti ti-edit" style="font-size:16px"></i></button></div></div><div class="meta-row"><span><i class="ti ti-tag"></i> Normal: ${fmt(c.feeNormal)}</span><span><i class="ti ti-discount-check" style="color:var(--color-brand)"></i> Early Bird: ${fmt(c.feeEarly)}</span></div></div>`;
   }).join('');
 }
 
@@ -179,8 +188,8 @@ function openM(id, editId = null, extraParam = null){
       document.getElementById('btn-save-course').textContent = 'Update Course';
       const c = S.courses.find(x => x.id === editId);
       document.getElementById('c-name').value = c.name; 
-      document.getElementById('c-start').value = c.startDate || ''; 
-      document.getElementById('c-end').value = c.endDate || '';     
+      document.getElementById('c-start').value = c.startDate || c.start || ''; 
+      document.getElementById('c-end').value = c.endDate || c.end || '';     
       document.getElementById('c-feeNormal').value = c.feeNormal; 
       document.getElementById('c-feeEarly').value = c.feeEarly;
       document.getElementById('c-deposit').value = c.deposit || ''; 
