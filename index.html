@@ -21,11 +21,14 @@
     <div class="fg">
       <input type="password" id="l-pass" placeholder="Password">
     </div>
-    <div id="login-err" style="color: #ef4444; font-size: 13px; margin-bottom: 12px; display: none; font-weight:500;">Invalid credentials</div>
+    <div id="login-err" style="color: #ef4444; font-size: 13px; margin-bottom: 12px; display: none; font-weight:500;">Invalid credentials or connection error.</div>
     <button class="btn primary" style="width: 100%; justify-content: center; padding: 12px; margin-top: 8px;" id="l-btn" onclick="handleLogin()">Sign In</button>
     
-    <div style="margin-top: 20px; font-size: 11px; color: var(--color-text-secondary); font-weight: 500; letter-spacing: 0.05em;">
-      v1.6.0 Modular
+    <div style="margin-top: 24px; display: flex; flex-direction: column; align-items: center; gap: 8px;">
+      <span style="font-size: 11px; color: var(--color-text-secondary); font-weight: 500; letter-spacing: 0.05em;">v1.7.0 Modular</span>
+      <div id="loginSyncBadge" class="sync-badge" style="background: transparent; border: 1px solid var(--color-border-secondary);">
+        <i class="ti ti-loader"></i> Testing connection...
+      </div>
     </div>
   </div>
 </div>
@@ -39,7 +42,7 @@
     </div>
     <div style="display:flex; flex-direction:column; align-items:flex-end; gap:4px">
       <span class="sync-badge" id="syncBadge"><i class="ti ti-cloud-off"></i> Not connected</span>
-      <span class="version-text">v1.6.0 Modular</span>
+      <span class="version-text">v1.7.0 Modular</span>
     </div>
   </div>
 
@@ -62,17 +65,23 @@
   </div>
 
   <div class="sec" id="sec-courses">
-    <div class="section-hd"><h3>All Courses</h3><button class="btn primary" onclick="openM('mCourse')"><i class="ti ti-plus"></i> New Course</button></div>
+    <div style="display:flex; justify-content:space-between; margin-bottom:16px;">
+      <h3>All Courses</h3><button class="btn primary" onclick="openM('mCourse')"><i class="ti ti-plus"></i> New Course</button>
+    </div>
     <div id="courseList"></div>
   </div>
 
   <div class="sec" id="sec-students">
-    <div class="section-hd"><h3>All Students</h3><button class="btn primary" onclick="openM('mStudent')"><i class="ti ti-user-plus"></i> Enroll Student</button></div>
+    <div style="display:flex; justify-content:space-between; margin-bottom:16px;">
+      <h3>Enrolled Students</h3><button class="btn primary" onclick="openM('mStudent')"><i class="ti ti-user-plus"></i> Enroll Student</button>
+    </div>
     <div id="studentList"></div>
   </div>
 
   <div class="sec" id="sec-payments">
-    <div class="section-hd"><h3>Payment Log</h3><button class="btn primary" onclick="openM('mPayment')"><i class="ti ti-plus"></i> Record Payment</button></div>
+    <div style="display:flex; justify-content:space-between; margin-bottom:16px;">
+      <h3>Payment Log</h3><button class="btn primary" onclick="openM('mPayment')"><i class="ti ti-plus"></i> Record Payment</button>
+    </div>
     <div id="paymentList"></div>
   </div>
   </div>
