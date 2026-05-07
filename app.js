@@ -1,6 +1,6 @@
 /**
  * MEISNER STUDIO - COURSE MANAGEMENT SYSTEM
- * Frontend Logic - v2.3.0 (Searchable Combobox + Status + Relational DB)
+ * Frontend Logic - v2.4.0 (Crash-Proof Modals & ID-Based Status)
  */
 
 let S = { courses:[], students:[], enrollments:[], payments:[], generalStatus:[] };
@@ -32,10 +32,13 @@ const formatDate = (dateStr) => {
     return `${day}/${month}/${d.getFullYear()}`;
 };
 
-const getStatusBadge = (statusCode) => {
+// STATUS GETİRİCİ: Artık ID'ye göre isim ve renk bulur
+const getStatusBadge = (statusId) => {
     const colors = { active: 'teal', completed: 'blue', draft: 'amber', cancelled: 'red' };
-    const label = S.generalStatus.find(s => s.code === statusCode)?.name || statusCode;
-    return `<span class="chip ${colors[statusCode] || 'blue'}">${label || 'Unknown'}</span>`;
+    const st = (S.generalStatus || []).find(s => s.id == statusId);
+    const label = st ? st.name : (statusId || 'Unknown');
+    const colorCode = st ? st.code : 'blue'; 
+    return `<span class="chip ${colors[colorCode] || 'blue'}">${label}</span>`;
 };
 
 // --- BAĞLANTI VE LOGIN ---
@@ -100,7 +103,6 @@ function captureSelectedStudent() {
     document.getElementById('e-selected-student-id').value = option ? option.getAttribute('data-id') : "";
 }
 
-// --- YARDIMCI HESAPLAMALAR ---
 function getEnrollmentPaid(studentId, courseId){ return S.payments.filter(p => p.studentId == studentId && p.courseId == courseId).reduce((a,p)=>a+Number(p.amount),0); }
 function getCourse(id){ return S.courses.find(c=>c.id==id); }
 function getStudent(id){ return S.students.find(s=>s.id==id); }
@@ -119,7 +121,7 @@ function renderStats(){
 
 function renderDash(){
   const box = document.getElementById('dashContent');
-  if(!S.courses.length){ box.innerHTML='<div class="empty"><i class="ti ti-books"></i>No courses yet.</div>'; return; }
+  if(!S.courses.length){ box.innerHTML='<div class="empty">No courses yet.</div>'; return; }
   box.innerHTML = S.courses.map(c=>{
     const enrolls = S.enrollments.filter(e=>e.courseId==c.id);
     const totalDue = enrolls.reduce((a,e)=>a+Number(e.totalFee||0),0);
@@ -132,18 +134,19 @@ function renderDash(){
 
 function renderCourses(){
   const box = document.getElementById('courseList');
-  if(!S.courses.length){ box.innerHTML='<div class="empty"><i class="ti ti-books"></i>No courses yet.</div>'; return; }
-  box.innerHTML = S.courses.map((c,i)=>{
+  if(!S.courses.length){ box.innerHTML='<div class="empty">No courses yet.</div>'; return; }
+  box.innerHTML = S.courses.map(c=>{
     const enrolls = S.enrollments.filter(e=>e.courseId==c.id).length;
-    return `<div class="card"><div class="card-hd"><div><b>${c.name}</b><br><small>${formatDate(c.startDate)} to ${formatDate(c.endDate)}</small></div><div style="display:flex;gap:6px;align-items:center">${getStatusBadge(c.status)} <span class="chip blue">${enrolls}${c.capacity?'/'+c.capacity:''} Students</span><button class="btn ghost sm" onclick="openM('mCourse', '${c.id}')"><i class="ti ti-edit" style="font-size:16px"></i></button></div></div><div class="meta-row"><span><i class="ti ti-tag"></i> Normal: ${fmt(c.feeNormal)}</span><span><i class="ti ti-discount-check" style="color:var(--color-brand)"></i> Early Bird: ${fmt(c.feeEarly)}</span></div></div>`;
+    return `<div class="card"><div class="card-hd"><div><b>${c.name}</b><br><small>${formatDate(c.startDate)} to ${formatDate(c.endDate)}</small></div><div style="display:flex;gap:6px;align-items:center">${getStatusBadge(c.status)} <span class="chip blue">${enrolls}${c.capacity?'/'+c.capacity:''} Students</span><button class="btn ghost sm" onclick="openM('mCourse', '${c.id}')"><i class="ti ti-edit"></i></button></div></div><div class="meta-row"><span><i class="ti ti-tag"></i> Normal: ${fmt(c.feeNormal)}</span><span><i class="ti ti-discount-check" style="color:var(--color-brand)"></i> Early Bird: ${fmt(c.feeEarly)}</span></div></div>`;
   }).join('');
 }
 
 function renderStudents() {
   const box = document.getElementById('studentDBList');
-  const term = document.getElementById('s-search') ? document.getElementById('s-search').value.toLowerCase() : '';
+  const sInput = document.getElementById('s-search');
+  const term = sInput ? sInput.value.toLowerCase() : '';
   const filtered = S.students.filter(s => s.fullName.toLowerCase().includes(term) || s.email.toLowerCase().includes(term));
-  if(!filtered.length){ box.innerHTML='<div class="empty"><i class="ti ti-address-book"></i>No students found.</div>'; return; }
+  if(!filtered.length){ box.innerHTML='<div class="empty">No students found.</div>'; return; }
   const avCls = ['av-t','av-b','av-a'];
   box.innerHTML = `<div class="card" style="padding:4px 16px">${filtered.map((s,i)=>{
     const enrolls = S.enrollments.filter(e=>e.studentId==s.id).length;
@@ -154,7 +157,7 @@ function renderStudents() {
 
 function renderEnrollments(){
   const box = document.getElementById('enrollmentList');
-  if(!S.enrollments.length){ box.innerHTML='<div class="empty"><i class="ti ti-file-certificate"></i>No enrollments yet.</div>'; return; }
+  if(!S.enrollments.length){ box.innerHTML='<div class="empty">No enrollments yet.</div>'; return; }
   const avCls = ['av-t','av-b','av-a'];
   box.innerHTML = `<div class="card" style="padding:4px 16px">${S.enrollments.map((en,i)=>{
     const s = getStudent(en.studentId); if(!s) return '';
@@ -169,7 +172,7 @@ function renderEnrollments(){
 
 function renderPayments(){
   const box = document.getElementById('paymentList');
-  if(!S.payments.length){ box.innerHTML='<div class="empty"><i class="ti ti-coin"></i>No payments recorded yet.</div>'; return; }
+  if(!S.payments.length){ box.innerHTML='<div class="empty">No payments recorded yet.</div>'; return; }
   const sorted = [...S.payments].sort((a,b)=>(b.date||'').localeCompare(a.date||''));
   box.innerHTML = `<div class="card" style="padding:4px 16px">${sorted.map(p=>{
     const s = getStudent(p.studentId); const c = getCourse(p.courseId);
@@ -185,69 +188,106 @@ function goTab(name){
   document.getElementById('sec-'+name).classList.add('active');
 }
 
-function closeM(id){ document.getElementById(id).classList.remove('open'); }
+function closeM(id){ 
+    const el = document.getElementById(id);
+    if(el) el.classList.remove('open'); 
+}
 
+// Güvenli (Try-Catch) Modal Açıcı
 function openM(id, editId = null, extraParam = null){
-  if(id==='mCourse'){
-    const stSelect = document.getElementById('c-status');
-    stSelect.innerHTML = S.generalStatus.filter(s => s.entity === 'course').map(s => `<option value="${s.code}">${s.name}</option>`).join('');
-    if(editId) {
-      editCourseId = editId; const c = getCourse(editId);
-      document.getElementById('modal-title-course').innerHTML = 'Edit Course'; document.getElementById('btn-save-course').textContent = 'Update';
-      document.getElementById('c-name').value = c.name; document.getElementById('c-start').value = c.startDate || ''; document.getElementById('c-end').value = c.endDate || '';     
-      document.getElementById('c-feeNormal').value = c.feeNormal; document.getElementById('c-feeEarly').value = c.feeEarly; document.getElementById('c-deposit').value = c.deposit || ''; document.getElementById('c-capacity').value = c.capacity || '';
-      document.getElementById('c-status').value = c.status || 'active';
-    } else {
-      editCourseId = null; document.getElementById('modal-title-course').innerHTML = 'New Course'; document.getElementById('btn-save-course').textContent = 'Create';
-      ['c-name','c-start','c-end','c-feeNormal','c-feeEarly','c-deposit','c-capacity'].forEach(x=>document.getElementById(x).value='');
-    }
-  }
-  
-  if(id==='mStudentEdit') {
-      editStudentIdentityId = editId; const s = getStudent(editId);
-      document.getElementById('se-fullname').value = s.fullName; document.getElementById('se-email').value = s.email; document.getElementById('se-phone').value = s.phone||'';
+  try {
+      if(id==='mCourse'){
+        const stSelect = document.getElementById('c-status');
+        // Statusleri ID'ye göre listele:
+        if(stSelect) stSelect.innerHTML = (S.generalStatus||[]).filter(s => s.entity === 'course').map(s => `<option value="${s.id}">${s.name}</option>`).join('');
+        
+        if(editId) {
+          editCourseId = editId; const c = getCourse(editId) || {};
+          document.getElementById('modal-title-course').innerHTML = 'Edit Course'; 
+          document.getElementById('btn-save-course').textContent = 'Update';
+          document.getElementById('c-name').value = c.name || ''; 
+          document.getElementById('c-start').value = c.startDate || ''; 
+          document.getElementById('c-end').value = c.endDate || '';     
+          document.getElementById('c-feeNormal').value = c.feeNormal || ''; 
+          document.getElementById('c-feeEarly').value = c.feeEarly || ''; 
+          document.getElementById('c-deposit').value = c.deposit || ''; 
+          document.getElementById('c-capacity').value = c.capacity || '';
+          document.getElementById('c-status').value = c.status || '';
+        } else {
+          editCourseId = null; 
+          document.getElementById('modal-title-course').innerHTML = 'New Course'; 
+          document.getElementById('btn-save-course').textContent = 'Create';
+          ['c-name','c-start','c-end','c-feeNormal','c-feeEarly','c-deposit','c-capacity'].forEach(x=>{if(document.getElementById(x)) document.getElementById(x).value=''});
+          // İlk statü id'sini default olarak ata
+          if(S.generalStatus && S.generalStatus.length > 0) document.getElementById('c-status').value = S.generalStatus[0].id;
+        }
+      }
+      
+      if(id==='mStudentEdit') {
+          editStudentIdentityId = editId; const s = getStudent(editId) || {};
+          document.getElementById('se-fullname').value = s.fullName || ''; 
+          document.getElementById('se-email').value = s.email || ''; 
+          document.getElementById('se-phone').value = s.phone || '';
+      }
+
+      if(id==='mEnrollment'){
+        document.getElementById('e-course').innerHTML='<option value="">Select course...</option>' + S.courses.map(c=>`<option value="${c.id}">${c.name}</option>`).join('');
+        document.getElementById('e-search-input').value = ""; document.getElementById('e-selected-student-id').value = "";
+        
+        if(editId) {
+            editEnrollmentId = editId; const en = S.enrollments.find(e=>e.id==editId) || {};
+            document.getElementById('modal-title-enrollment').innerHTML = 'Edit Enrollment';
+            document.getElementById('btn-save-enrollment').textContent = 'Update Enrollment';
+            document.getElementById('e-type-box').style.display='none'; document.getElementById('e-existing-box').style.display='none'; document.getElementById('e-new-box').style.display='none';
+            
+            document.getElementById('e-course').value = en.courseId || ''; document.getElementById('e-course').disabled = true;
+            document.getElementById('e-priceType').value = en.priceType || 'normal'; 
+            document.getElementById('e-depositAmount').value = en.depositAmount||''; 
+            document.getElementById('e-depositDate').value = en.depositDate||''; 
+            document.getElementById('e-payType').value = en.paymentType || 'full_remaining';
+            
+            toggleInstalmentFields();
+            if(en.paymentType === 'instalment') {
+                try {
+                  const plan = JSON.parse(en.instalmentPlan); document.getElementById('e-numInstalments').value = plan.length; updateInstalments();
+                  const amounts = document.querySelectorAll('.inst-amount'); const dates = document.querySelectorAll('.inst-date');
+                  plan.forEach((inst, i) => { if(amounts[i]) amounts[i].value = inst.amount; if(dates[i]) dates[i].value = inst.date; });
+                } catch(e){}
+            } else { document.getElementById('e-numInstalments').value = ''; }
+            document.getElementById('e-displayTotal').value = fmt(en.totalFee);
+        } else {
+            editEnrollmentId = null; 
+            document.getElementById('modal-title-enrollment').innerHTML = 'Enroll Student';
+            document.getElementById('btn-save-enrollment').textContent = 'Save Enrollment';
+            document.getElementById('e-type-box').style.display='block'; document.getElementById('e-course').disabled = false;
+            ['e-course','e-fullname','e-email','e-phone','e-depositAmount','e-depositDate','e-numInstalments'].forEach(x=>{if(document.getElementById(x)) document.getElementById(x).value=''});
+            document.getElementById('e-priceType').value='normal'; document.getElementById('e-payType').value='full_remaining';
+            const radio = document.querySelector('input[name="eType"][value="existing"]');
+            if(radio) radio.checked = true; 
+            toggleStudentMode(); toggleInstalmentFields(); document.getElementById('e-displayTotal').value = '';
+        }
+      }
+      
+      if(id==='mPayment'){ 
+        document.getElementById('p-student').innerHTML='<option value="">Select student...</option>' + S.students.map(s=>`<option value="${s.id}">${s.fullName}</option>`).join('');
+        document.getElementById('p-date').value = today(); document.getElementById('p-amount').value=''; document.getElementById('p-note').value='';
+        document.getElementById('smart-suggestion').style.display='none'; document.getElementById('p-course-box').style.display='none';
+        if(extraParam) { 
+          const en = S.enrollments.find(e=>e.id==extraParam);
+          if(en) { document.getElementById('p-student').value = en.studentId; loadStudentCourses(); document.getElementById('p-course').value = en.courseId; calculatePaymentSuggestion(); }
+        }
+      }
+
+  } catch (err) {
+      console.error("Modal preparation failed:", err);
   }
 
-  if(id==='mEnrollment'){
-    document.getElementById('e-course').innerHTML='<option value="">Select course...</option>' + S.courses.map(c=>`<option value="${c.id}">${c.name}</option>`).join('');
-    document.getElementById('e-search-input').value = ""; document.getElementById('e-selected-student-id').value = "";
-    
-    if(editId) {
-        editEnrollmentId = editId; const en = S.enrollments.find(e=>e.id==editId);
-        document.getElementById('btn-save-enrollment').textContent = 'Update Enrollment';
-        document.getElementById('e-type-box').style.display='none'; document.getElementById('e-existing-box').style.display='none'; document.getElementById('e-new-box').style.display='none';
-        
-        document.getElementById('e-course').value = en.courseId; document.getElementById('e-course').disabled = true;
-        document.getElementById('e-priceType').value = en.priceType; document.getElementById('e-depositAmount').value = en.depositAmount||''; document.getElementById('e-depositDate').value = en.depositDate||''; document.getElementById('e-payType').value = en.paymentType;
-        
-        toggleInstalmentFields();
-        if(en.paymentType === 'instalment') {
-            try {
-              const plan = JSON.parse(en.instalmentPlan); document.getElementById('e-numInstalments').value = plan.length; updateInstalments();
-              const amounts = document.querySelectorAll('.inst-amount'); const dates = document.querySelectorAll('.inst-date');
-              plan.forEach((inst, i) => { if(amounts[i]) amounts[i].value = inst.amount; if(dates[i]) dates[i].value = inst.date; });
-            } catch(e){}
-        } else document.getElementById('e-numInstalments').value = '';
-        document.getElementById('e-displayTotal').value = fmt(en.totalFee);
-    } else {
-        editEnrollmentId = null; document.getElementById('btn-save-enrollment').textContent = 'Save Enrollment';
-        document.getElementById('e-type-box').style.display='block'; document.getElementById('e-course').disabled = false;
-        ['e-course','e-fullname','e-email','e-phone','e-depositAmount','e-depositDate','e-numInstalments'].forEach(x=>document.getElementById(x).value='');
-        document.getElementById('e-priceType').value='normal'; document.getElementById('e-payType').value='full_remaining';
-        document.querySelector('input[name="eType"][value="existing"]').checked = true; toggleStudentMode(); toggleInstalmentFields(); document.getElementById('e-displayTotal').value = '';
-    }
+  const modalElement = document.getElementById(id);
+  if(modalElement) {
+      modalElement.classList.add('open');
+  } else {
+      console.error("Modal ID not found in HTML:", id);
   }
-  
-  if(id==='mPayment'){ 
-    document.getElementById('p-student').innerHTML='<option value="">Select student...</option>' + S.students.map(s=>`<option value="${s.id}">${s.fullName}</option>`).join('');
-    document.getElementById('p-date').value = today(); document.getElementById('p-amount').value=''; document.getElementById('p-note').value='';
-    document.getElementById('smart-suggestion').style.display='none'; document.getElementById('p-course-box').style.display='none';
-    if(extraParam) { 
-      const en = S.enrollments.find(e=>e.id==extraParam);
-      if(en) { document.getElementById('p-student').value = en.studentId; loadStudentCourses(); document.getElementById('p-course').value = en.courseId; calculatePaymentSuggestion(); }
-    }
-  }
-  document.getElementById(id).classList.add('open');
 }
 
 function toggleStudentMode() {
