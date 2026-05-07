@@ -3,7 +3,7 @@ let S = { courses:[], students:[], enrollments:[], payments:[] };
 
 // DİKKAT: BURAYA YENİ ALDIĞIN GOOGLE APPS SCRIPT URL'Nİ YAPIŞTIR!
 let cfg = { 
-  url: 'https://script.google.com/macros/s/AKfycbzfS8vHk9JU-9scOMWF9ewdo_oswZQCG56OI_ba2q5Cc9cAm4F2FY0H74vz360JN0FVSA/exec', 
+  url: 'https://script.google.com/macros/s/AKfycbwsXTt_mkixWb7-PsGy2cG5rZsZTmy6hg0pTslveYabxjRVCXnzvvEwqZGqTGt8ifd7/exec', 
   currency: '€' 
 };
 
@@ -14,14 +14,26 @@ const fmt = n => cfg.currency + Number(n||0).toLocaleString('en-US', {minimumFra
 const today = () => new Date().toISOString().split('T')[0];
 const uid = () => Date.now().toString(36) + Math.random().toString(36).slice(2,6);
 
+// YENİ VERSİYON: Ekranda her zaman ve sadece DD/MM/YYYY formatında gösterir
 const formatDate = (dateStr) => {
     if (!dateStr) return '—';
+    
+    // Eğer tarih "YYYY-MM-DD" gibi temiz bir formatta geliyorsa, saati hiç karıştırmadan direkt çevir (Kaymayı %100 önler)
+    if (typeof dateStr === 'string' && /^\d{4}-\d{2}-\d{2}$/.test(dateStr)) {
+        const parts = dateStr.split('-');
+        return `${parts[2]}/${parts[1]}/${parts[0]}`; // DD/MM/YYYY
+    }
+    // Eğer ISO string (2024-10-05T21:00:00Z) veya başka bir şey gelirse normal dönüştür
     const d = new Date(dateStr);
     if (isNaN(d)) return dateStr;
     const day = String(d.getDate()).padStart(2, '0');
     const month = String(d.getMonth() + 1).padStart(2, '0');
     return `${day}/${month}/${d.getFullYear()}`;
 };
+
+// NOT: Düzenleme modallarına (Edit Modal) veri yüklenirken taksit tarihlerini dolduran kodun
+// düzgün çalışması için "YYYY-MM-DD" formatına ihtiyacı vardır. Eğer daha önceden bozuk girilmiş 
+// tarihler varsa Google Sheets'te manuel olarak düzeltmeniz (Örn: 2024-10-25) tavsiye edilir.
 
 async function testConnection() {
     const badge = document.getElementById('loginSyncBadge');
