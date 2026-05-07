@@ -3,134 +3,13 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Course Management System</title>
+    <title>Course Management System - Meisner Studio</title>
     
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@latest/tabler-icons.min.css">
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
     
-    <style>
-    :root {
-      --font-sans: 'Inter', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
-      --color-text-primary: #1f2937;
-      --color-text-secondary: #6b7280;
-      --color-background-primary: #ffffff;
-      --color-background-secondary: #f3f4f6;
-      --color-border-secondary: #e5e7eb;
-      --color-border-tertiary: #f3f4f6;
-      --border-radius-md: 8px;
-      --border-radius-lg: 12px;
-      --color-brand: #10b981; 
-      --color-brand-hover: #059669;
-    }
-    * { box-sizing:border-box; margin:0; padding:0; }
-    body { background-color: #f9fafb; font-family: var(--font-sans); }
-    
-    /* YENİ EKLENEN LOGIN EKRANI CSS'İ */
-    #login-screen { position: fixed; inset: 0; background: var(--color-background-secondary); z-index: 10000; display: flex; align-items: center; justify-content: center; }
-    .login-box { background: var(--color-background-primary); padding: 40px; border-radius: var(--border-radius-lg); width: 100%; max-width: 400px; box-shadow: 0 10px 25px rgba(0,0,0,0.05); text-align: center; border: 1px solid var(--color-border-secondary); }
-    .login-box h2 { margin-bottom: 24px; color: var(--color-text-primary); }
-    #main-app { display: none; }
-    /* --------------------------------- */
-
-    .app { font-family:var(--font-sans); font-size:14px; color:var(--color-text-primary); max-width: 1200px; margin: 0 auto; background: var(--color-background-primary); min-height: 100vh; box-shadow: 0 0 20px rgba(0,0,0,0.02); }
-    
-    .topbar { display:flex; align-items:center; justify-content:space-between; padding:16px 20px; border-bottom:1px solid var(--color-border-secondary); background:var(--color-background-primary); }
-    .topbar-left { display:flex; align-items:center; gap:12px; }
-    .topbar h1 { font-size:18px; font-weight:600; color: #111827; }
-    .sync-badge { display:inline-flex; align-items:center; gap:5px; font-size:12px; font-weight: 500; padding:4px 10px; border-radius:20px; background:var(--color-background-secondary); color:var(--color-text-secondary); border:1px solid var(--color-border-secondary); transition: all 0.3s; }
-    .version-text { font-size: 10px; color: var(--color-text-secondary); font-weight: 500; letter-spacing: 0.05em; padding-right: 4px; }
-    
-    .tabs { display:flex; gap:8px; padding:0 20px; border-bottom:1px solid var(--color-border-secondary); background:var(--color-background-primary); margin-top: 10px; }
-    .tab { padding:12px 16px; font-size:14px; font-weight: 500; border:none; background:none; cursor:pointer; color:var(--color-text-secondary); border-bottom:2px solid transparent; display:flex; align-items:center; gap:8px; transition: all 0.2s; }
-    .tab:hover { color: var(--color-text-primary); }
-    .tab.active { color:var(--color-brand); border-bottom-color:var(--color-brand); }
-    
-    .panel { padding:20px; background: #f9fafb; min-height: calc(100vh - 140px); }
-    .sec { display:none; animation: fadeIn 0.3s ease-in-out; }
-    .sec.active { display:block; }
-    @keyframes fadeIn { from { opacity: 0; transform: translateY(5px); } to { opacity: 1; transform: translateY(0); } }
-    
-    .stats-grid { display:grid; grid-template-columns:repeat(auto-fit, minmax(150px, 1fr)); gap:16px; margin-bottom:20px; }
-    .stat { background:var(--color-background-primary); border-radius:var(--border-radius-lg); padding:16px; box-shadow: 0 1px 3px rgba(0,0,0,0.05); border: 1px solid var(--color-border-secondary); }
-    .stat .lbl { font-size:12px; color:var(--color-text-secondary); font-weight: 500; text-transform:uppercase; margin-bottom:8px; }
-    .stat .val { font-size:24px; font-weight:600; }
-    .val.g { color:#10b981; } .val.b { color:#3b82f6; } .val.a { color:#f59e0b; } .val.r { color:#ef4444; }
-    
-    .card { background:var(--color-background-primary); border:1px solid var(--color-border-secondary); border-radius:var(--border-radius-lg); padding:16px; margin-bottom:12px; box-shadow: 0 1px 2px rgba(0,0,0,0.03); transition: transform 0.2s, box-shadow 0.2s; }
-    .card:hover { transform: translateY(-2px); box-shadow: 0 4px 12px rgba(0,0,0,0.05); }
-    .card-hd { display:flex; align-items:flex-start; justify-content:space-between; margin-bottom:12px; }
-    .card-title { font-size:15px; font-weight:600; color: #111827; }
-    .card-sub { font-size:13px; color:var(--color-text-secondary); margin-top:4px; }
-    
-    .btn { display:inline-flex; align-items:center; gap:6px; padding:8px 14px; font-size:13px; font-weight:500; font-family: var(--font-sans); border-radius:var(--border-radius-md); cursor:pointer; border:1px solid var(--color-border-secondary); background:var(--color-background-primary); color:var(--color-text-primary); transition: all 0.2s; }
-    .btn:hover { background:var(--color-background-secondary); }
-    .btn.primary { background:var(--color-brand); color:#fff; border-color:var(--color-brand); }
-    .btn.primary:hover { background:var(--color-brand-hover); box-shadow: 0 2px 6px rgba(16, 185, 129, 0.3); }
-    .btn.ghost { border-color: transparent; background: transparent; padding: 6px 10px; }
-    .btn.ghost:hover { background: var(--color-background-secondary); }
-    
-    .chip { display:inline-flex; align-items:center; gap:4px; padding:4px 10px; border-radius:20px; font-size:11px; font-weight:600; text-transform: uppercase; letter-spacing: 0.02em; }
-    .chip.teal { background:#ecfdf5; color:#047857; } .chip.blue { background:#eff6ff; color:#1d4ed8; } .chip.amber { background:#fffbeb; color:#b45309; } .chip.red { background:#fef2f2; color:#b91c1c; }
-    
-    .meta-row { display:flex; gap:16px; flex-wrap:wrap; font-size:13px; color:var(--color-text-secondary); }
-    .meta-row span { display:flex; align-items:center; gap:6px; background: #f9fafb; padding: 4px 8px; border-radius: 6px; }
-    .bar-bg { height:6px; background:var(--color-background-secondary); border-radius:3px; margin-top:8px; overflow: hidden; }
-    .bar-fill { height:6px; border-radius:3px; background:var(--color-brand); transition:width 0.5s ease; }
-    .bar-fill.warn { background:#f59e0b; } .bar-fill.danger { background:#ef4444; }
-    
-    .avatar { width:36px; height:36px; border-radius:50%; display:flex; align-items:center; justify-content:center; font-size:13px; font-weight:600; flex-shrink:0; }
-    .av-t { background:#d1fae5; color:#065f46; } .av-b { background:#dbeafe; color:#1e40af; } .av-a { background:#fef3c7; color:#92400e; }
-    .student-row { display:flex; align-items:center; gap:12px; padding:10px 0; border-bottom:1px solid var(--color-border-tertiary); cursor:pointer; transition: background 0.2s; }
-    .student-row:last-child { border-bottom:none; }
-    .student-row:hover { background:var(--color-background-secondary); margin:0 -16px; padding:10px 16px; border-radius: var(--border-radius-md); }
-    .student-info { flex:1; min-width:0; }
-    .student-name { font-size:14px; font-weight:600; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
-    .student-sub { font-size:12px; color:var(--color-text-secondary); margin-top: 2px; }
-    .pay-summary { flex:0 0 120px; text-align:right; }
-    .pay-amount { font-size:13px; font-weight:600; }
-    .pay-label { font-size:11px; color:var(--color-text-secondary); margin-top: 2px; }
-    
-    .payment-entry { display:flex; align-items:center; justify-content:space-between; padding:10px 0; border-bottom:1px solid var(--color-border-tertiary); font-size:13px; }
-    .payment-entry:last-child { border-bottom:none; }
-    
-    .empty { text-align:center; padding:48px 20px; color:var(--color-text-secondary); font-size:14px; }
-    .empty i { font-size:36px; display:block; margin-bottom:12px; opacity:0.4; }
-    
-    .modal-wrap { display:none; position:fixed; inset:0; background:rgba(17, 24, 39, 0.7); z-index:9999; align-items:center; justify-content:center; padding:20px; }
-    .modal-wrap.open { display:flex; animation: fadeIn 0.2s; }
-    .modal { background:var(--color-background-primary); border-radius:var(--border-radius-lg); padding:24px; width:480px; max-width:100%; box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25); max-height:90vh; overflow-y:auto; position: relative; }
-    .modal h2 { font-size:18px; font-weight:600; margin-bottom:20px; display:flex; align-items:center; gap:10px; color: #111827; }
-    .modal-footer { display:flex; justify-content:flex-end; gap:10px; margin-top:24px; padding-top:16px; border-top:1px solid var(--color-border-tertiary); }
-    
-    .fg { display:flex; flex-direction:column; gap:6px; margin-bottom:16px; }
-    .fg label { font-size:13px; font-weight:500; color:var(--color-text-primary); }
-    .fg input, .fg select { width:100%; padding:10px 12px; font-size:14px; font-family: var(--font-sans); border:1px solid #d1d5db; border-radius:var(--border-radius-md); background:#fff; transition: border-color 0.2s, box-shadow 0.2s; color: var(--color-text-primary); }
-    .fg select, .fg input[type="date"] { cursor: pointer; }
-    .fg input[type="text"], .fg input[type="number"], .fg input[type="email"], .fg input[type="password"] { cursor: text; }
-    .fg input:focus, .fg select:focus { outline:none; border-color:var(--color-brand); box-shadow: 0 0 0 3px rgba(16, 185, 129, 0.1); }
-    input[type="date"]::-webkit-calendar-picker-indicator { cursor: pointer; padding: 6px; margin-right: -6px; transform: scale(1.3); opacity: 0.6; transition: opacity 0.2s ease; }
-    input[type="date"]::-webkit-calendar-picker-indicator:hover { opacity: 1; }
-    
-    .form-2col { display:grid; grid-template-columns:1fr 1fr; gap:16px; }
-    .section-hd { display:flex; align-items:center; justify-content:space-between; margin-bottom:16px; }
-    .section-hd h3 { font-size:16px; font-weight:600; color: #111827; }
-    
-    .detail-panel { background:var(--color-background-secondary); border-radius:var(--border-radius-md); padding:16px; margin-bottom:16px; border: 1px solid var(--color-border-tertiary); }
-    .detail-grid { display:grid; grid-template-columns:1fr 1fr; gap:12px 20px; font-size:13px; }
-    .detail-grid .dk { color:var(--color-text-secondary); font-weight: 500; }
-    .detail-grid .dv { font-weight:600; color: #111827; }
-    .divider { border:none; border-top:1px solid var(--color-border-tertiary); margin:20px 0; }
-    
-    .dynamic-row { background: #fff; padding: 12px; border-radius: 8px; border-left: 3px solid var(--color-brand); margin-bottom: 10px; box-shadow: 0 1px 3px rgba(0,0,0,0.05); }
-    
-    /* Smart Suggestion Box Styling */
-    .smart-suggestion { background:#eff6ff; border:1px solid #bfdbfe; border-radius:var(--border-radius-md); padding:12px 14px; margin-bottom:16px; display:none; animation: fadeIn 0.3s ease; }
-    .smart-suggestion .s-title { display:flex; align-items:center; gap:6px; color:#1d4ed8; font-weight:600; font-size:13px; margin-bottom:4px; }
-    .smart-suggestion .s-desc { color:#3b82f6; font-size:12px; }
-    .smart-suggestion.success { background:#ecfdf5; border-color:#a7f3d0; }
-    .smart-suggestion.success .s-title { color:#047857; }
-    .smart-suggestion.success .s-desc { color:#059669; }
-    </style>
+    <link rel="stylesheet" href="style.css">
+    <script src="app.js" defer></script>
 </head>
 <body>
 
@@ -139,15 +18,13 @@
     <i class="ti ti-lock" style="font-size: 48px; color: var(--color-brand); margin-bottom:16px; display:block;"></i>
     <h2>Admin Login</h2>
     <div class="fg">
-      <label>Username</label>
-      <input type="text" id="l-user" placeholder="Enter username">
+      <input type="text" id="l-user" placeholder="Username">
     </div>
     <div class="fg">
-      <label>Password</label>
-      <input type="password" id="l-pass" placeholder="Enter password">
+      <input type="password" id="l-pass" placeholder="Password">
     </div>
-    <div id="login-error" style="color: #ef4444; font-size: 13px; margin-bottom: 12px; display: none; font-weight:500;">Invalid credentials</div>
-    <button class="btn primary" style="width: 100%; justify-content: center; padding: 12px; margin-top: 8px;" id="l-btn" onclick="handleLogin()">Login</button>
+    <div id="login-err" style="color: #ef4444; font-size: 13px; margin-bottom: 12px; display: none; font-weight:500;">Invalid credentials</div>
+    <button class="btn primary" style="width: 100%; justify-content: center; padding: 12px; margin-top: 8px;" id="l-btn" onclick="handleLogin()">Sign In</button>
   </div>
 </div>
 
@@ -160,7 +37,7 @@
     </div>
     <div style="display:flex; flex-direction:column; align-items:flex-end; gap:4px">
       <span class="sync-badge" id="syncBadge"><i class="ti ti-cloud-off"></i> Not connected</span>
-      <span class="version-text">v1.3.0 + Login</span>
+      <span style="font-size: 10px; color: var(--color-text-secondary); font-weight: 500;">v1.5.0 Modular</span>
     </div>
   </div>
 
@@ -183,644 +60,83 @@
   </div>
 
   <div class="sec" id="sec-courses">
-    <div class="section-hd"><h3>All Courses</h3><button class="btn primary" onclick="openM('mCourse')"><i class="ti ti-plus"></i> New Course</button></div>
+    <div style="display:flex; justify-content:space-between; margin-bottom:16px;">
+      <h3>All Courses</h3><button class="btn primary" onclick="openM('mCourse')"><i class="ti ti-plus"></i> New Course</button>
+    </div>
     <div id="courseList"></div>
   </div>
 
   <div class="sec" id="sec-students">
-    <div class="section-hd"><h3>All Students</h3><button class="btn primary" onclick="openM('mStudent')"><i class="ti ti-user-plus"></i> Enroll Student</button></div>
+    <div style="display:flex; justify-content:space-between; margin-bottom:16px;">
+      <h3>Enrolled Students</h3><button class="btn primary" onclick="openM('mStudent')"><i class="ti ti-user-plus"></i> Enroll Student</button>
+    </div>
     <div id="studentList"></div>
   </div>
 
   <div class="sec" id="sec-payments">
-    <div class="section-hd"><h3>Payment Log</h3><button class="btn primary" onclick="openM('mPayment')"><i class="ti ti-plus"></i> Record Payment</button></div>
+    <div style="display:flex; justify-content:space-between; margin-bottom:16px;">
+      <h3>Payment Log</h3><button class="btn primary" onclick="openM('mPayment')"><i class="ti ti-plus"></i> Record Payment</button>
+    </div>
     <div id="paymentList"></div>
   </div>
   </div>
   </div>
 </div>
 
-<div class="modal-wrap" id="mCourse">
-<div class="modal">
-  <h2 id="modal-title-course"><i class="ti ti-books"></i> New Course</h2>
-  <div class="fg"><label>Course name *</label><input type="text" id="c-name" placeholder="e.g. Intensive English" /></div>
+<div class="modal-wrap" id="mCourse"><div class="modal">
+  <h2 id="mc-title">New Course</h2>
+  <div class="fg"><label>Course name *</label><input type="text" id="c-name"></div>
   <div class="form-2col">
-    <div class="fg"><label>Start date</label><input type="date" id="c-start" onclick="try{this.showPicker()}catch(e){}" /></div>
-    <div class="fg"><label>End date</label><input type="date" id="c-end" onclick="try{this.showPicker()}catch(e){}" /></div>
-  </div>
-  <div class="form-2col">
-    <div class="fg"><label>Normal Fee (€) *</label><input type="number" id="c-feeNormal" placeholder="1500" /></div>
-    <div class="fg"><label>Early Bird Fee (€) *</label><input type="number" id="c-feeEarly" placeholder="1200" /></div>
+    <div class="fg"><label>Start date</label><input type="date" id="c-start"></div>
+    <div class="fg"><label>End date</label><input type="date" id="c-end"></div>
   </div>
   <div class="form-2col">
-    <div class="fg"><label>Deposit amount (€)</label><input type="number" id="c-deposit" placeholder="300" /></div>
-    <div class="fg"><label>Capacity</label><input type="number" id="c-capacity" placeholder="15" /></div>
+    <div class="fg"><label>Normal Fee (€)</label><input type="number" id="c-feeN"></div>
+    <div class="fg"><label>Early Bird Fee (€)</label><input type="number" id="c-feeE"></div>
   </div>
-  <div class="modal-footer">
-    <button class="btn" onclick="closeM('mCourse')">Cancel</button>
-    <button class="btn primary" id="btn-save-course" onclick="saveCourse()">Create Course</button>
-  </div>
-</div>
-</div>
+  <div class="modal-footer"><button class="btn" onclick="closeM('mCourse')">Cancel</button><button class="btn primary" onclick="saveCourse()">Save</button></div>
+</div></div>
 
-<div class="modal-wrap" id="mStudent">
-<div class="modal">
-  <h2 id="modal-title-student"><i class="ti ti-user-plus"></i> Enroll Student</h2>
-  <div class="fg"><label>Course *</label><select id="s-course" onchange="updateInstalments()"><option value="">Select a course...</option></select></div>
-  <div class="fg"><label>Full name *</label><input type="text" id="s-fullname" placeholder="Jane Doe" /></div>
+<div class="modal-wrap" id="mStudent"><div class="modal">
+  <h2 id="ms-title">Enroll Student</h2>
+  <div class="fg"><label>Course *</label><select id="s-course" onchange="updateSForm()"></select></div>
+  <div class="fg"><label>Full Name *</label><input type="text" id="s-fullname"></div>
   <div class="form-2col">
-    <div class="fg"><label>Email *</label><input type="email" id="s-email" placeholder="jane@email.com" /></div>
-    <div class="fg"><label>Phone</label><input type="text" id="s-phone" placeholder="+1 555 000 0000" /></div>
+    <div class="fg"><label>Email *</label><input type="email" id="s-mail"></div>
+    <div class="fg"><label>Phone</label><input type="text" id="s-phone"></div>
   </div>
-  <hr class="divider">
-  
-  <div style="font-size:14px;font-weight:600;margin-bottom:12px;color:#111827">Payment Details</div>
-  
   <div class="form-2col">
-    <div class="fg">
-      <label>Price Tier *</label>
-      <select id="s-priceType" onchange="updateInstalments()">
-        <option value="normal">Normal Price</option>
-        <option value="early_bird">Early Bird Price</option>
-      </select>
-    </div>
-    <div class="fg">
-      <label>Total Course Fee</label>
-      <input type="text" id="s-displayTotal" disabled style="background:#f3f4f6; font-weight:600; color:var(--color-brand)">
-    </div>
+    <div class="fg"><label>Price Tier</label><select id="s-tier" onchange="updateSForm()"><option value="normal">Normal</option><option value="early_bird">Early Bird</option></select></div>
+    <div class="fg"><label>Total Fee</label><input type="text" id="s-total" disabled style="background:#f3f4f6; font-weight:600;"></div>
   </div>
-
   <div class="form-2col">
-    <div class="fg"><label>Deposit Amount (€)</label><input type="number" id="s-depositAmount" oninput="updateInstalments()" placeholder="e.g. 300"></div>
-    <div class="fg"><label>Deposit Due Date</label><input type="date" id="s-depositDate" onclick="try{this.showPicker()}catch(e){}"></div>
+    <div class="fg"><label>Deposit (€)</label><input type="number" id="s-depA"></div>
+    <div class="fg"><label>Deposit Date</label><input type="date" id="s-depD"></div>
   </div>
-
-  <div class="fg">
-    <label>Remaining Payment Plan *</label>
-    <select id="s-payType" onchange="toggleInstalmentFields()">
-      <option value="full_remaining">Full Remaining (One-time)</option>
-      <option value="instalment">Instalment Plan</option>
-    </select>
+  <div class="fg"><label>Plan</label><select id="s-plan" onchange="toggleInst()"><option value="full">Full Remaining</option><option value="instalment">Instalment Plan</option></select></div>
+  <div id="inst-box" style="display:none; background:#f9fafb; padding:15px; border-radius:10px; border:1px solid #eee;">
+    <div class="fg"><label>Instalments</label><input type="number" id="s-instN" min="1"></div>
   </div>
+  <div class="modal-footer"><button class="btn" onclick="closeM('mStudent')">Cancel</button><button class="btn primary" onclick="saveStudent()">Save</button></div>
+</div></div>
 
-  <div id="instalment-container" style="display:none; background:var(--color-background-secondary); padding:16px; border-radius:8px; border:1px solid var(--color-border-secondary);">
-    <div class="fg">
-      <label>Number of Instalments</label>
-      <input type="number" id="s-numInstalments" min="1" max="24" oninput="updateInstalments()" placeholder="e.g. 3">
-    </div>
-    <div id="dynamic-instalments"></div>
-  </div>
-
-  <div class="modal-footer">
-    <button class="btn" onclick="closeM('mStudent')">Cancel</button>
-    <button class="btn primary" id="btn-save-student" onclick="saveStudent()">Enroll Student</button>
-  </div>
-</div>
-</div>
-
-<div class="modal-wrap" id="mPayment">
-<div class="modal">
-  <h2><i class="ti ti-coin"></i> Record Payment</h2>
-  <div class="fg"><label>Student *</label><select id="p-student" onchange="calculatePaymentSuggestion()"><option value="">Select student…</option></select></div>
-  
-  <div id="smart-suggestion" class="smart-suggestion">
-    <div class="s-title" id="ss-title"><i class="ti ti-bulb"></i> Suggested Payment</div>
-    <div class="s-desc" id="ss-desc">Loading...</div>
-  </div>
-
+<div class="modal-wrap" id="mPayment"><div class="modal">
+  <h2>Record Payment</h2>
+  <div class="fg"><label>Student *</label><select id="p-student" onchange="suggestPay()"></select></div>
+  <div id="p-sugg" class="smart-suggestion"></div>
   <div class="form-2col">
-    <div class="fg"><label>Amount (€) *</label><input type="number" id="p-amount" placeholder="500" /></div>
-    <div class="fg"><label>Date *</label><input type="date" id="p-date" onclick="try{this.showPicker()}catch(e){}" /></div>
+    <div class="fg"><label>Amount (€)</label><input type="number" id="p-amt"></div>
+    <div class="fg"><label>Date</label><input type="date" id="p-date"></div>
   </div>
-  <div class="fg"><label>Payment Type</label>
-    <select id="p-type">
-      <option value="deposit">Deposit</option>
-      <option value="instalment">Instalment</option>
-      <option value="full">Full payment</option>
-      <option value="other">Other</option>
-    </select>
-  </div>
-  <div class="fg"><label>Note (optional)</label><input type="text" id="p-note" placeholder="e.g. Instalment 1" /></div>
-  <div class="modal-footer">
-    <button class="btn" onclick="closeM('mPayment')">Cancel</button>
-    <button class="btn primary" onclick="savePayment()">Save Payment</button>
-  </div>
-</div>
-</div>
+  <div class="fg"><label>Type</label><select id="p-type"><option value="deposit">Deposit</option><option value="instalment">Instalment</option><option value="full">Full Payment</option></select></div>
+  <div class="modal-footer"><button class="btn" onclick="closeM('mPayment')">Cancel</button><button class="btn primary" onclick="savePayment()">Record</button></div>
+</div></div>
 
-<div class="modal-wrap" id="mStudentDetail">
-<div class="modal">
-  <h2 id="sd-title"><i class="ti ti-user"></i> Student Detail</h2>
+<div class="modal-wrap" id="mStudentDetail"><div class="modal">
+  <h2 id="sd-title">Detail</h2>
   <div id="sd-body"></div>
   <div class="modal-footer" id="sd-footer"></div>
-</div>
-</div>
-
-<script>
-let S = { courses:[], students:[], payments:[] };
-// APP SCRIPT URL'NİZİ BURAYA YAPIŞTIRIN
-let cfg = { 
-  url: 'https://script.google.com/macros/s/AKfycbykMOEtjk4cba3p6WMlfacrUQKS7P-Mb3ZU1LeKnu3Cbnii07Dd5voBKFyNIsNytc023w/exec', 
-  currency: '€' 
-};
-
-let editCourseId = null;
-let editStudentId = null;
-
-const fmt = n => cfg.currency + Number(n||0).toLocaleString('en-US', {minimumFractionDigits: 2, maximumFractionDigits: 2});
-const today = () => new Date().toISOString().split('T')[0];
-const uid = () => Date.now().toString(36) + Math.random().toString(36).slice(2,6);
-
-// --- YENİ EKLENEN LOGIN FONKSİYONU ---
-async function handleLogin() {
-  const u = document.getElementById('l-user').value;
-  const p = document.getElementById('l-pass').value;
-  const b = document.getElementById('l-btn');
-  const e = document.getElementById('login-error');
-  if(!u || !p) return;
-
-  b.innerHTML = '<i class="ti ti-loader"></i> Verifying...';
-  b.disabled = true;
-  e.style.display = "none";
-
-  try {
-    const r = await fetch(cfg.url, {
-      method: 'POST',
-      body: JSON.stringify({ action: 'checkLogin', payload: { username: u, password: p } })
-    });
-    const d = await r.json();
-
-    if (d.success) {
-      sessionStorage.setItem('isLoggedIn', 'true');
-      document.getElementById('login-screen').style.display = "none";
-      document.getElementById('main-app').style.display = "block";
-      if(cfg.url) syncSheets(); else render();
-    } else {
-      e.style.display = "block";
-      b.innerText = "Login";
-      b.disabled = false;
-    }
-  } catch (err) {
-    e.innerText = "Connection Error";
-    e.style.display = "block";
-    b.innerText = "Login";
-    b.disabled = false;
-  }
-}
-
-// SAYFA YÜKLENDİĞİNDE: Login mi sorulacak App mi açılacak?
-window.onload = () => {
-  if (sessionStorage.getItem('isLoggedIn') === 'true') {
-    document.getElementById('login-screen').style.display = 'none';
-    document.getElementById('main-app').style.display = 'block';
-    if(cfg.url) syncSheets(); else render();
-  }
-};
-// -------------------------------------
-
-function goTab(name){
-  document.querySelectorAll('.tab').forEach((t,i)=>{
-    t.classList.toggle('active',['dashboard','courses','students','payments'][i]===name);
-  });
-  document.querySelectorAll('.sec').forEach(s=>s.classList.remove('active'));
-  document.getElementById('sec-'+name).classList.add('active');
-  render();
-}
-
-function openM(id, editId = null, extraParam = null){
-  if(id==='mCourse'){
-    if(editId) {
-      editCourseId = editId;
-      document.getElementById('modal-title-course').innerHTML = '<i class="ti ti-edit"></i> Edit Course';
-      document.getElementById('btn-save-course').textContent = 'Update Course';
-      const c = S.courses.find(x => x.id === editId);
-      document.getElementById('c-name').value = c.name; document.getElementById('c-start').value = c.start || ''; document.getElementById('c-end').value = c.end || '';
-      document.getElementById('c-feeNormal').value = c.feeNormal; document.getElementById('c-feeEarly').value = c.feeEarly;
-      document.getElementById('c-deposit').value = c.deposit || ''; document.getElementById('c-capacity').value = c.capacity || '';
-    } else {
-      editCourseId = null;
-      document.getElementById('modal-title-course').innerHTML = '<i class="ti ti-books"></i> New Course';
-      document.getElementById('btn-save-course').textContent = 'Create Course';
-      ['c-name','c-start','c-end','c-feeNormal','c-feeEarly','c-deposit','c-capacity'].forEach(x=>document.getElementById(x).value='');
-    }
-  }
-  
-  if(id==='mStudent'){
-    fillCourseSelect();
-    if(editId) {
-      editStudentId = editId;
-      document.getElementById('modal-title-student').innerHTML = '<i class="ti ti-user-edit"></i> Edit Student';
-      document.getElementById('btn-save-student').textContent = 'Update Student';
-      const s = S.students.find(x => x.id === editId);
-      document.getElementById('s-course').value = s.courseId; 
-      document.getElementById('s-fullname').value = s.fullName || '';
-      document.getElementById('s-email').value = s.email; document.getElementById('s-phone').value = s.phone || '';
-      document.getElementById('s-priceType').value = s.priceType || 'normal'; document.getElementById('s-depositAmount').value = s.depositAmount || '';
-      document.getElementById('s-depositDate').value = s.depositDate || ''; document.getElementById('s-payType').value = s.paymentType || 'full_remaining';
-      
-      toggleInstalmentFields();
-      if(s.paymentType === 'instalment') {
-        try {
-          const plan = JSON.parse(s.instalmentPlan);
-          document.getElementById('s-numInstalments').value = plan.length;
-          updateInstalments();
-          const amountInputs = document.querySelectorAll('.inst-amount');
-          const dateInputs = document.querySelectorAll('.inst-date');
-          plan.forEach((inst, i) => { if(amountInputs[i]) amountInputs[i].value = inst.amount; if(dateInputs[i]) dateInputs[i].value = inst.date; });
-        } catch(e){}
-      } else { document.getElementById('s-numInstalments').value = ''; }
-      document.getElementById('s-displayTotal').value = fmt(s.totalFee);
-    } else {
-      editStudentId = null;
-      document.getElementById('modal-title-student').innerHTML = '<i class="ti ti-user-plus"></i> Enroll Student';
-      document.getElementById('btn-save-student').textContent = 'Enroll Student';
-      ['s-fullname','s-email','s-phone','s-depositAmount','s-depositDate','s-numInstalments'].forEach(x=>document.getElementById(x).value='');
-      document.getElementById('s-course').value=''; document.getElementById('s-priceType').value='normal'; document.getElementById('s-payType').value='full_remaining';
-      toggleInstalmentFields(); document.getElementById('s-displayTotal').value = '';
-    }
-  }
-  
-  if(id==='mPayment'){ 
-    fillStudentSelect(); 
-    document.getElementById('p-date').value = today(); 
-    document.getElementById('smart-suggestion').style.display = 'none';
-    document.getElementById('p-amount').value = '';
-    document.getElementById('p-note').value = '';
-    
-    if(extraParam) {
-      document.getElementById('p-student').value = extraParam;
-      calculatePaymentSuggestion();
-    }
-  }
-  document.getElementById(id).classList.add('open');
-}
-
-function closeM(id){ document.getElementById(id).classList.remove('open'); }
-
-function fillCourseSelect(){
-  const el = document.getElementById('s-course');
-  el.innerHTML='<option value="">Select a course...</option>';
-  S.courses.forEach(c=>el.innerHTML+=`<option value="${c.id}">${c.name}</option>`);
-}
-
-function fillStudentSelect(){
-  const el = document.getElementById('p-student');
-  el.innerHTML='<option value="">Select student...</option>';
-  S.students.forEach(s=>el.innerHTML+=`<option value="${s.id}">${s.fullName}</option>`);
-}
-
-function toggleInstalmentFields() {
-  const payType = document.getElementById('s-payType').value;
-  document.getElementById('instalment-container').style.display = (payType === 'instalment') ? 'block' : 'none';
-  updateInstalments();
-}
-
-function updateInstalments() {
-  const courseId = document.getElementById('s-course').value;
-  const priceType = document.getElementById('s-priceType').value;
-  const course = S.courses.find(c => c.id === courseId);
-  
-  let totalFee = 0;
-  if (course) { totalFee = priceType === 'early_bird' ? course.feeEarly : course.feeNormal; }
-  document.getElementById('s-displayTotal').value = totalFee ? fmt(totalFee) : '';
-
-  const payType = document.getElementById('s-payType').value;
-  const container = document.getElementById('dynamic-instalments');
-  container.innerHTML = '';
-
-  if (payType !== 'instalment') return;
-
-  const num = parseInt(document.getElementById('s-numInstalments').value) || 0;
-  const deposit = parseFloat(document.getElementById('s-depositAmount').value) || 0;
-  const remaining = Math.max(0, totalFee - deposit);
-
-  if (num > 0) {
-    const amountPerInst = (remaining / num).toFixed(2);
-    for (let i = 1; i <= num; i++) {
-      container.innerHTML += `
-        <div class="form-2col dynamic-row">
-          <div class="fg"><label>Instalment ${i} Amount (€)</label><input type="number" class="inst-amount" value="${amountPerInst}"></div>
-          <div class="fg"><label>Instalment ${i} Date</label><input type="date" class="inst-date" onclick="try{this.showPicker()}catch(e){}"></div>
-        </div>
-      `;
-    }
-  }
-}
-
-function calculatePaymentSuggestion() {
-  const sId = document.getElementById('p-student').value;
-  const suggBox = document.getElementById('smart-suggestion');
-  const suggTitle = document.getElementById('ss-title');
-  const suggDesc = document.getElementById('ss-desc');
-  const amtInput = document.getElementById('p-amount');
-  const typeInput = document.getElementById('p-type');
-  const noteInput = document.getElementById('p-note');
-  
-  suggBox.classList.remove('success');
-
-  if(!sId) {
-    suggBox.style.display = 'none';
-    amtInput.value = ''; noteInput.value = '';
-    return;
-  }
-  
-  const s = S.students.find(x => x.id === sId);
-  const paid = getStudentPaid(sId);
-  const total = Number(s.totalFee || 0);
-  const remaining = Math.max(0, total - paid);
-  
-  if(remaining === 0) {
-    suggBox.style.display = 'block';
-    suggBox.classList.add('success');
-    suggTitle.innerHTML = '<i class="ti ti-circle-check"></i> Fully Paid!';
-    suggDesc.innerHTML = 'This student has no outstanding balance.';
-    amtInput.value = 0; typeInput.value = 'other'; noteInput.value = '';
-    return;
-  }
-
-  let nextAmount = remaining;
-  let nextType = 'full';
-  let note = '';
-  let descText = '';
-
-  const depAmt = Number(s.depositAmount || 0);
-  
-  if(depAmt > 0 && paid < depAmt) {
-     nextAmount = depAmt - paid;
-     nextType = 'deposit';
-     note = 'Deposit Payment';
-     descText = `Student needs to pay their deposit. Expected: <b>${fmt(nextAmount)}</b>`;
-  } 
-  else if (s.paymentType === 'instalment' && s.instalmentPlan) {
-     try {
-        const plan = JSON.parse(s.instalmentPlan);
-        let accountedFor = depAmt; 
-        let targetInstalmentIndex = -1;
-
-        for(let i=0; i<plan.length; i++) {
-           const instAmount = Number(plan[i].amount);
-           accountedFor += instAmount;
-           
-           if (paid < accountedFor) {
-              const paidTowardsThisInstalment = Math.max(0, paid - (accountedFor - instAmount));
-              nextAmount = instAmount - paidTowardsThisInstalment;
-              nextType = 'instalment';
-              targetInstalmentIndex = i;
-              note = `Instalment ${i + 1}`;
-              
-              let dateTxt = plan[i].date ? ` by ${plan[i].date}` : '';
-              descText = `Next due: <b>Instalment ${i + 1}</b> (${fmt(nextAmount)})${dateTxt}`;
-              break;
-           }
-        }
-        
-        if(targetInstalmentIndex === -1) {
-           nextAmount = remaining;
-           nextType = 'instalment';
-           descText = `Remaining Balance: ${fmt(remaining)}`;
-        }
-     } catch(e) {
-        nextAmount = remaining;
-        nextType = 'instalment';
-        descText = `Remaining Balance: ${fmt(remaining)}`;
-     }
-  } 
-  else {
-     nextAmount = remaining;
-     nextType = 'full';
-     note = 'Full Payment';
-     descText = `Remaining Balance: <b>${fmt(remaining)}</b>`;
-  }
-
-  suggBox.style.display = 'block';
-  suggTitle.innerHTML = '<i class="ti ti-bulb"></i> Suggested Payment';
-  suggDesc.innerHTML = descText + `<div style="margin-top:4px;font-size:11px;color:var(--color-text-secondary)">Total outstanding for this course: ${fmt(remaining)}</div>`;
-  
-  amtInput.value = parseFloat(nextAmount).toFixed(2);
-  typeInput.value = nextType;
-  noteInput.value = note;
-}
-
-function saveCourse(){
-  const name = document.getElementById('c-name').value.trim();
-  const start = document.getElementById('c-start').value;
-  const end = document.getElementById('c-end').value;
-  const feeNormal = parseFloat(document.getElementById('c-feeNormal').value);
-  const feeEarly = parseFloat(document.getElementById('c-feeEarly').value);
-  const deposit = parseFloat(document.getElementById('c-deposit').value) || 0;
-  const capacity = parseInt(document.getElementById('c-capacity').value) || 0;
-  
-  if(!name || !feeNormal || !feeEarly) return alert('Course name, Normal Fee, and Early Bird Fee are required.');
-  
-  if(editCourseId) {
-    const obj = { id: editCourseId, name, start, end, feeNormal, feeEarly, deposit, capacity };
-    pushData('updateCourse', obj);
-  } else {
-    const obj = { id: uid(), name, start, end, feeNormal, feeEarly, deposit, capacity };
-    pushData('addCourse', obj);
-  }
-  closeM('mCourse');
-}
-
-function saveStudent(){
-  const courseId = document.getElementById('s-course').value;
-  const fullName = document.getElementById('s-fullname').value.trim();
-  const email = document.getElementById('s-email').value.trim();
-  const phone = document.getElementById('s-phone').value;
-  const priceType = document.getElementById('s-priceType').value;
-  const payType = document.getElementById('s-payType').value;
-  const depositAmount = parseFloat(document.getElementById('s-depositAmount').value) || 0;
-  const depositDate = document.getElementById('s-depositDate').value;
-  
-  if(!courseId||!fullName||!email) return alert('Course, Full Name, and Email are required.');
-  
-  const course = S.courses.find(c=>c.id===courseId);
-  const totalFee = course ? (priceType === 'early_bird' ? course.feeEarly : course.feeNormal) : 0;
-
-  let instalmentPlan = [];
-  if (payType === 'instalment') {
-    const amounts = document.querySelectorAll('.inst-amount');
-    const dates = document.querySelectorAll('.inst-date');
-    for (let i = 0; i < amounts.length; i++) {
-      instalmentPlan.push({ amount: parseFloat(amounts[i].value) || 0, date: dates[i].value });
-    }
-  }
-
-  if (editStudentId) {
-    const obj = { id: editStudentId, courseId, fullName, email, phone, priceType, totalFee, depositAmount, depositDate, paymentType: payType, instalmentPlan: JSON.stringify(instalmentPlan) };
-    pushData('updateStudent', obj);
-  } else {
-    const obj = { id: uid(), courseId, fullName, email, phone, priceType, totalFee, depositAmount, depositDate, paymentType: payType, instalmentPlan: JSON.stringify(instalmentPlan) };
-    pushData('addStudent', obj);
-  }
-  closeM('mStudent');
-}
-
-function savePayment(){
-  const studentId = document.getElementById('p-student').value;
-  const amount = parseFloat(document.getElementById('p-amount').value);
-  if(!studentId||!amount) return alert('Student and Amount are required.');
-  const obj = { id:uid(), studentId, amount, date:document.getElementById('p-date').value, type:document.getElementById('p-type').value, note:document.getElementById('p-note').value };
-  pushData('addPayment', obj);
-  closeM('mPayment');
-  ['p-amount','p-note'].forEach(id=>document.getElementById(id).value='');
-}
-
-function pushData(action, payload){
-  if(action==='addCourse') S.courses.push(payload);
-  if(action==='updateCourse') { const i = S.courses.findIndex(x=>x.id===payload.id); if(i>-1) S.courses[i] = payload; }
-  if(action==='addStudent') S.students.push(payload);
-  if(action==='updateStudent') { const i = S.students.findIndex(x=>x.id===payload.id); if(i>-1) S.students[i] = payload; }
-  if(action==='addPayment') S.payments.push(payload);
-  
-  render();
-  if(!cfg.url) return;
-  fetch(cfg.url,{method:'POST',body:JSON.stringify({action,payload})}).catch(()=>{});
-}
-
-async function syncSheets(){
-  setBadge('loading');
-  try{
-    const r = await fetch(cfg.url+'?action=getAll');
-    const d = await r.json();
-    S = { courses:d.courses||[], students:d.students||[], payments:d.payments||[] };
-    setBadge('ok');
-  }catch(e){ setBadge('error'); }
-  render();
-}
-
-function setBadge(status){
-  const el = document.getElementById('syncBadge');
-  if(status==='ok') el.innerHTML='<i class="ti ti-cloud-check" style="color:var(--color-brand)"></i> Live Sync Active';
-  else if(status==='error') el.innerHTML='<i class="ti ti-cloud-x" style="color:#ef4444"></i> Sync Error';
-  else el.innerHTML='<i class="ti ti-refresh" style="animation:spin 1s linear infinite"></i> Connecting...';
-}
-
-function getStudentPaid(sId){ return S.payments.filter(p=>p.studentId===sId).reduce((a,p)=>a+Number(p.amount),0); }
-function getCourse(id){ return S.courses.find(c=>c.id===id); }
-
-function render(){ renderStats(); renderDash(); renderCourses(); renderStudents(); renderPayments(); }
-
-function renderStats(){
-  const enrolled = S.students.length;
-  const collected = S.payments.reduce((a,p)=>a+Number(p.amount),0);
-  const outstanding = S.students.reduce((a,s)=>{
-    const paid = getStudentPaid(s.id);
-    return a + Math.max(0, Number(s.totalFee||0)-paid);
-  },0);
-  document.getElementById('st-courses').textContent = S.courses.length;
-  document.getElementById('st-students').textContent = enrolled;
-  document.getElementById('st-collected').textContent = fmt(collected);
-  document.getElementById('st-outstanding').textContent = fmt(outstanding);
-}
-
-function renderDash(){
-  const box = document.getElementById('dashContent');
-  if(!S.courses.length){ box.innerHTML='<div class="empty"><i class="ti ti-books"></i>No courses yet.</div>'; return; }
-  box.innerHTML = S.courses.map(c=>{
-    const studs = S.students.filter(s=>s.courseId===c.id);
-    const totalDue = studs.reduce((a,s)=>a+Number(s.totalFee||0),0);
-    const totalPaid = studs.reduce((a,s)=>a+getStudentPaid(s.id),0);
-    const pct = totalDue>0?Math.round(totalPaid/totalDue*100):0;
-    const barCls = pct>=100?'':pct<50?'danger':'warn';
-    return `<div class="card"><div class="card-hd"><div><div class="card-title">${c.name}</div><div class="card-sub">${studs.length} student(s) enrolled</div></div><span class="chip ${pct>=100?'teal':pct>=50?'amber':'red'}">${pct}% Collected</span></div><div style="display:flex;justify-content:space-between;font-size:12px;color:var(--color-text-secondary);margin-bottom:6px"><span>${fmt(totalPaid)} Paid</span><span>${fmt(totalDue-totalPaid)} Remaining</span></div><div class="bar-bg"><div class="bar-fill ${barCls}" style="width:${Math.min(100,pct)}%"></div></div></div>`;
-  }).join('');
-}
-
-function renderCourses(){
-  const box = document.getElementById('courseList');
-  if(!S.courses.length){ box.innerHTML='<div class="empty"><i class="ti ti-books"></i>No courses yet.</div>'; return; }
-  box.innerHTML = S.courses.map((c,i)=>{
-    const studs = S.students.filter(s=>s.courseId===c.id).length;
-    const clr = ['teal','blue','amber'][i%3];
-    return `<div class="card"><div class="card-hd"><div><div class="card-title">${c.name}</div><div class="card-sub">${c.start||'—'} to ${c.end||'—'}</div></div><div style="display:flex;gap:6px;align-items:center"><span class="chip ${clr}">${studs}${c.capacity?'/'+c.capacity:''} Students</span><button class="btn ghost sm" onclick="openM('mCourse', '${c.id}')"><i class="ti ti-edit" style="font-size:16px"></i></button></div></div><div class="meta-row"><span><i class="ti ti-tag"></i> Normal: ${fmt(c.feeNormal)}</span><span><i class="ti ti-discount-check" style="color:var(--color-brand)"></i> Early Bird: ${fmt(c.feeEarly)}</span></div></div>`;
-  }).join('');
-}
-
-function renderStudents(){
-  const box = document.getElementById('studentList');
-  if(!S.students.length){ box.innerHTML='<div class="empty"><i class="ti ti-users"></i>No students enrolled yet.</div>'; return; }
-  const avCls = ['av-t','av-b','av-a'];
-  box.innerHTML = `<div class="card" style="padding:4px 16px">${S.students.map((s,i)=>{
-    const paid = getStudentPaid(s.id);
-    const total = Number(s.totalFee||0);
-    const pct = total>0?Math.round(paid/total*100):100;
-    const barCls = pct>=100?'':pct<50?'danger':'warn';
-    
-    // v1.3.0 Full Name Initials Logic
-    const nameParts = (s.fullName||'').trim().split(' ');
-    const initials = (nameParts[0]?.[0]||'') + (nameParts.length>1 ? nameParts[nameParts.length-1][0] : '');
-    
-    const course = getCourse(s.courseId);
-    return `<div class="student-row" onclick="showStudentDetail('${s.id}')"><div class="avatar ${avCls[i%3]}">${initials.toUpperCase()}</div><div class="student-info"><div class="student-name">${s.fullName}</div><div class="student-sub">${course?course.name:'—'} · <span style="color:${s.priceType==='early_bird'?'var(--color-brand)':'inherit'}">${s.priceType==='early_bird'?'Early Bird':'Normal'}</span></div></div><div class="pay-summary"><div class="pay-amount ${pct>=100?'g':pct<50?'r':'a'}">${fmt(paid)} / ${fmt(total)}</div><div class="pay-label">Total Fee</div><div class="bar-bg"><div class="bar-fill ${barCls}" style="width:${Math.min(100,pct)}%"></div></div></div></div>`;
-  }).join('')}</div>`;
-}
-
-function showStudentDetail(sId){
-  const s = S.students.find(x=>x.id===sId);
-  if(!s) return;
-  const course = getCourse(s.courseId);
-  const paid = getStudentPaid(s.id);
-  const remaining = Math.max(0,Number(s.totalFee||0)-paid);
-  const payments = S.payments.filter(p=>p.studentId===sId).sort((a,b)=>(b.date||'').localeCompare(a.date||''));
-  
-  let planHtml = '';
-  if (s.paymentType === 'instalment' && s.instalmentPlan) {
-    try {
-      const plan = JSON.parse(s.instalmentPlan);
-      planHtml = `<div style="margin-top:12px; padding:10px; background:#fff; border:1px solid var(--color-border-secondary); border-radius:6px;">
-        <strong style="display:block; margin-bottom:6px; color:var(--color-text-primary);">Instalment Schedule</strong>` +
-        plan.map((inst, i) => `<div style="display:flex; justify-content:space-between; font-size:12px; border-bottom:1px solid var(--color-border-tertiary); padding:4px 0;"><span>Instalment ${i+1}</span><span>${fmt(inst.amount)} (Due: ${inst.date || '—'})</span></div>`).join('') +
-        `</div>`;
-    } catch(e) {}
-  }
-  
-  document.getElementById('sd-title').innerHTML = `<i class="ti ti-user"></i> ${s.fullName}`;
-  document.getElementById('sd-body').innerHTML = `
-    <div class="detail-panel">
-      <div class="detail-grid">
-        <span class="dk">Course</span><span class="dv">${course?course.name:'—'}</span>
-        <span class="dk">Email / Phone</span><span class="dv">${s.email} / ${s.phone||'—'}</span>
-        <span class="dk">Price Tier</span><span class="dv" style="color:${s.priceType==='early_bird'?'var(--color-brand)':'inherit'}">${s.priceType==='early_bird'?'Early Bird Price':'Normal Price'}</span>
-        <span class="dk">Deposit Due</span><span class="dv">${s.depositDate || '—'} (${fmt(s.depositAmount)})</span>
-        <span class="dk">Payment Plan</span><span class="dv">${s.paymentType==='instalment'?'Instalments':'Full Remaining'}</span>
-      </div>
-      ${planHtml}
-    </div>
-    <div class="stats-grid" style="margin-bottom:16px">
-      <div class="stat"><div class="lbl">Total Fee</div><div class="val b">${fmt(s.totalFee)}</div></div>
-      <div class="stat"><div class="lbl">Paid</div><div class="val g">${fmt(paid)}</div></div>
-      <div class="stat"><div class="lbl">Remaining</div><div class="val ${remaining>0?'r':'g'}">${fmt(remaining)}</div></div>
-    </div>
-    <div style="font-size:14px;font-weight:600;margin-bottom:12px;color:#111827">Payment History</div>
-    ${payments.length?`<div class="card" style="padding:4px 16px">${payments.map(p=>`
-      <div class="payment-entry"><div><span style="font-weight:600; font-size:14px">${fmt(p.amount)}</span><span class="chip ${p.type==='deposit'?'amber':p.type==='full'?'teal':'blue'}" style="margin-left:8px;font-size:10px">${p.type}</span></div><div style="text-align:right;color:var(--color-text-secondary)">${p.date||'—'}${p.note?' · '+p.note:''}</div></div>`).join('')}</div>`:'<div style="font-size:13px;color:var(--color-text-secondary);padding:10px 0;text-align:center;background:#f9fafb;border-radius:8px">No payments recorded yet.</div>'}
-  `;
-  
-  document.getElementById('sd-footer').innerHTML = `
-    <button class="btn ghost" onclick="closeM('mStudentDetail')">Close</button>
-    <button class="btn" onclick="closeM('mStudentDetail'); openM('mStudent', '${s.id}')"><i class="ti ti-edit"></i> Edit</button>
-    <button class="btn primary" onclick="closeM('mStudentDetail'); openM('mPayment', null, '${s.id}')"><i class="ti ti-plus"></i> Payment</button>
-  `;
-  
-  openM('mStudentDetail');
-}
-
-function renderPayments(){
-  const box = document.getElementById('paymentList');
-  if(!S.payments.length){ box.innerHTML='<div class="empty"><i class="ti ti-coin"></i>No payments recorded yet.</div>'; return; }
-  const sorted = [...S.payments].sort((a,b)=>(b.date||'').localeCompare(a.date||''));
-  box.innerHTML = `<div class="card" style="padding:4px 16px">${sorted.map(p=>{
-    const s = S.students.find(x=>x.id===p.studentId);
-    const clr = p.type==='deposit'?'amber':p.type==='full'?'teal':'blue';
-    return `<div class="payment-entry"><div><span style="font-weight:600">${s?s.fullName:'—'}</span><span class="chip ${clr}" style="margin-left:8px;font-size:10px">${p.type}</span>${p.note?`<div style="font-size:12px;color:var(--color-text-secondary);margin-top:4px">${p.note}</div>`:''}</div><div style="display:flex;align-items:center;gap:12px"><span style="font-weight:600;color:var(--color-brand);font-size:14px">+${fmt(p.amount)}</span><span style="font-size:12px;color:var(--color-text-secondary)">${p.date||'—'}</span></div></div>`;
-  }).join('')}</div>`;
-}
-
-const styleEl=document.createElement('style');
-styleEl.textContent='@keyframes spin{from{transform:rotate(0)}to{transform:rotate(360deg)}} .ti-loader { animation: spin 1s linear infinite; display: inline-block; }';
-document.head.appendChild(styleEl);
-</script>
+</div></div>
 
 </body>
 </html>
