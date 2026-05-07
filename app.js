@@ -7,7 +7,7 @@ let S = { courses:[], students:[], enrollments:[], payments:[], generalStatus:[]
 
 // DİKKAT: BURAYA KENDİ GOOGLE APPS SCRIPT URL'Nİ YAPIŞTIR!
 let cfg = { 
-  url: 'https://script.google.com/macros/s/AKfycbyPj1DLnuqFoZd0Kak-JqXL1umMssMiZi1TT6dsngY1qBPyv-aB_wvVpO9D-7fEuuq3qQ/exec', 
+  url: 'https://script.google.com/macros/s/AKfycbxndr1dMS3PJlKPGB9d0KylW9oSkCz61sWjls2DX5yYOULPnIFdguUED-8Jy9662V-1kQ/exec', 
   currency: '€' 
 };
 
