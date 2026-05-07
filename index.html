@@ -20,7 +20,7 @@
     <div id="login-err" style="color: #ef4444; font-size: 13px; margin-bottom: 12px; display: none;">Invalid credentials.</div>
     <button class="btn primary" style="width: 100%; justify-content: center; padding: 12px;" id="l-btn" onclick="handleLogin()">Sign In</button>
     <div style="margin-top: 24px; text-align: center;">
-      <span style="font-size: 11px; color: var(--color-text-secondary);">v2.4.0 Stable</span>
+      <span style="font-size: 11px; color: var(--color-text-secondary);">v2.5.0 Complete CRUD</span>
       <div id="loginSyncBadge" class="sync-badge" style="margin-top:8px;"><i class="ti ti-loader"></i> Syncing...</div>
     </div>
   </div>
@@ -58,7 +58,13 @@
       </div>
 
       <div class="sec" id="sec-students">
-        <div class="section-hd"><h3>Student Database</h3><input type="text" id="s-search" placeholder="Search students..." onkeyup="renderStudents()" style="padding:8px; border:1px solid #ccc; border-radius:4px;"></div>
+        <div class="section-hd">
+            <h3>Student Database</h3>
+            <div style="display:flex; gap:12px;">
+                <input type="text" id="s-search" placeholder="Search students..." onkeyup="renderStudents()" style="padding:8px 12px; border:1px solid var(--color-border-secondary); border-radius:6px; font-size:13px; width:200px;">
+                <button class="btn primary" onclick="openM('mStudentEdit')"><i class="ti ti-user-plus"></i> Add Student</button>
+            </div>
+        </div>
         <div id="studentDBList"></div>
       </div>
 
@@ -90,17 +96,29 @@
     <div class="fg"><label>Early Bird (€)</label><input type="number" id="c-feeEarly"></div>
     <div class="fg"><label>Capacity</label><input type="number" id="c-capacity"></div>
   </div>
-  <div class="modal-footer"><button class="btn" onclick="closeM('mCourse')">Cancel</button><button class="btn primary" id="btn-save-course" onclick="saveCourse()">Save</button></div>
+  <div class="modal-footer" style="display:flex; justify-content:space-between;">
+    <button class="btn" id="btn-delete-course" style="color:#ef4444; border-color:#ef4444; display:none;" onclick="deleteRecord('course')"><i class="ti ti-trash"></i> Delete</button>
+    <div style="display:flex; gap:8px;">
+        <button class="btn" onclick="closeM('mCourse')">Cancel</button>
+        <button class="btn primary" id="btn-save-course" onclick="saveCourse()">Save</button>
+    </div>
+  </div>
 </div></div>
 
 <div class="modal-wrap" id="mStudentEdit"><div class="modal">
-  <h2>Edit Student Profile</h2>
+  <h2 id="modal-title-student">Student Profile</h2>
   <div class="fg"><label>Full name *</label><input type="text" id="se-fullname"></div>
   <div class="form-2col">
     <div class="fg"><label>Email *</label><input type="email" id="se-email"></div>
     <div class="fg"><label>Phone</label><input type="text" id="se-phone"></div>
   </div>
-  <div class="modal-footer"><button class="btn" onclick="closeM('mStudentEdit')">Cancel</button><button class="btn primary" id="btn-save-st" onclick="saveStudentIdentity()">Update</button></div>
+  <div class="modal-footer" style="display:flex; justify-content:space-between;">
+    <button class="btn" id="btn-delete-st" style="color:#ef4444; border-color:#ef4444; display:none;" onclick="deleteRecord('student')"><i class="ti ti-trash"></i> Delete</button>
+    <div style="display:flex; gap:8px;">
+        <button class="btn" onclick="closeM('mStudentEdit')">Cancel</button>
+        <button class="btn primary" id="btn-save-st" onclick="saveStudentIdentity()">Save</button>
+    </div>
+  </div>
 </div></div>
 
 <div class="modal-wrap" id="mEnrollment"><div class="modal">
@@ -144,7 +162,13 @@
     <div class="fg"><label>Instalments</label><input type="number" id="e-numInstalments" oninput="updateInstalments()"></div>
     <div id="dynamic-instalments"></div>
   </div>
-  <div class="modal-footer"><button class="btn" onclick="closeM('mEnrollment')">Cancel</button><button class="btn primary" id="btn-save-enrollment" onclick="saveEnrollment()">Enroll</button></div>
+  <div class="modal-footer" style="display:flex; justify-content:space-between;">
+    <button class="btn" id="btn-delete-enrollment" style="color:#ef4444; border-color:#ef4444; display:none;" onclick="deleteRecord('enrollment')"><i class="ti ti-trash"></i> Delete</button>
+    <div style="display:flex; gap:8px;">
+        <button class="btn" onclick="closeM('mEnrollment')">Cancel</button>
+        <button class="btn primary" id="btn-save-enrollment" onclick="saveEnrollment()">Save</button>
+    </div>
+  </div>
 </div></div>
 
 <div class="modal-wrap" id="mPayment"><div class="modal">
