@@ -26,7 +26,7 @@ const formatDate = (dateStr) => {
 };
 
 const getStatusBadge = (statusId) => {
-    const colors = { active: 'teal', completed: 'blue', draft: 'amber', cancelled: 'red' };
+    const colors = { open: 'green', completed: 'blue', draft: 'amber', cancelled: 'red' };
     const st = (S.generalStatus || []).find(s => s.id == statusId);
     const label = st ? st.name : (statusId || 'Unknown');
     const colorCode = st ? st.code : 'blue'; 
@@ -304,7 +304,7 @@ function showEnrollmentDetail(enId) {
     <div style="font-size:14px;font-weight:600;margin-bottom:12px">Payment History (This Course)</div>
     ${payments.length?`<div class="card" style="padding:4px 16px">${payments.map(p=>`<div class="payment-entry"><div><span style="font-weight:600; font-size:14px">${fmt(p.amount)}</span><span class="chip ${p.type==='deposit'?'amber':p.type==='full'?'teal':'blue'}" style="margin-left:8px;font-size:10px">${p.type}</span></div><div style="text-align:right;color:var(--color-text-secondary)">${formatDate(p.date)}${p.note?' · '+p.note:''}</div></div>`).join('')}</div>`:'<div style="font-size:13px;color:var(--color-text-secondary);padding:10px 0;text-align:center;background:#f9fafb;border-radius:8px">No payments recorded.</div>'}
   `;
-  document.getElementById('sd-footer').innerHTML = `<button class="btn ghost" onclick="closeM('mStudentDetail')">Close</button><button class="btn" onclick="closeM('mStudentDetail'); openM('mEnrollment', '${en.id}')"><i class="ti ti-edit"></i> Edit Plan</button><button class="btn primary" onclick="closeM('mStudentDetail'); openM('mPayment', null, '${en.id}')">Add Payment</button>`;
+  document.getElementById('sd-footer').innerHTML = `<button class="btn ghost" onclick="closeM('mStudentDetail')">Close</button><button class="btn" onclick="closeM('mStudentDetail'); openM('mEnrollment', '${en.id}')"><i class="ti ti-edit"></i> Edit </button><button class="btn primary" onclick="closeM('mStudentDetail'); openM('mPayment', null, '${en.id}')">Add Payment</button>`;
   openM('mStudentDetail');
 }
 
