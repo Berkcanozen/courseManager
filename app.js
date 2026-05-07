@@ -48,8 +48,7 @@ const formatDate = dateStr => {
   if (!dateStr) return '—';
   // ISO date string — safe path, no Date object needed
   if (typeof dateStr === 'string' && /^\d{4}-\d{2}-\d{2}$/.test(dateStr)) {
-    const [, m, d] = dateStr.split('-');
-    const y = dateStr.split('-')[0];
+    const [y, m, d] = dateStr.split('-');
     return `${d}/${m}/${y}`;
   }
   // Fallback for other formats (e.g. Google Sheets date strings)
@@ -339,6 +338,7 @@ function _setupEnrollmentModal(editId) {
     document.getElementById('e-depositDate').value          = en.depositDate   || '';
     document.getElementById('e-payType').value              = en.paymentType   || 'full_remaining';
     document.getElementById('e-displayTotal').value         = en.totalFee ? fmt(en.totalFee) : '';
+    document.getElementById('e-fullPayDate').value          = en.fullPayDate    || '';
     toggleInstalmentFields();
     if (en.paymentType === 'instalment') {
       try {
@@ -362,14 +362,13 @@ function _setupEnrollmentModal(editId) {
     document.getElementById('btn-delete-enrollment').style.display = 'none';
     document.getElementById('e-type-box').style.display  = 'block';
     document.getElementById('e-course').disabled         = false;
-    ['e-course','e-fullname','e-email','e-phone','e-depositAmount','e-depositDate','e-numInstalments']
+    ['e-course','e-fullname','e-email','e-phone','e-depositAmount','e-depositDate','e-numInstalments','e-fullPayDate']
       .forEach(x => { const el = document.getElementById(x); if (el) el.value = ''; });
     document.getElementById('e-priceType').value    = 'normal';
     document.getElementById('e-payType').value      = 'full_remaining';
     document.getElementById('e-displayTotal').value = '';
-    const radio = document.querySelector('input[name="eType"][value="existing"]');
-    if (radio) radio.checked = true;
-    toggleStudentMode();
+    document.getElementById('eTypeValue').value     = 'existing';
+    setStudentMode('existing');
     toggleInstalmentFields();
   }
 }
@@ -391,10 +390,13 @@ function _setupPaymentModal(extraParam) {
     if (en) {
       document.getElementById('p-student').value = en.studentId;
       loadStudentCourses();
-      setTimeout(() => {
-        document.getElementById('p-course').value = en.courseId;
+      // Course dropdown is now populated synchronously by loadStudentCourses,
+      // so we can set the value and trigger suggestion immediately
+      const courseSelect = document.getElementById('p-course');
+      if (courseSelect) {
+        courseSelect.value = en.courseId;
         _onPaymentCourseReady();
-      }, 50);
+      }
     }
   }
 }
@@ -662,11 +664,14 @@ function showEnrollmentDetail(enId) {
       <div class="detail-grid">
         <span class="dk">Student</span><span class="dv">${s ? s.fullName : '—'}</span>
         <span class="dk">Course</span><span class="dv">${course ? course.name : '—'}</span>
-        <span class="dk">Price tier</span>
+        <span class="dk">Course price type</span>
         <span class="dv" style="color:${en.priceType==='early_bird'?'var(--color-brand)':'inherit'}">
           ${en.priceType === 'early_bird' ? 'Early Bird' : 'Normal'}
         </span>
         <span class="dk">Deposit due</span><span class="dv">${formatDate(en.depositDate)} (${fmt(en.depositAmount)})</span>
+        ${en.paymentType !== 'instalment' && en.fullPayDate
+          ? `<span class="dk">Payment due</span><span class="dv">${formatDate(en.fullPayDate)}</span>`
+          : ''}
       </div>
       ${planHtml}
     </div>
@@ -693,9 +698,14 @@ function showEnrollmentDetail(enId) {
     }`;
 
   document.getElementById('ed-footer').innerHTML = `
-    <button class="btn" onclick="closeM()">Close</button>
-    <button class="btn" onclick="openM('mEnrollment','${en.id}')"><i class="ti ti-edit"></i> Edit Plan</button>
-    <button class="btn primary" onclick="openM('mPayment',null,'${en.id}')"><i class="ti ti-plus"></i> Add Payment</button>`;
+    <button class="danger-btn" onclick="deleteEnrollmentFromDetail('${en.id}')"><i class="ti ti-trash"></i> Delete</button>
+    <div style="display:flex;gap:8px">
+      <button class="btn" onclick="closeM()">Close</button>
+      <button class="btn" onclick="openM('mEnrollment','${en.id}')"><i class="ti ti-edit"></i> Edit</button>
+      <button class="btn primary" onclick="openM('mPayment',null,'${en.id}')"><i class="ti ti-plus"></i> Add Payment</button>
+    </div>`;
+  // Fix footer layout
+  document.getElementById('ed-footer').style.justifyContent = 'space-between';
 
   document.querySelectorAll('.modal').forEach(m => m.classList.remove('active'));
   document.getElementById('mEnrollmentDetail').classList.add('active');
@@ -705,10 +715,18 @@ function showEnrollmentDetail(enId) {
 /* ─────────────────────────────────────────────
    FORM HELPERS
 ───────────────────────────────────────────── */
+function setStudentMode(mode) {
+  document.getElementById('eTypeValue').value = mode;
+  document.getElementById('toggle-existing').classList.toggle('active', mode === 'existing');
+  document.getElementById('toggle-new').classList.toggle('active', mode === 'new');
+  document.getElementById('e-existing-box').style.display = mode === 'existing' ? 'block' : 'none';
+  document.getElementById('e-new-box').style.display      = mode === 'new'      ? 'block' : 'none';
+}
+
+// Legacy alias — called from _setupEnrollmentModal
 function toggleStudentMode() {
-  const isExisting = document.querySelector('input[name="eType"]:checked').value === 'existing';
-  document.getElementById('e-existing-box').style.display = isExisting ? 'block' : 'none';
-  document.getElementById('e-new-box').style.display      = isExisting ? 'none'  : 'block';
+  const mode = document.getElementById('eTypeValue').value || 'existing';
+  setStudentMode(mode);
 }
 
 /**
@@ -742,8 +760,9 @@ function _onPaymentCourseReady() {
 }
 
 function toggleInstalmentFields() {
-  document.getElementById('instalment-container').style.display =
-    document.getElementById('e-payType').value === 'instalment' ? 'block' : 'none';
+  const isInstalment = document.getElementById('e-payType').value === 'instalment';
+  document.getElementById('instalment-container').style.display   = isInstalment ? 'block' : 'none';
+  document.getElementById('full-payment-date-box').style.display  = isInstalment ? 'none'  : 'block';
   updateInstalments();
 }
 
@@ -853,6 +872,22 @@ async function deleteRecord(type) {
   } catch { alert('Delete operation failed. Please try again.'); }
 }
 
+
+/**
+ * Delete enrollment directly from the detail modal.
+ */
+async function deleteEnrollmentFromDetail(enrollmentId) {
+  const en = S.enrollments.find(e => e.id == enrollmentId);
+  if (!en) return alert("Enrollment not found.");
+  if (S.payments.some(p => p.studentId == en.studentId && p.courseId == en.courseId))
+    return alert("Cannot delete: There are payments recorded for this enrollment. Delete the payments first.");
+  if (!confirm("Are you sure you want to delete this enrollment?")) return;
+  try {
+    await apiFetch({ action: "deleteEnrollment", payload: { id: enrollmentId }, currentUser: getUsername() });
+    closeM();
+    await syncSheets();
+  } catch { alert("Delete operation failed. Please try again."); }
+}
 /**
  * @param {string} paymentId
  * @param {string|null} returnToEnrollmentId — if set, re-opens enrollment detail after delete
@@ -911,7 +946,7 @@ async function saveEnrollment() {
   if (!courseId) return alert('Course is required.');
   let studentId = '', studentData = {};
   if (!editEnrollmentId) {
-    const isExisting = document.querySelector('input[name="eType"]:checked').value === 'existing';
+    const isExisting = document.getElementById('eTypeValue').value === 'existing';
     if (isExisting) {
       studentId = document.getElementById('e-selected-student-id').value;
       if (!studentId) return alert('Please select a student from the list.');
@@ -935,13 +970,14 @@ async function saveEnrollment() {
     : parseFee(document.getElementById('e-displayTotal').value);
   const payload  = {
     enrollmentId: editEnrollmentId,
-    isNew: !editEnrollmentId && document.querySelector('input[name="eType"]:checked').value === 'new',
+    isNew: !editEnrollmentId && document.getElementById('eTypeValue').value === 'new',
     studentId, studentData, courseId,
     priceType:      document.getElementById('e-priceType').value,
     totalFee:       rawTotal,
     depositAmount:  document.getElementById('e-depositAmount').value,
     depositDate:    document.getElementById('e-depositDate').value,
     paymentType:    document.getElementById('e-payType').value,
+    fullPayDate:    document.getElementById('e-fullPayDate').value,
     instalmentPlan: JSON.stringify(instPlan)
   };
   try {
