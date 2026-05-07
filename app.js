@@ -1,24 +1,15 @@
-/**
- * MEISNER STUDIO - COURSE MANAGEMENT SYSTEM
- * Frontend Logic - v2.1.1 (Relational + Date Fix)
- */
-
 let S = { courses:[], students:[], enrollments:[], payments:[] };
 
-// DİKKAT: BURAYA KENDİ GOOGLE APPS SCRIPT URL'Nİ YAPIŞTIR!
-let cfg = { 
-  url: 'https://script.google.com/macros/s/AKfycbzfBHmeTnKjAHbKMvL3crHXTQJJEmNXBK1fTb3eCzQhNFw4-NsumSh4cIAbRCtye7nHtQ/exec', 
-  currency: '€' 
-};
+// DİKKAT: BURAYA GOOGLE APPS SCRIPT URL'Nİ YAPIŞTIR
+let cfg = { url: 'https://script.google.com/macros/s/AKfycbzGdN9wup1wzh2P1R0S6mmhlrhyFDwsfkVBoIektlHnCCogYIrBI2mPDPBv82Y737v9Lw/exec', currency: '€' };
 
 let editCourseId = null;
 let editEnrollmentId = null;
+let editStudentIdentityId = null;
 
 const fmt = n => cfg.currency + Number(n||0).toLocaleString('en-US', {minimumFractionDigits: 2, maximumFractionDigits: 2});
 const today = () => new Date().toISOString().split('T')[0];
-const uid = () => Date.now().toString(36) + Math.random().toString(36).slice(2,6);
 
-// Tarih Kaymalarını %100 Engelleyen Formatlayıcı
 const formatDate = (dateStr) => {
     if (!dateStr) return '—';
     if (typeof dateStr === 'string' && /^\d{4}-\d{2}-\d{2}$/.test(dateStr)) {
@@ -32,7 +23,7 @@ const formatDate = (dateStr) => {
     return `${day}/${month}/${d.getFullYear()}`;
 };
 
-// --- BAĞLANTI VE LOGIN ---
+// --- LOGIN ---
 async function testConnection() {
     const badge = document.getElementById('loginSyncBadge');
     if(!badge || !cfg.url) return;
@@ -63,7 +54,7 @@ async function handleLogin() {
       sessionStorage.setItem('isLoggedIn', 'true'); sessionStorage.setItem('username', u);
       initApp();
     } else {
-      e.innerText = "Invalid credentials."; e.style.display = "block"; b.innerText = "Sign In"; b.disabled = false;
+      e.style.display = "block"; b.innerText = "Sign In"; b.disabled = false;
     }
   } catch (err) { e.style.display = "block"; b.innerText = "Sign In"; b.disabled = false; }
 }
@@ -82,15 +73,11 @@ async function syncSheets(){
   }catch(e){ document.getElementById('syncBadge').innerHTML = '<i class="ti ti-cloud-x" style="color:#ef4444"></i> Sync Error'; }
 }
 
-// --- YARDIMCI HESAPLAMALAR ---
-function getEnrollmentPaid(studentId, courseId){ 
-    return S.payments.filter(p => p.studentId === studentId && p.courseId === courseId).reduce((a,p)=>a+Number(p.amount),0); 
-}
-function getCourse(id){ return S.courses.find(c=>c.id===id); }
-function getStudent(id){ return S.students.find(s=>s.id===id); }
+function getEnrollmentPaid(studentId, courseId){ return S.payments.filter(p => p.studentId == studentId && p.courseId == courseId).reduce((a,p)=>a+Number(p.amount),0); }
+function getCourse(id){ return S.courses.find(c=>c.id==id); }
+function getStudent(id){ return S.students.find(s=>s.id==id); }
 
-// --- RENDER FONKSİYONLARI ---
-function render(){ renderStats(); renderDash(); renderCourses(); renderEnrollments(); renderPayments(); }
+function render(){ renderStats(); renderDash(); renderCourses(); renderStudents(); renderEnrollments(); renderPayments(); }
 
 function renderStats(){
   const collected = S.payments.reduce((a,p)=>a+Number(p.amount),0);
@@ -105,7 +92,7 @@ function renderDash(){
   const box = document.getElementById('dashContent');
   if(!S.courses.length){ box.innerHTML='<div class="empty"><i class="ti ti-books"></i>No courses yet.</div>'; return; }
   box.innerHTML = S.courses.map(c=>{
-    const enrolls = S.enrollments.filter(e=>e.courseId===c.id);
+    const enrolls = S.enrollments.filter(e=>e.courseId==c.id);
     const totalDue = enrolls.reduce((a,e)=>a+Number(e.totalFee||0),0);
     const totalPaid = enrolls.reduce((a,e)=>a+getEnrollmentPaid(e.studentId, c.id),0);
     const pct = totalDue>0?Math.round(totalPaid/totalDue*100):0;
@@ -118,25 +105,36 @@ function renderCourses(){
   const box = document.getElementById('courseList');
   if(!S.courses.length){ box.innerHTML='<div class="empty"><i class="ti ti-books"></i>No courses yet.</div>'; return; }
   box.innerHTML = S.courses.map((c,i)=>{
-    const enrolls = S.enrollments.filter(e=>e.courseId===c.id).length;
+    const enrolls = S.enrollments.filter(e=>e.courseId==c.id).length;
     const clr = ['teal','blue','amber'][i%3];
     return `<div class="card"><div class="card-hd"><div><div class="card-title">${c.name}</div><div class="card-sub">${formatDate(c.startDate)} to ${formatDate(c.endDate)}</div></div><div style="display:flex;gap:6px;align-items:center"><span class="chip ${clr}">${enrolls}${c.capacity?'/'+c.capacity:''} Students</span><button class="btn ghost sm" onclick="openM('mCourse', '${c.id}')"><i class="ti ti-edit" style="font-size:16px"></i></button></div></div><div class="meta-row"><span><i class="ti ti-tag"></i> Normal: ${fmt(c.feeNormal)}</span><span><i class="ti ti-discount-check" style="color:var(--color-brand)"></i> Early Bird: ${fmt(c.feeEarly)}</span></div></div>`;
   }).join('');
 }
 
+function renderStudents() {
+  const box = document.getElementById('studentDBList');
+  const term = document.getElementById('s-search').value.toLowerCase();
+  const filtered = S.students.filter(s => s.fullName.toLowerCase().includes(term) || s.email.toLowerCase().includes(term));
+  if(!filtered.length){ box.innerHTML='<div class="empty"><i class="ti ti-address-book"></i>No students found.</div>'; return; }
+  const avCls = ['av-t','av-b','av-a'];
+  box.innerHTML = `<div class="card" style="padding:4px 16px">${filtered.map((s,i)=>{
+    const enrolls = S.enrollments.filter(e=>e.studentId==s.id).length;
+    const initials = s.fullName.split(' ').map(n=>n[0]).join('').slice(0,2).toUpperCase();
+    return `<div class="student-row"><div class="avatar ${avCls[i%3]}">${initials}</div><div class="student-info"><div class="student-name">${s.fullName}</div><div class="student-sub">${s.email} ${s.phone?'· '+s.phone:''}</div></div><div style="display:flex; align-items:center; gap:16px;"><span style="font-size:12px; color:var(--color-text-secondary);">${enrolls} course(s)</span><button class="btn ghost sm" onclick="openM('mStudentEdit', '${s.id}')"><i class="ti ti-edit"></i></button></div></div>`;
+  }).join('')}</div>`;
+}
+
 function renderEnrollments(){
-  const box = document.getElementById('studentList');
-  if(!S.enrollments.length){ box.innerHTML='<div class="empty"><i class="ti ti-users"></i>No enrollments yet.</div>'; return; }
+  const box = document.getElementById('enrollmentList');
+  if(!S.enrollments.length){ box.innerHTML='<div class="empty"><i class="ti ti-file-certificate"></i>No enrollments yet.</div>'; return; }
+  const avCls = ['av-t','av-b','av-a'];
   box.innerHTML = `<div class="card" style="padding:4px 16px">${S.enrollments.map((en,i)=>{
     const s = getStudent(en.studentId); if(!s) return '';
     const paid = getEnrollmentPaid(en.studentId, en.courseId);
-    const total = Number(en.totalFee||0);
-    const pct = total>0?Math.round(paid/total*100):100;
-    const barCls = pct>=100?'':pct<50?'danger':'warn';
-    const nameParts = (s.fullName||'').trim().split(' ');
-    const initials = (nameParts[0]?.[0]||'') + (nameParts.length>1 ? nameParts[nameParts.length-1][0] : '');
+    const total = Number(en.totalFee||0); const pct = total>0?Math.round(paid/total*100):100;
+    const initials = s.fullName.split(' ').map(n=>n[0]).join('').slice(0,2).toUpperCase();
     const course = getCourse(en.courseId);
-    return `<div class="student-row" onclick="showEnrollmentDetail('${en.id}')"><div class="avatar av-t">${initials.toUpperCase()}</div><div class="student-info"><div class="student-name">${s.fullName}</div><div class="student-sub">${course?course.name:'—'}</div></div><div class="pay-summary"><div class="pay-amount ${pct>=100?'g':pct<50?'r':'a'}">${fmt(paid)} / ${fmt(total)}</div><div class="bar-bg"><div class="bar-fill ${barCls}" style="width:${Math.min(100,pct)}%"></div></div></div></div>`;
+    return `<div class="student-row" onclick="showEnrollmentDetail('${en.id}')"><div class="avatar ${avCls[i%3]}">${initials}</div><div class="student-info"><div class="student-name">${s.fullName}</div><div class="student-sub">${course?course.name:'—'} · <span style="color:${en.priceType==='early_bird'?'var(--color-brand)':'inherit'}">${en.priceType==='early_bird'?'Early Bird':'Normal'}</span></div></div><div class="pay-summary"><div class="pay-amount ${pct>=100?'g':pct<50?'r':'a'}">${fmt(paid)} / ${fmt(total)}</div><div class="pay-label">Total Fee</div><div class="bar-bg"><div class="bar-fill ${pct<50?'danger':pct>=100?'':'warn'}" style="width:${Math.min(100,pct)}%"></div></div></div></div>`;
   }).join('')}</div>`;
 }
 
@@ -146,13 +144,13 @@ function renderPayments(){
   const sorted = [...S.payments].sort((a,b)=>(b.date||'').localeCompare(a.date||''));
   box.innerHTML = `<div class="card" style="padding:4px 16px">${sorted.map(p=>{
     const s = getStudent(p.studentId); const c = getCourse(p.courseId);
-    return `<div class="payment-entry"><div><span style="font-weight:600">${s?s.fullName:'—'}</span><span class="chip blue" style="margin-left:8px;font-size:10px">${p.type}</span><div style="font-size:11px;color:var(--color-text-secondary);margin-top:2px">${c?c.name:'Unknown'}</div></div><div style="display:flex;align-items:center;gap:12px"><span style="font-weight:600;color:var(--color-brand);font-size:14px">+${fmt(p.amount)}</span><span style="font-size:12px;color:var(--color-text-secondary)">${formatDate(p.date)}</span></div></div>`;
+    const clr = p.type==='deposit'?'amber':p.type==='full'?'teal':'blue';
+    return `<div class="payment-entry"><div><span style="font-weight:600">${s?s.fullName:'—'}</span><span class="chip ${clr}" style="margin-left:8px;font-size:10px">${p.type}</span><div style="font-size:11px;color:var(--color-text-secondary);margin-top:2px">${c?c.name:'Unknown'}</div></div><div style="display:flex;align-items:center;gap:12px"><span style="font-weight:600;color:var(--color-brand);font-size:14px">+${fmt(p.amount)}</span><span style="font-size:12px;color:var(--color-text-secondary)">${formatDate(p.date)}</span></div></div>`;
   }).join('')}</div>`;
 }
 
-// --- MODALLAR VE FORM MANTIĞI ---
 function goTab(name){
-  document.querySelectorAll('.tab').forEach((t,i)=>t.classList.toggle('active',['dashboard','courses','students','payments'][i]===name));
+  document.querySelectorAll('.tab').forEach((t,i)=>t.classList.toggle('active',['dashboard','courses','students','enrollments','payments'][i]===name));
   document.querySelectorAll('.sec').forEach(s=>s.classList.remove('active'));
   document.getElementById('sec-'+name).classList.add('active');
 }
@@ -163,22 +161,56 @@ function openM(id, editId = null, extraParam = null){
   if(id==='mCourse'){
     if(editId) {
       editCourseId = editId; const c = getCourse(editId);
+      document.getElementById('modal-title-course').innerHTML = '<i class="ti ti-edit"></i> Edit Course'; document.getElementById('btn-save-course').textContent = 'Update';
       document.getElementById('c-name').value = c.name; document.getElementById('c-start').value = c.startDate || ''; document.getElementById('c-end').value = c.endDate || '';     
       document.getElementById('c-feeNormal').value = c.feeNormal; document.getElementById('c-feeEarly').value = c.feeEarly; document.getElementById('c-deposit').value = c.deposit || ''; document.getElementById('c-capacity').value = c.capacity || '';
     } else {
-      editCourseId = null; ['c-name','c-start','c-end','c-feeNormal','c-feeEarly','c-deposit','c-capacity'].forEach(x=>document.getElementById(x).value='');
+      editCourseId = null; document.getElementById('modal-title-course').innerHTML = '<i class="ti ti-books"></i> New Course'; document.getElementById('btn-save-course').textContent = 'Create';
+      ['c-name','c-start','c-end','c-feeNormal','c-feeEarly','c-deposit','c-capacity'].forEach(x=>document.getElementById(x).value='');
     }
   }
-  if(id==='mStudent'){
-    document.getElementById('s-course').innerHTML='<option value="">Select a course...</option>' + S.courses.map(c=>`<option value="${c.id}">${c.name}</option>`).join('');
-    document.getElementById('s-existingId').innerHTML='<option value="">Select student...</option>' + S.students.map(s=>`<option value="${s.id}">${s.fullName} (${s.email})</option>`).join('');
-    toggleStudentMode();
+  
+  if(id==='mStudentEdit') {
+      editStudentIdentityId = editId; const s = getStudent(editId);
+      document.getElementById('se-fullname').value = s.fullName; document.getElementById('se-email').value = s.email; document.getElementById('se-phone').value = s.phone||'';
   }
+
+  if(id==='mEnrollment'){
+    document.getElementById('e-course').innerHTML='<option value="">Select course...</option>' + S.courses.map(c=>`<option value="${c.id}">${c.name}</option>`).join('');
+    document.getElementById('e-existingId').innerHTML='<option value="">Select student...</option>' + S.students.map(s=>`<option value="${s.id}">${s.fullName} (${s.email})</option>`).join('');
+    
+    if(editId) {
+        editEnrollmentId = editId; const en = S.enrollments.find(e=>e.id==editId);
+        document.getElementById('modal-title-enrollment').innerHTML = '<i class="ti ti-edit"></i> Edit Enrollment'; document.getElementById('btn-save-enrollment').textContent = 'Update Enrollment';
+        document.getElementById('e-type-box').style.display='none'; document.getElementById('e-existing-box').style.display='none'; document.getElementById('e-new-box').style.display='none'; document.getElementById('e-divider-1').style.display='none';
+        
+        document.getElementById('e-course').value = en.courseId; document.getElementById('e-course').disabled = true;
+        document.getElementById('e-priceType').value = en.priceType; document.getElementById('e-depositAmount').value = en.depositAmount||''; document.getElementById('e-depositDate').value = en.depositDate||''; document.getElementById('e-payType').value = en.paymentType;
+        
+        toggleInstalmentFields();
+        if(en.paymentType === 'instalment') {
+            try {
+              const plan = JSON.parse(en.instalmentPlan); document.getElementById('e-numInstalments').value = plan.length; updateInstalments();
+              const amounts = document.querySelectorAll('.inst-amount'); const dates = document.querySelectorAll('.inst-date');
+              plan.forEach((inst, i) => { if(amounts[i]) amounts[i].value = inst.amount; if(dates[i]) dates[i].value = inst.date; });
+            } catch(e){}
+        } else document.getElementById('e-numInstalments').value = '';
+        document.getElementById('e-displayTotal').value = fmt(en.totalFee);
+    } else {
+        editEnrollmentId = null; document.getElementById('modal-title-enrollment').innerHTML = '<i class="ti ti-user-plus"></i> Enroll Student'; document.getElementById('btn-save-enrollment').textContent = 'Save Enrollment';
+        document.getElementById('e-type-box').style.display='block'; document.getElementById('e-divider-1').style.display='block'; document.getElementById('e-course').disabled = false;
+        ['e-course','e-existingId','e-fullname','e-email','e-phone','e-depositAmount','e-depositDate','e-numInstalments'].forEach(x=>document.getElementById(x).value='');
+        document.getElementById('e-priceType').value='normal'; document.getElementById('e-payType').value='full_remaining';
+        document.querySelector('input[name="eType"][value="existing"]').checked = true; toggleStudentMode(); toggleInstalmentFields(); document.getElementById('e-displayTotal').value = '';
+    }
+  }
+  
   if(id==='mPayment'){ 
     document.getElementById('p-student').innerHTML='<option value="">Select student...</option>' + S.students.map(s=>`<option value="${s.id}">${s.fullName}</option>`).join('');
-    document.getElementById('p-date').value = today(); 
-    if(extraParam) {
-      const en = S.enrollments.find(e=>e.id===extraParam);
+    document.getElementById('p-date').value = today(); document.getElementById('p-amount').value=''; document.getElementById('p-note').value='';
+    document.getElementById('smart-suggestion').style.display='none'; document.getElementById('p-course-box').style.display='none';
+    if(extraParam) { // extraParam is enrollmentId
+      const en = S.enrollments.find(e=>e.id==extraParam);
       if(en) { document.getElementById('p-student').value = en.studentId; loadStudentCourses(); document.getElementById('p-course').value = en.courseId; calculatePaymentSuggestion(); }
     }
   }
@@ -186,102 +218,142 @@ function openM(id, editId = null, extraParam = null){
 }
 
 function toggleStudentMode() {
-  const isExisting = document.querySelector('input[name="sType"]:checked').value === 'existing';
-  document.getElementById('existing-student-box').style.display = isExisting ? 'flex' : 'none';
-  document.getElementById('new-student-box').style.display = isExisting ? 'none' : 'block';
+  const isExisting = document.querySelector('input[name="eType"]:checked').value === 'existing';
+  document.getElementById('e-existing-box').style.display = isExisting ? 'flex' : 'none';
+  document.getElementById('e-new-box').style.display = isExisting ? 'none' : 'block';
 }
 
 function loadStudentCourses() {
-   const sId = document.getElementById('p-student').value;
-   const cBox = document.getElementById('p-course-box');
-   const cSelect = document.getElementById('p-course');
+   const sId = document.getElementById('p-student').value, cBox = document.getElementById('p-course-box'), cSelect = document.getElementById('p-course');
    if(!sId) { cBox.style.display = 'none'; return; }
-   const studentEnrollments = S.enrollments.filter(e => e.studentId === sId);
-   cSelect.innerHTML = '<option value="">Select course...</option>' + studentEnrollments.map(en => `<option value="${en.courseId}">${getCourse(en.courseId)?.name}</option>`).join('');
+   const enrolls = S.enrollments.filter(e => e.studentId == sId);
+   cSelect.innerHTML = '<option value="">Select course...</option>' + enrolls.map(en => `<option value="${en.courseId}">${getCourse(en.courseId)?.name}</option>`).join('');
    cBox.style.display = 'flex';
 }
 
 function showEnrollmentDetail(enId) {
-  const en = S.enrollments.find(x=>x.id===enId); if(!en) return;
+  const en = S.enrollments.find(x=>x.id==enId); if(!en) return;
   const s = getStudent(en.studentId); const course = getCourse(en.courseId);
   const paid = getEnrollmentPaid(en.studentId, en.courseId); const rem = Number(en.totalFee) - paid;
-  const payments = S.payments.filter(p=>p.studentId===en.studentId && p.courseId===en.courseId).sort((a,b)=>(b.date||'').localeCompare(a.date||''));
+  const payments = S.payments.filter(p=>p.studentId==en.studentId && p.courseId==en.courseId).sort((a,b)=>(b.date||'').localeCompare(a.date||''));
   
-  document.getElementById('sd-title').innerHTML = `<i class="ti ti-user"></i> ${s.fullName}`;
+  let planHtml = '';
+  if (en.paymentType === 'instalment' && en.instalmentPlan) {
+    try {
+      const plan = JSON.parse(en.instalmentPlan);
+      planHtml = `<div style="margin-top:12px; padding:10px; background:#fff; border:1px solid var(--color-border-secondary); border-radius:6px;">
+        <strong style="display:block; margin-bottom:6px; color:var(--color-text-primary);">Instalment Schedule</strong>` +
+        plan.map((inst, i) => `<div style="display:flex; justify-content:space-between; font-size:12px; border-bottom:1px solid var(--color-border-tertiary); padding:4px 0;"><span>Instalment ${i+1}</span><span>${fmt(inst.amount)} (Due: ${formatDate(inst.date)})</span></div>`).join('') + `</div>`;
+    } catch(e) {}
+  }
+  
+  document.getElementById('sd-title').innerHTML = `<i class="ti ti-file-certificate"></i> Enrollment Detail`;
   document.getElementById('sd-body').innerHTML = `
     <div class="detail-panel"><div class="detail-grid">
+        <span class="dk">Student</span><span class="dv">${s.fullName}</span>
         <span class="dk">Course</span><span class="dv">${course?.name}</span>
-        <span class="dk">Email</span><span class="dv">${s.email}</span>
-        <span class="dk">Outstanding</span><span class="dv" style="color:red">${fmt(rem)}</span>
-    </div></div>
-    <div style="font-size:14px;font-weight:600;margin-bottom:12px">Payment History</div>
-    ${payments.map(p=>`<div class="payment-entry"><span>${fmt(p.amount)} (${p.type})</span><span>${formatDate(p.date)}</span></div>`).join('')}
+        <span class="dk">Price Tier</span><span class="dv" style="color:${en.priceType==='early_bird'?'var(--color-brand)':'inherit'}">${en.priceType==='early_bird'?'Early Bird':'Normal'}</span>
+        <span class="dk">Deposit Due</span><span class="dv">${formatDate(en.depositDate)} (${fmt(en.depositAmount)})</span>
+    </div>${planHtml}</div>
+    <div class="stats-grid" style="margin-bottom:16px"><div class="stat"><div class="lbl">Total Fee</div><div class="val b">${fmt(en.totalFee)}</div></div><div class="stat"><div class="lbl">Paid</div><div class="val g">${fmt(paid)}</div></div><div class="stat"><div class="lbl">Remaining</div><div class="val ${rem>0?'r':'g'}">${fmt(rem)}</div></div></div>
+    <div style="font-size:14px;font-weight:600;margin-bottom:12px">Payment History (This Course)</div>
+    ${payments.length?`<div class="card" style="padding:4px 16px">${payments.map(p=>`<div class="payment-entry"><div><span style="font-weight:600; font-size:14px">${fmt(p.amount)}</span><span class="chip ${p.type==='deposit'?'amber':p.type==='full'?'teal':'blue'}" style="margin-left:8px;font-size:10px">${p.type}</span></div><div style="text-align:right;color:var(--color-text-secondary)">${formatDate(p.date)}${p.note?' · '+p.note:''}</div></div>`).join('')}</div>`:'<div style="font-size:13px;color:var(--color-text-secondary);padding:10px 0;text-align:center;background:#f9fafb;border-radius:8px">No payments recorded.</div>'}
   `;
-  document.getElementById('sd-footer').innerHTML = `<button class="btn" onclick="closeM('mStudentDetail')">Close</button><button class="btn primary" onclick="closeM('mStudentDetail'); openM('mPayment', null, '${en.id}')">Add Payment</button>`;
+  document.getElementById('sd-footer').innerHTML = `<button class="btn ghost" onclick="closeM('mStudentDetail')">Close</button><button class="btn" onclick="closeM('mStudentDetail'); openM('mEnrollment', '${en.id}')"><i class="ti ti-edit"></i> Edit Plan</button><button class="btn primary" onclick="closeM('mStudentDetail'); openM('mPayment', null, '${en.id}')"><i class="ti ti-plus"></i> Add Payment</button>`;
   openM('mStudentDetail');
 }
 
-function toggleInstalmentFields() { document.getElementById('instalment-container').style.display = (document.getElementById('s-payType').value === 'instalment') ? 'block' : 'none'; updateInstalments(); }
+function toggleInstalmentFields() { document.getElementById('instalment-container').style.display = (document.getElementById('e-payType').value === 'instalment') ? 'block' : 'none'; updateInstalments(); }
 
 function updateInstalments() {
-  const courseId = document.getElementById('s-course').value;
-  const course = S.courses.find(c => c.id === courseId);
-  let totalFee = course ? (document.getElementById('s-priceType').value === 'early_bird' ? course.feeEarly : course.feeNormal) : 0;
-  document.getElementById('s-displayTotal').value = totalFee ? fmt(totalFee) : '';
+  const cId = document.getElementById('e-course').value; const course = S.courses.find(c => c.id == cId);
+  let totalFee = course ? (document.getElementById('e-priceType').value === 'early_bird' ? course.feeEarly : course.feeNormal) : 0;
+  document.getElementById('e-displayTotal').value = totalFee ? fmt(totalFee) : '';
   const container = document.getElementById('dynamic-instalments'); container.innerHTML = '';
-  if (document.getElementById('s-payType').value !== 'instalment') return;
-  const num = parseInt(document.getElementById('s-numInstalments').value) || 0;
-  const deposit = parseFloat(document.getElementById('s-depositAmount').value) || 0;
-  const remaining = Math.max(0, totalFee - deposit);
+  if (document.getElementById('e-payType').value !== 'instalment') return;
+  const num = parseInt(document.getElementById('e-numInstalments').value) || 0, deposit = parseFloat(document.getElementById('e-depositAmount').value) || 0;
+  const rem = Math.max(0, totalFee - deposit);
   if (num > 0) {
-    const amountPerInst = (remaining / num).toFixed(2);
-    for (let i = 1; i <= num; i++) {
-      container.innerHTML += `<div class="form-2col dynamic-row"><div class="fg"><label>Instalment ${i}</label><input type="number" class="inst-amount" value="${amountPerInst}"></div><div class="fg"><label>Date</label><input type="date" class="inst-date"></div></div>`;
-    }
+    const amt = (rem / num).toFixed(2);
+    for (let i = 1; i <= num; i++) container.innerHTML += `<div class="form-2col dynamic-row"><div class="fg"><label>Instalment ${i} (€)</label><input type="number" class="inst-amount" value="${amt}"></div><div class="fg"><label>Date</label><input type="date" class="inst-date"></div></div>`;
   }
 }
 
 function calculatePaymentSuggestion() {
   const sId = document.getElementById('p-student').value, cId = document.getElementById('p-course').value;
-  const suggBox = document.getElementById('smart-suggestion');
+  const suggBox = document.getElementById('smart-suggestion'); suggBox.classList.remove('success');
   if(!sId || !cId) { suggBox.style.display = 'none'; return; }
-  const en = S.enrollments.find(x => x.studentId === sId && x.courseId === cId);
-  const paid = getEnrollmentPaid(sId, cId); const remaining = Math.max(0, Number(en.totalFee) - paid);
-  suggBox.style.display = 'block';
-  document.getElementById('ss-title').innerHTML = '<i class="ti ti-bulb"></i> Suggested';
-  document.getElementById('ss-desc').innerHTML = `Remaining: <b>${fmt(remaining)}</b>`;
-  document.getElementById('p-amount').value = remaining.toFixed(2);
+  const en = S.enrollments.find(x => x.studentId == sId && x.courseId == cId);
+  const paid = getEnrollmentPaid(sId, cId); const rem = Math.max(0, Number(en.totalFee) - paid);
+  if(rem === 0) {
+    suggBox.style.display = 'block'; suggBox.classList.add('success');
+    document.getElementById('ss-title').innerHTML = '<i class="ti ti-circle-check"></i> Fully Paid!'; document.getElementById('ss-desc').innerHTML = 'No outstanding balance.';
+    document.getElementById('p-amount').value = 0; document.getElementById('p-type').value = 'other'; return;
+  }
+  let nAmt = rem, nType = 'full', nText = `Remaining Balance: <b>${fmt(rem)}</b>`;
+  const dep = Number(en.depositAmount || 0);
+  if(dep > 0 && paid < dep) { nAmt = dep - paid; nType = 'deposit'; nText = `Expected Deposit: <b>${fmt(nAmt)}</b>`; } 
+  else if (en.paymentType === 'instalment' && en.instalmentPlan) {
+     try {
+        const plan = JSON.parse(en.instalmentPlan); let acc = dep, found = false;
+        for(let i=0; i<plan.length; i++) {
+           acc += Number(plan[i].amount);
+           if (paid < acc) { nAmt = Number(plan[i].amount) - Math.max(0, paid - (acc - Number(plan[i].amount))); nType = 'instalment'; nText = `Next due: <b>Instalment ${i+1}</b> (${fmt(nAmt)})`; found = true; break; }
+        }
+        if(!found) { nAmt = rem; nType = 'instalment'; }
+     } catch(e) {}
+  }
+  suggBox.style.display = 'block'; document.getElementById('ss-title').innerHTML = '<i class="ti ti-bulb"></i> Suggested'; document.getElementById('ss-desc').innerHTML = nText;
+  document.getElementById('p-amount').value = parseFloat(nAmt).toFixed(2); document.getElementById('p-type').value = nType;
 }
 
-// --- KAYIT İŞLEMLERİ (ÇİFT KAYIT ENGELİ VE BUTON KİLİDİ) ---
+// --- VERİTABANINA KAYIT (BUTON KİLİTLİ) ---
 async function saveCourse(){
-  const btn = document.getElementById('btn-save-course'); btn.disabled = true;
-  const p = { id: editCourseId||uid(), name: document.getElementById('c-name').value, startDate: document.getElementById('c-start').value, endDate: document.getElementById('c-end').value, feeNormal: document.getElementById('c-feeNormal').value, feeEarly: document.getElementById('c-feeEarly').value, deposit: document.getElementById('c-deposit').value, capacity: document.getElementById('c-capacity').value };
-  await fetch(cfg.url, { method:'POST', body: JSON.stringify({ action: editCourseId?'updateCourse':'addCourse', payload: p, currentUser: sessionStorage.getItem('username') }) });
-  closeM('mCourse'); syncSheets(); btn.disabled = false;
+  const name = document.getElementById('c-name').value.trim(); if(!name) return alert('Name is required.');
+  const btn = document.getElementById('btn-save-course'), oldTxt = btn.innerHTML; btn.innerHTML = '<i class="ti ti-loader"></i> Saving...'; btn.disabled = true;
+  const p = { id: editCourseId, name, startDate: document.getElementById('c-start').value, endDate: document.getElementById('c-end').value, feeNormal: document.getElementById('c-feeNormal').value, feeEarly: document.getElementById('c-feeEarly').value, deposit: document.getElementById('c-deposit').value, capacity: document.getElementById('c-capacity').value };
+  try { await fetch(cfg.url, { method:'POST', body: JSON.stringify({ action: editCourseId?'updateCourse':'addCourse', payload: p, currentUser: sessionStorage.getItem('username') }) }); closeM('mCourse'); syncSheets(); } finally { btn.innerHTML = oldTxt; btn.disabled = false; }
 }
 
-async function enrollStudent(){
-  const btn = document.getElementById('btn-save-student'); btn.disabled = true;
-  const isExisting = document.querySelector('input[name="sType"]:checked').value === 'existing';
-  const studentId = isExisting ? document.getElementById('s-existingId').value : uid();
-  const studentData = isExisting ? {} : { id: studentId, fullName: document.getElementById('s-fullname').value, email: document.getElementById('s-email').value, phone: document.getElementById('s-phone').value };
-  
-  let instPlan = [];
-  document.querySelectorAll('.dynamic-row').forEach(row => {
-    instPlan.push({ amount: row.querySelector('.inst-amount').value, date: row.querySelector('.inst-date').value });
-  });
+async function saveStudentIdentity(){
+  const fullName = document.getElementById('se-fullname').value.trim(); if(!fullName) return alert('Name required');
+  const btn = document.getElementById('btn-save-st'), oldTxt = btn.innerHTML; btn.innerHTML = '<i class="ti ti-loader"></i> Saving...'; btn.disabled = true;
+  const p = { id: editStudentIdentityId, fullName, email: document.getElementById('se-email').value, phone: document.getElementById('se-phone').value };
+  try { await fetch(cfg.url, { method:'POST', body: JSON.stringify({ action: 'updateStudent', payload: p, currentUser: sessionStorage.getItem('username') }) }); closeM('mStudentEdit'); syncSheets(); } finally { btn.innerHTML = oldTxt; btn.disabled = false; }
+}
 
-  const p = { enrollmentId: uid(), isNew: !isExisting, studentId, studentData, courseId: document.getElementById('s-course').value, priceType: document.getElementById('s-priceType').value, totalFee: document.getElementById('s-displayTotal').value.replace(/[^0-9.]/g,''), depositAmount: document.getElementById('s-depositAmount').value, depositDate: document.getElementById('s-depositDate').value, paymentType: document.getElementById('s-payType').value, instalmentPlan: JSON.stringify(instPlan) };
+async function saveEnrollment(){
+  const courseId = document.getElementById('e-course').value; if(!courseId) return alert('Course is required.');
+  let studentId = '', studentData = {};
   
-  const res = await fetch(cfg.url, { method:'POST', body: JSON.stringify({ action: 'enrollStudent', payload: p, currentUser: sessionStorage.getItem('username') }) });
-  const data = await res.json();
-  if(!data.success) alert(data.error); else { closeM('mStudent'); syncSheets(); }
-  btn.disabled = false;
+  if(!editEnrollmentId) { // Yeni kayıtsa ID'leri bul
+      const isExisting = document.querySelector('input[name="eType"]:checked').value === 'existing';
+      if(isExisting) { studentId = document.getElementById('e-existingId').value; if(!studentId) return alert("Select a student."); } 
+      else {
+          const fn = document.getElementById('e-fullname').value.trim(), em = document.getElementById('e-email').value.trim();
+          if(!fn || !em) return alert("Name and email required.");
+          studentData = { fullName: fn, email: em, phone: document.getElementById('e-phone').value };
+      }
+      if(S.enrollments.find(e => e.studentId == studentId && e.courseId == courseId)) return alert("Already enrolled in this course!");
+  }
+
+  let instPlan = [];
+  document.querySelectorAll('.dynamic-row').forEach(row => { instPlan.push({ amount: row.querySelector('.inst-amount').value, date: row.querySelector('.inst-date').value }); });
+
+  const btn = document.getElementById('btn-save-enrollment'), oldTxt = btn.innerHTML; btn.innerHTML = '<i class="ti ti-loader"></i> Saving...'; btn.disabled = true;
+  const p = { enrollmentId: editEnrollmentId, isNew: (!editEnrollmentId && document.querySelector('input[name="eType"]:checked').value === 'new'), studentId, studentData, courseId, priceType: document.getElementById('e-priceType').value, totalFee: document.getElementById('e-displayTotal').value.replace(/[^0-9.]/g,''), depositAmount: document.getElementById('e-depositAmount').value, depositDate: document.getElementById('e-depositDate').value, paymentType: document.getElementById('e-payType').value, instalmentPlan: JSON.stringify(instPlan) };
+  
+  try {
+    const res = await fetch(cfg.url, { method:'POST', body: JSON.stringify({ action: editEnrollmentId?'updateEnrollment':'enrollStudent', payload: p, currentUser: sessionStorage.getItem('username') }) });
+    const data = await res.json();
+    if(!data.success) alert(data.error); else { closeM('mEnrollment'); syncSheets(); }
+  } finally { btn.innerHTML = oldTxt; btn.disabled = false; }
 }
 
 async function savePayment(){
-  const p = { id:uid(), studentId: document.getElementById('p-student').value, courseId: document.getElementById('p-course').value, amount: document.getElementById('p-amount').value, date: document.getElementById('p-date').value, type: document.getElementById('p-type').value, note: document.getElementById('p-note').value };
-  await fetch(cfg.url, { method:'POST', body: JSON.stringify({ action: 'addPayment', payload: p, currentUser: sessionStorage.getItem('username') }) });
-  closeM('mPayment'); syncSheets();
+  const sId = document.getElementById('p-student').value, cId = document.getElementById('p-course').value, amt = parseFloat(document.getElementById('p-amount').value);
+  if(!sId || !cId || !amt) return alert('Student, Course, and Amount required.');
+  const btn = document.getElementById('btn-save-payment'), oldTxt = btn.innerHTML; btn.innerHTML = '<i class="ti ti-loader"></i> Saving...'; btn.disabled = true;
+  const p = { studentId: sId, courseId: cId, amount: amt, date: document.getElementById('p-date').value, type: document.getElementById('p-type').value, note: document.getElementById('p-note').value };
+  try { await fetch(cfg.url, { method:'POST', body: JSON.stringify({ action: 'addPayment', payload: p, currentUser: sessionStorage.getItem('username') }) }); closeM('mPayment'); syncSheets(); } finally { btn.innerHTML = oldTxt; btn.disabled = false; }
 }
