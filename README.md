@@ -167,6 +167,10 @@ The app will connect to the live Apps Script backend as long as `cfg.url` is set
 
 ---
 
-## License
+## License & Copyright
 
-Private — Meisner Studio Amsterdam. Not for public distribution.
+© 2026 Meisner Studio Amsterdam. All rights reserved.
+
+This software is proprietary and confidential. Unauthorized copying,
+distribution, or use of this software, in whole or in part, is strictly
+prohibited without prior written permission from Meisner Studio Amsterdam.
