@@ -359,3 +359,13 @@ body { background-color: #f9fafb; font-family: var(--font-sans); }
   .section-hd-actions { width: 100%; }
   .search-input { flex: 1; width: auto; font-size: 15px; padding: 10px 12px; }
 }
+
+/* ── MOBILE AUTO-ZOOM FIX ──
+   iOS/Android zoom on input focus when font-size < 16px.
+   Override to 16px on mobile only — no visual change on desktop.
+── */
+@media (max-width: 640px) {
+  .fg input, .fg select, .search-input {
+    font-size: 16px !important;
+  }
+}
