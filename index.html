@@ -46,11 +46,11 @@
     </div>
 
     <div class="tabs">
-      <button class="tab active" onclick="goTab('dashboard')"><i class="ti ti-layout-dashboard"></i> Overview</button>
-      <button class="tab" onclick="goTab('courses')"><i class="ti ti-books"></i> Courses</button>
-      <button class="tab" onclick="goTab('students')"><i class="ti ti-users"></i> Students</button>
-      <button class="tab" onclick="goTab('enrollments')"><i class="ti ti-list-check"></i> Enrollments</button>
-      <button class="tab" onclick="goTab('payments')"><i class="ti ti-coin"></i> Payments</button>
+      <button class="tab active" onclick="goTab('dashboard')"><i class="ti ti-layout-dashboard"></i><span class="tab-label"> Overview</span></button>
+      <button class="tab" onclick="goTab('courses')"><i class="ti ti-books"></i><span class="tab-label"> Courses</span></button>
+      <button class="tab" onclick="goTab('students')"><i class="ti ti-users"></i><span class="tab-label"> Students</span></button>
+      <button class="tab" onclick="goTab('enrollments')"><i class="ti ti-list-check"></i><span class="tab-label"> Enrollments</span></button>
+      <button class="tab" onclick="goTab('payments')"><i class="ti ti-coin"></i><span class="tab-label"> Payments</span></button>
     </div>
 
     <div class="panel">
@@ -74,12 +74,12 @@
       </div>
 
       <div class="sec" id="sec-students">
-        <div class="section-hd">
+        <div class="section-hd" style="flex-wrap:wrap;gap:10px">
           <h3>Student Database</h3>
-          <div style="display:flex;gap:12px">
+          <div class="section-hd-actions">
             <input type="text" id="s-search" placeholder="Search students…"
                    onkeyup="onStudentSearchInput()"
-                   style="padding:8px 12px;border:1px solid var(--color-border-secondary);border-radius:6px;font-size:13px;width:200px">
+                   class="search-input">
             <button class="btn primary" onclick="openM('mStudentEdit')"><i class="ti ti-user-plus"></i> Add Student</button>
           </div>
         </div>
