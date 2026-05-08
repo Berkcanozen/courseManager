@@ -257,3 +257,105 @@ body { background-color: #f9fafb; font-family: var(--font-sans); }
 /* ── ANIMATIONS ── */
 @keyframes spin { from { transform: rotate(0); } to { transform: rotate(360deg); } }
 .ti-loader { animation: spin 1s linear infinite; display: inline-block; }
+
+/* ══════════════════════════════════════════
+   MOBILE — max-width: 640px
+══════════════════════════════════════════ */
+@media (max-width: 640px) {
+
+  /* Login */
+  .login-box { padding: 28px 20px; }
+
+  /* Topbar */
+  .topbar { padding: 12px 14px; }
+  .topbar h1 { font-size: 15px; }
+  .sync-badge { font-size: 11px; padding: 3px 8px; }
+
+  /* Tabs — scrollable, icon only */
+  .tabs {
+    padding: 0 8px; gap: 0; overflow-x: auto;
+    scrollbar-width: none; -webkit-overflow-scrolling: touch; margin-top: 0;
+  }
+  .tabs::-webkit-scrollbar { display: none; }
+  .tab { padding: 10px 14px; font-size: 13px; white-space: nowrap; flex-shrink: 0; }
+  .tab .tab-label { display: none; }
+  .tab i { font-size: 18px; }
+
+  /* Panel */
+  .panel { padding: 12px; }
+
+  /* Stats — 2 columns */
+  .stats-grid { grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 14px; }
+  .stat { padding: 12px; }
+  .stat .val { font-size: 20px; }
+
+  /* Section header */
+  .section-hd { flex-wrap: wrap; gap: 10px; margin-bottom: 12px; }
+  .section-hd h3 { font-size: 15px; }
+
+  /* Cards */
+  .card { padding: 12px; margin-bottom: 10px; }
+
+  /* 2-col forms → 1 col */
+  .form-2col { grid-template-columns: 1fr; gap: 0; }
+
+  /* Bigger touch targets */
+  .fg input, .fg select { padding: 12px; font-size: 15px; }
+
+  /* Student rows */
+  .pay-summary { flex: 0 0 90px; }
+  .pay-amount  { font-size: 12px; }
+
+  /* Payment entries — stack */
+  .payment-entry { flex-direction: column; align-items: flex-start; gap: 6px; }
+  .payment-entry > div:last-child { width: 100%; display: flex; justify-content: flex-end; }
+
+  /* Modal — bottom sheet */
+  #modalOverlay { padding: 0; align-items: flex-end; }
+  .modal {
+    width: 100%; max-width: 100%; max-height: 92vh;
+    border-radius: 16px 16px 0 0; padding: 20px 16px;
+  }
+  .modal h2 { font-size: 16px; margin-bottom: 16px; }
+  .modal-footer { flex-wrap: wrap; gap: 8px; }
+  .modal-footer .btn,
+  .modal-footer .danger-btn { flex: 1; justify-content: center; min-width: 80px; }
+
+  /* Detail grid — 1 col */
+  .detail-grid { grid-template-columns: 1fr; gap: 8px; }
+
+  /* Enrollment detail footer — stack vertically */
+  #ed-footer { flex-direction: column-reverse !important; }
+  #ed-footer > div { width: 100%; display: flex; gap: 8px; }
+  #ed-footer > div .btn { flex: 1; justify-content: center; }
+  #ed-footer > .danger-btn { width: 100%; justify-content: center; }
+
+  /* Meta row wrap */
+  .meta-row { gap: 8px; }
+  .meta-row span { font-size: 12px; padding: 3px 6px; }
+}
+
+/* ══════════════════════════════════════════
+   SMALL TABLET — 641–768px
+══════════════════════════════════════════ */
+@media (min-width: 641px) and (max-width: 768px) {
+  .panel { padding: 16px; }
+  .stats-grid { grid-template-columns: repeat(2, 1fr); }
+  .tab .tab-label { display: inline; }
+}
+
+/* ── SECTION HEADER ACTIONS ── */
+.section-hd-actions {
+  display: flex; gap: 10px; align-items: center;
+}
+.search-input {
+  padding: 8px 12px; border: 1px solid var(--color-border-secondary);
+  border-radius: 6px; font-size: 13px; width: 200px;
+  font-family: var(--font-sans); outline: none;
+}
+.search-input:focus { border-color: var(--color-brand); box-shadow: 0 0 0 3px rgba(16,185,129,.1); }
+
+@media (max-width: 640px) {
+  .section-hd-actions { width: 100%; }
+  .search-input { flex: 1; width: auto; font-size: 15px; padding: 10px 12px; }
+}
