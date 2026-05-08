@@ -58,7 +58,7 @@ const formatDate = dateStr => {
 };
 
 const getStatusBadge = statusId => {
-  const colors = { open: 'green', completed: 'blue', draft: 'amber', cancelled: 'red' };
+  const colors = { active: 'teal', completed: 'blue', draft: 'amber', cancelled: 'red' };
   const st = (S.generalStatus || []).find(s => s.id == statusId);
   const label     = st ? st.name : (statusId || 'Unknown');
   const colorCode = st ? st.code : 'blue';
@@ -409,6 +409,8 @@ function goTab(name) {
   document.querySelectorAll('.tab').forEach((t, i) => t.classList.toggle('active', names[i] === name));
   document.querySelectorAll('.sec').forEach(s => s.classList.remove('active'));
   document.getElementById('sec-' + name).classList.add('active');
+  // Scroll to top on tab switch — prevents mobile staying mid-page
+  window.scrollTo({ top: 0, behavior: 'smooth' });
 }
 
 /* ─────────────────────────────────────────────
