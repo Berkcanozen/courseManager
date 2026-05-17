@@ -117,7 +117,7 @@
 
   <!-- COURSE -->
   <div class="modal" id="mCourse">
-    <h2 id="modal-title-course"><i class="ti ti-books"></i> Course Details</h2>
+    <h2 id="modal-title-course"><i class="ti ti-books"></i> <span id="modal-title-course-text">New Course</span></h2><p class="modal-subtitle" id="modal-subtitle-course">Fill in the course details below.</p>
     <div class="fg"><label>Course name *</label><input type="text" id="c-name" placeholder="e.g. Meisner Technique Level 1"></div>
     <div class="form-2col">
       <div class="fg"><label>Start date</label><input type="date" id="c-start"></div>
@@ -142,7 +142,7 @@
 
   <!-- STUDENT PROFILE -->
   <div class="modal" id="mStudentEdit">
-    <h2 id="modal-title-student"><i class="ti ti-user"></i> Student Profile</h2>
+    <h2 id="modal-title-student"><i class="ti ti-user"></i> <span id="modal-title-student-text">Add New Student</span></h2><p class="modal-subtitle">Student contact information and profile.</p>
     <div class="fg"><label>Full name *</label><input type="text" id="se-fullname" placeholder="Jane Smith"></div>
     <div class="form-2col">
       <div class="fg"><label>Email *</label><input type="email" id="se-email" placeholder="jane@example.com"></div>
@@ -159,7 +159,7 @@
 
   <!-- ENROLLMENT -->
   <div class="modal" id="mEnrollment">
-    <h2 id="modal-title-enrollment"><i class="ti ti-user-check"></i> Enroll Student</h2>
+    <h2 id="modal-title-enrollment"><i class="ti ti-user-check"></i> <span id="modal-title-enrollment-text">Enroll Student</span></h2><p class="modal-subtitle" id="modal-subtitle-enrollment">Select a course and configure the payment plan.</p>
     <div class="fg"><label>Course *</label>
       <select id="e-course" onchange="updateInstalments()"><option value="">Select course…</option></select>
     </div>
@@ -231,7 +231,7 @@
 
   <!-- PAYMENT -->
   <div class="modal" id="mPayment">
-    <h2><i class="ti ti-coin"></i> Record Payment</h2>
+    <h2><i class="ti ti-coin"></i> Record Payment</h2><p class="modal-subtitle">Log a payment against a student enrollment.</p>
     <div class="fg"><label>Student *</label>
       <select id="p-student" onchange="loadStudentCourses()"><option value="">Select student…</option></select>
     </div>
