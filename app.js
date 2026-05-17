@@ -13,7 +13,7 @@
  */
 
 const cfg = {
-  url:      'https://script.google.com/macros/s/AKfycbzuyzMDbczriYBKioq1snrdxqVOx_xhMkSQzHOm3vVPHk4CyO_anr15pXUM47Blyu8BbQ/exec',
+  url:      'YOUR_GOOGLE_APPS_SCRIPT_WEB_APP_URL_HERE',
   currency: '€'
 };
 
@@ -277,7 +277,8 @@ function _setupCourseModal(editId) {
   if (editId) {
     editCourseId = editId;
     const c = getCourse(editId) || {};
-    document.getElementById('modal-title-course').innerHTML = '<i class="ti ti-books"></i> Edit Course';
+    document.getElementById('modal-title-course-text').textContent = 'Edit Course';
+    document.getElementById('modal-subtitle-course').textContent = 'Update the course details below.';
     document.getElementById('btn-save-course').textContent  = 'Update';
     document.getElementById('btn-delete-course').style.display = 'inline-flex';
     document.getElementById('c-name').value      = c.name      || '';
@@ -289,7 +290,8 @@ function _setupCourseModal(editId) {
     if (stSelect) stSelect.value = c.status || '';
   } else {
     editCourseId = null;
-    document.getElementById('modal-title-course').innerHTML = '<i class="ti ti-books"></i> New Course';
+    document.getElementById('modal-title-course-text').textContent = 'New Course';
+    document.getElementById('modal-subtitle-course').textContent = 'Fill in the course details below.';
     document.getElementById('btn-save-course').textContent  = 'Create';
     document.getElementById('btn-delete-course').style.display = 'none';
     ['c-name','c-start','c-end','c-feeNormal','c-feeEarly','c-capacity']
@@ -302,14 +304,14 @@ function _setupStudentEditModal(editId) {
   if (editId) {
     editStudentIdentityId = editId;
     const s = getStudent(editId) || {};
-    document.getElementById('modal-title-student').innerHTML = '<i class="ti ti-user"></i> Edit Student Profile';
+    document.getElementById('modal-title-student-text').textContent = 'Edit Student Profile';
     document.getElementById('btn-delete-st').style.display   = 'inline-flex';
     document.getElementById('se-fullname').value = s.fullName || '';
     document.getElementById('se-email').value    = s.email    || '';
     document.getElementById('se-phone').value    = s.phone    || '';
   } else {
     editStudentIdentityId = null;
-    document.getElementById('modal-title-student').innerHTML = '<i class="ti ti-user"></i> Add New Student';
+    document.getElementById('modal-title-student-text').textContent = 'Add New Student';
     document.getElementById('btn-delete-st').style.display   = 'none';
     ['se-fullname','se-email','se-phone'].forEach(x => { const el = document.getElementById(x); if (el) el.value = ''; });
   }
@@ -325,7 +327,8 @@ function _setupEnrollmentModal(editId) {
   if (editId) {
     editEnrollmentId = editId;
     const en = S.enrollments.find(e => e.id == editId) || {};
-    document.getElementById('modal-title-enrollment').innerHTML    = '<i class="ti ti-user-check"></i> Edit Enrollment';
+    document.getElementById('modal-title-enrollment-text').textContent = 'Edit Enrollment';
+    document.getElementById('modal-subtitle-enrollment').textContent = 'Update the enrollment and payment plan.';
     document.getElementById('btn-save-enrollment').textContent     = 'Update';
     document.getElementById('btn-delete-enrollment').style.display = 'inline-flex';
     document.getElementById('e-type-box').style.display     = 'none';
@@ -357,7 +360,8 @@ function _setupEnrollmentModal(editId) {
     }
   } else {
     editEnrollmentId = null;
-    document.getElementById('modal-title-enrollment').innerHTML    = '<i class="ti ti-user-check"></i> Enroll Student';
+    document.getElementById('modal-title-enrollment-text').textContent = 'Enroll Student';
+    document.getElementById('modal-subtitle-enrollment').textContent = 'Select a course and configure the payment plan.';
     document.getElementById('btn-save-enrollment').textContent     = 'Save';
     document.getElementById('btn-delete-enrollment').style.display = 'none';
     document.getElementById('e-type-box').style.display  = 'block';
@@ -608,9 +612,17 @@ function showStudentDetail(sId) {
       <div class="avatar av-t" style="width:40px;height:40px;font-size:15px">${initials}</div>
       <div>
         <div>${s.fullName}</div>
-        <div style="font-size:13px;font-weight:400;color:var(--color-text-secondary)">${s.email}${s.phone ? ' · ' + s.phone : ''}</div>
       </div>
     </div>`;
+  // Add subtitle below h2
+  let sdSub = document.getElementById('sd-subtitle');
+  if (!sdSub) {
+    sdSub = document.createElement('p');
+    sdSub.id = 'sd-subtitle';
+    sdSub.className = 'modal-subtitle';
+    document.getElementById('sd-title').insertAdjacentElement('afterend', sdSub);
+  }
+  sdSub.textContent = s.email + (s.phone ? ' · ' + s.phone : '');
 
   document.getElementById('sd-body').innerHTML = `
     <div class="stats-grid" style="margin-bottom:16px">
@@ -660,7 +672,10 @@ function showEnrollmentDetail(enId) {
     }
   }
 
-  document.getElementById('ed-title').innerHTML = 'Enrollment Detail';
+  document.getElementById('ed-title').innerHTML = (s ? s.fullName : 'Enrollment Detail');
+  let edSub = document.getElementById('ed-subtitle');
+  if (!edSub) { edSub = document.createElement('p'); edSub.id = 'ed-subtitle'; edSub.className = 'modal-subtitle'; document.getElementById('ed-title').insertAdjacentElement('afterend', edSub); }
+  edSub.textContent = (course ? course.name : '') + ' · ' + (en.priceType === 'early_bird' ? 'Early Bird' : 'Normal');
   document.getElementById('ed-body').innerHTML = `
     <div class="detail-panel">
       <div class="detail-grid">
