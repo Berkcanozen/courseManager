@@ -185,7 +185,17 @@ body { background-color: #f9fafb; font-family: var(--font-sans); }
   z-index: 1;
 }
 .modal.active { display: block; }
-.modal h2 { font-size: 18px; font-weight: 600; margin-bottom: 20px; display: flex; align-items: center; gap: 10px; color: #111827; }
+.modal h2 {
+  font-size: 22px; font-weight: 700; margin-bottom: 4px;
+  display: flex; align-items: center; gap: 10px; color: #111827;
+  letter-spacing: -0.3px;
+}
+.modal h2 i { color: var(--color-brand); font-size: 22px; }
+.modal-subtitle {
+  font-size: 13px; color: var(--color-text-secondary);
+  margin-bottom: 24px; padding-bottom: 16px;
+  border-bottom: 1px solid var(--color-border-tertiary);
+}
 .modal-footer {
   display: flex; justify-content: flex-end; gap: 10px;
   margin-top: 24px; padding-top: 16px; border-top: 1px solid var(--color-border-tertiary);
