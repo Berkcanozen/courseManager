@@ -112,16 +112,38 @@ The app expects the following sheets inside one Google Spreadsheet:
 ### 4. Frontend
 
 1. Clone this repository
-2. Open `app.js` and replace the URL at the top:
+2. Open `config.js` and replace the URL and currency:
 
 ```js
-const cfg = {
-  url: 'YOUR_GOOGLE_APPS_SCRIPT_WEB_APP_URL_HERE',
-  currency: '€'
+window.APP_CONFIG = {
+  url:      'YOUR_GOOGLE_APPS_SCRIPT_WEB_APP_URL_HERE',
+  currency: '€',
+  locale:   'en-US',
+  timezone: 'Europe/Amsterdam'
 };
 ```
 
 3. Commit and push — GitHub Pages will serve the app automatically
+
+---
+
+### Apps Script Versioning & Deployment FAQ
+
+**Q: I deployed a new version — does the old URL still work?**
+Yes, the old URL keeps working until you explicitly archive it. Go to **Deploy → Manage Deployments**, find the old deployment, and click **Archive**.
+
+**Q: When should I create a new deployment vs edit the existing one?**
+- **Edit existing** (same URL): for backend logic changes that don't break the API — fixing bugs, adding logs, updating email text.
+- **New deployment** (new URL): when adding new actions, changing auth flow, or making breaking changes. Update `config.js` with the new URL and commit.
+
+**Q: How do I roll back a bad deploy?**
+In Apps Script: **Deploy → Manage Deployments** → three-dot menu on a previous deployment → re-deploy that version.
+
+**Q: My changes aren't showing up after deploy.**
+Always use **Manage Deployments → Edit** (pencil icon) and bump the version number. Never rely on redeploy without changing the version — Apps Script may serve stale code.
+
+**Q: The app returns stale data after I change the sheet.**
+The backend uses a 30-second `CacheService` cache. Wait 30 seconds and refresh, or run `invalidateCache()` manually from the Apps Script editor: **Run → invalidateCache**.
 
 ---
 
@@ -159,6 +181,8 @@ The app will connect to the live Apps Script backend as long as `cfg.url` is set
 
 | Version | Highlights |
 |---|---|
+| v2.9.1 | config.js single source of truth, parseUserNumber decimal fix, date validation, Enter key, focus management, enrollment archive filter |
+| v2.9.0 | XSS protection (esc()), token expiry redirect, toast system, custom confirm dialog |
 | v2.8.1 | Enrollment detail delete button, "Edit Plan" → "Edit", 6 bug fixes |
 | v2.8.0 | Mobile responsive, debounce search, formatDate timezone fix, CacheService, LockService, token cleanup, duplicate email guard, `updateEnrollment` totalFee fix, Cron logging |
 | v2.7.0 | Single overlay modal system (Opera fix), delete payment, student detail on click |
@@ -167,10 +191,6 @@ The app will connect to the live Apps Script backend as long as `cfg.url` is set
 
 ---
 
-## License & Copyright
+## License
 
-© 2026 Meisner Studio Amsterdam. All rights reserved.
-
-This software is proprietary and confidential. Unauthorized copying,
-distribution, or use of this software, in whole or in part, is strictly
-prohibited without prior written permission from Meisner Studio Amsterdam.
+Private — Meisner Studio Amsterdam. Not for public distribution.
