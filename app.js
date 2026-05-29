@@ -13,7 +13,7 @@
  */
 
 const cfg = {
-  url:      'https://script.google.com/macros/s/AKfycbzuyzMDbczriYBKioq1snrdxqVOx_xhMkSQzHOm3vVPHk4CyO_anr15pXUM47Blyu8BbQ/exec',
+  url:      'https://script.google.com/macros/s/AKfycbwJbfu0XbHKPS3FFQraf4ImBnGGoxLjrDL2YjUhcGnOtmSCoiV0txCzu2xsU2ooAEDPGg/exec',
   currency: '€'
 };
 
