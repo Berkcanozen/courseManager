@@ -1,15 +1,12 @@
 /**
  * MEISNER STUDIO - COURSE MANAGEMENT SYSTEM
- * Frontend Logic - v2.9.1
+ * Frontend Logic - v2.9.2
  *
- * Changes from v2.9.0:
- *  - [CONFIG]   config.js single source of truth for version, currency, magic numbers
- *  - [CONFIG]   config.gs mirrors APP_CONSTANTS for Apps Script
- *  - [FIX]      Decimal input uses parseUserNumber() — handles both comma and dot separators
- *  - [FIX]      Date validation on course and enrollment forms
- *  - [UX]       Enter key submits active form
- *  - [UX]       Focus management — modal opens to first input, closes back to trigger
- *  - [UX]       Active/Archived filter on Enrollments tab
+ * Changes from v2.9.1:
+ *  - [UX]       Capacity full warning shown on course card and enrollment form
+ *  - Backend:   Audit log (AuditLog sheet) for all CRUD operations
+ *  - Backend:   getNextId protected with LockService
+ *  - Backend:   Cron duplicate prevention (PropertiesService keyed by date+enrollmentId)
  */
 
 // Config loaded from config.js (single source of truth)
@@ -609,12 +606,13 @@ function renderCourses() {
   if (!S.courses.length) { box.innerHTML = '<div class="empty"><i class="ti ti-books"></i>No courses yet.</div>'; return; }
   box.innerHTML = S.courses.map(c => {
     const count = S.enrollments.filter(e => e.courseId == c.id).length;
+    const isFull  = c.capacity > 0 && count >= Number(c.capacity);
     return `<div class="card">
       <div class="card-hd">
         <div><b>${esc(c.name)}</b><br><small>${esc(formatDate(c.startDate))} to ${esc(formatDate(c.endDate))}</small></div>
         <div style="display:flex;gap:6px;align-items:center">
           ${getStatusBadge(c.status)}
-          <span class="chip blue">${count}${c.capacity ? '/' + esc(c.capacity) : ''} Students</span>
+          <span class="chip ${isFull ? 'red' : 'blue'}">${count}${c.capacity ? '/' + esc(c.capacity) : ''} Students${isFull ? ' · Full' : ''}</span>
           <button class="btn ghost sm" onclick="openM('mCourse','${esc(c.id)}')"><i class="ti ti-edit"></i></button>
         </div>
       </div>
@@ -945,6 +943,19 @@ function updateInstalments() {
     ? (document.getElementById('e-priceType').value === 'early_bird' ? course.feeEarly : course.feeNormal)
     : 0;
   document.getElementById('e-displayTotal').value = totalFee ? fmt(totalFee) : '';
+  // Capacity warning
+  const capWarn = document.getElementById('e-capacity-warn');
+  if (capWarn) {
+    const enrolled = S.enrollments.filter(e => e.courseId == cId).length;
+    const cap      = Number(course && course.capacity);
+    if (cap > 0 && enrolled >= cap) {
+      capWarn.style.display = 'block';
+      capWarn.textContent   = 'This course is full (' + enrolled + '/' + cap + ' students enrolled).';
+    } else {
+      capWarn.style.display = 'none';
+    }
+  }
+
   const container = document.getElementById('dynamic-instalments');
   container.innerHTML = '';
   if (document.getElementById('e-payType').value !== 'instalment') return;
