@@ -7,6 +7,7 @@
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@latest/tabler-icons.min.css">
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="style.css">
+  <script src="config.js"></script>
   <script src="app.js" defer></script>
 </head>
 <body>
@@ -25,7 +26,7 @@
     <button class="btn primary" style="width:100%;justify-content:center;padding:12px"
             id="l-btn" onclick="handleLogin()">Sign In</button>
     <div style="margin-top:24px;text-align:center">
-      <span class="version-text">v2.8.1</span>
+      <span class="version-text" id="appVersion">v2.9.1</span>
       <div id="loginSyncBadge" class="sync-badge" style="margin-top:8px">
         <i class="ti ti-loader"></i> Connecting…
       </div>
@@ -90,9 +91,16 @@
       </div>
 
       <div class="sec" id="sec-enrollments">
-        <div class="section-hd">
+        <div class="section-hd" style="flex-wrap:wrap;gap:10px">
           <h3>Course Enrollments</h3>
-          <button class="btn primary" onclick="openM('mEnrollment')"><i class="ti ti-user-check"></i> Enroll Student</button>
+          <div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap">
+            <div class="filter-group">
+              <button class="enroll-filter-btn active" data-filter="active"   onclick="setEnrollmentFilter('active')">Active</button>
+              <button class="enroll-filter-btn"         data-filter="archived" onclick="setEnrollmentFilter('archived')">Archived</button>
+              <button class="enroll-filter-btn"         data-filter="all"      onclick="setEnrollmentFilter('all')">All</button>
+            </div>
+            <button class="btn primary" onclick="openM('mEnrollment')"><i class="ti ti-user-check"></i> Enroll Student</button>
+          </div>
         </div>
         <div id="enrollmentList"></div>
       </div>
@@ -276,6 +284,17 @@
   </div>
 
 </div><!-- /modalOverlay -->
+
+<!-- CONFIRM DIALOG -->
+<div id="confirmOverlay" style="display:none">
+  <div class="confirm-box" role="alertdialog" aria-modal="true">
+    <p class="confirm-msg" id="confirmMsg"></p>
+    <div class="confirm-actions">
+      <button class="btn" id="confirmCancel">Cancel</button>
+      <button class="danger-btn" id="confirmOk">Confirm</button>
+    </div>
+  </div>
+</div>
 
 </body>
 </html>
