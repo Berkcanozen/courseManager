@@ -1,6 +1,6 @@
 /**
  * MEISNER STUDIO - COURSE MANAGEMENT SYSTEM
- * Frontend Logic - v2.9.3
+ * Frontend Logic - v2.9.4
  *
  * Changes from v2.9.1:
  *  - [UX]       Capacity full warning shown on course card and enrollment form
@@ -375,8 +375,14 @@ function populateStudentSearch() {
 
 function captureSelectedStudent() {
   const val = document.getElementById('e-search-input').value;
-  const opt = document.querySelector(`#student-datalist option[value="${val}"]`);
-  document.getElementById('e-selected-student-id').value = opt ? opt.getAttribute('data-id') : '';
+  // Match by iterating instead of querySelector — avoids CSS-selector
+  // injection / syntax errors when names contain quotes or special chars.
+  const options = document.querySelectorAll('#student-datalist option');
+  let matchedId = '';
+  for (const opt of options) {
+    if (opt.value === val) { matchedId = opt.getAttribute('data-id'); break; }
+  }
+  document.getElementById('e-selected-student-id').value = matchedId;
 }
 
 /* ─────────────────────────────────────────────
@@ -494,6 +500,7 @@ function _setupEnrollmentModal(editId) {
     document.getElementById('modal-title-enrollment-text').textContent    = 'Edit Enrollment';
     document.getElementById('modal-subtitle-enrollment').textContent      = 'Update the enrollment and payment plan.';
     document.getElementById('btn-save-enrollment').textContent            = 'Update';
+    document.getElementById('btn-save-enrollment').disabled               = false;
     document.getElementById('btn-delete-enrollment').style.display        = 'inline-flex';
     document.getElementById('e-type-box').style.display     = 'none';
     document.getElementById('e-existing-box').style.display = 'none';
@@ -525,6 +532,7 @@ function _setupEnrollmentModal(editId) {
     document.getElementById('modal-title-enrollment-text').textContent = 'Enroll Student';
     document.getElementById('modal-subtitle-enrollment').textContent   = 'Select a course and configure the payment plan.';
     document.getElementById('btn-save-enrollment').textContent         = 'Save';
+    document.getElementById('btn-save-enrollment').disabled            = false;
     document.getElementById('btn-delete-enrollment').style.display     = 'none';
     document.getElementById('e-type-box').style.display  = 'block';
     document.getElementById('e-course').disabled         = false;
