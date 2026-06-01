@@ -1,6 +1,6 @@
 /**
  * MEISNER STUDIO - COURSE MANAGEMENT SYSTEM
- * Frontend Logic - v2.9.2
+ * Frontend Logic - v2.9.3
  *
  * Changes from v2.9.1:
  *  - [UX]       Capacity full warning shown on course card and enrollment form
@@ -10,8 +10,12 @@
  */
 
 // Config loaded from config.js (single source of truth)
+if (!window.APP_CONFIG) {
+  alert('Configuration failed to load (config.js missing). Please refresh or contact the administrator.');
+  throw new Error('config.js not loaded');
+}
 const cfg       = window.APP_CONFIG;
-const CONSTANTS = window.APP_CONSTANTS;
+const CONSTANTS = window.APP_CONSTANTS || {};
 
 /* ─────────────────────────────────────────────
    STATE
@@ -246,7 +250,7 @@ async function testConnection() {
   if (!badge) return;
   try {
     const controller = new AbortController();
-    const tid = setTimeout(() => controller.abort(), CONSTANTS.PING_TIMEOUT_MS);
+    const tid = setTimeout(() => controller.abort(), CONSTANTS.PING_TIMEOUT_MS || 5000);
     const r = await fetch(cfg.url + '?action=ping', { signal: controller.signal });
     clearTimeout(tid);
     if (r.ok) {
@@ -306,6 +310,9 @@ async function handleLogin() {
 function initApp() {
   document.getElementById('login-screen').style.display = 'none';
   document.getElementById('main-app').style.display     = 'block';
+  // Display version from config (single source of truth)
+  const verEl = document.getElementById('appVersion');
+  if (verEl && window.APP_VERSION) verEl.textContent = 'v' + window.APP_VERSION;
   syncSheets();
 }
 
@@ -627,7 +634,7 @@ function renderCourses() {
 let _searchTimer = null;
 function onStudentSearchInput() {
   clearTimeout(_searchTimer);
-  _searchTimer = setTimeout(renderStudents, CONSTANTS.SEARCH_DEBOUNCE_MS);
+  _searchTimer = setTimeout(renderStudents, CONSTANTS.SEARCH_DEBOUNCE_MS || 200);
 }
 
 function renderStudents() {
@@ -948,12 +955,17 @@ function updateInstalments() {
   if (capWarn) {
     const enrolled = S.enrollments.filter(e => e.courseId == cId).length;
     const cap      = Number(course && course.capacity);
-    if (cap > 0 && enrolled >= cap) {
+    // Only block for NEW enrollments (editEnrollmentId is null);
+    // editing an existing enrollment in a full course is fine.
+    const isFull   = cap > 0 && enrolled >= cap && !editEnrollmentId;
+    if (isFull) {
       capWarn.style.display = 'block';
       capWarn.textContent   = 'This course is full (' + enrolled + '/' + cap + ' students enrolled).';
     } else {
       capWarn.style.display = 'none';
     }
+    const saveBtn = document.getElementById('btn-save-enrollment');
+    if (saveBtn) saveBtn.disabled = isFull;
   }
 
   const container = document.getElementById('dynamic-instalments');
