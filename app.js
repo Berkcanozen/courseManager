@@ -1,6 +1,6 @@
 /**
  * MEISNER STUDIO - COURSE MANAGEMENT SYSTEM
- * Frontend Logic - v2.9.4
+ * Frontend Logic - v2.9.5
  *
  * Changes from v2.9.1:
  *  - [UX]       Capacity full warning shown on course card and enrollment form
@@ -164,6 +164,45 @@ function validateEnrollmentDates(depositDate, fullPayDate, paymentType) {
       return 'Full payment due date must be after deposit due date.';
   }
   return null;
+}
+
+/**
+ * Determines if an enrollment has any overdue (past-due & unpaid) milestone.
+ * Returns { overdue: bool, count: number } where count is # of overdue milestones.
+ */
+function getOverdueInfo(en) {
+  const todayMs = new Date().setHours(0, 0, 0, 0);
+  const paid    = getEnrollmentPaid(en.studentId, en.courseId);
+  let overdueAmount = 0;
+
+  // Deposit overdue?
+  const dep = Number(en.depositAmount || 0);
+  if (dep > 0 && en.depositDate && dateToMs(en.depositDate) < todayMs && paid < dep) {
+    overdueAmount += (dep - paid);
+  }
+
+  // Instalment overdue? (sum scheduled amounts due before today vs paid)
+  if (en.paymentType === 'instalment' && en.instalmentPlan) {
+    try {
+      const plan = JSON.parse(en.instalmentPlan);
+      let scheduledDue = dep; // deposit counts toward the running total
+      for (const inst of plan) {
+        if (inst.date && dateToMs(inst.date) < todayMs) {
+          scheduledDue += Number(inst.amount || 0);
+        }
+      }
+      if (paid < scheduledDue) overdueAmount = Math.max(overdueAmount, scheduledDue - paid);
+    } catch {}
+  }
+
+  // Full payment overdue?
+  if (en.paymentType === 'full_remaining' && en.fullPayDate &&
+      dateToMs(en.fullPayDate) < todayMs) {
+    const rem = Number(en.totalFee || 0) - paid;
+    if (rem > 0) overdueAmount = Math.max(overdueAmount, rem);
+  }
+
+  return { overdue: overdueAmount > 0, amount: overdueAmount };
 }
 
 const formatDate = dateStr => {
@@ -357,6 +396,7 @@ async function syncSheets() {
     };
     document.getElementById('syncBadge').innerHTML =
       '<i class="ti ti-cloud-check" style="color:var(--color-brand)"></i> Live Sync Active';
+    buildIndexes();
     populateStudentSearch();
     render();
   } catch {
@@ -386,14 +426,28 @@ function captureSelectedStudent() {
 }
 
 /* ─────────────────────────────────────────────
-   DATA GETTERS
+   DATA GETTERS + LOOKUP INDEXES
+   Indexes are rebuilt once per sync (buildIndexes)
+   to avoid O(n) .find() / O(n²) payment sums on every render.
 ───────────────────────────────────────────── */
-const getCourse  = id => S.courses.find(c => c.id == id);
-const getStudent = id => S.students.find(s => s.id == id);
+let _coursesById  = new Map();
+let _studentsById = new Map();
+let _paidByEnKey  = new Map(); // key: `${studentId}|${courseId}` → total paid
+
+function buildIndexes() {
+  _coursesById  = new Map(S.courses.map(c => [String(c.id), c]));
+  _studentsById = new Map(S.students.map(s => [String(s.id), s]));
+  _paidByEnKey  = new Map();
+  for (const p of S.payments) {
+    const key = `${p.studentId}|${p.courseId}`;
+    _paidByEnKey.set(key, (_paidByEnKey.get(key) || 0) + Number(p.amount || 0));
+  }
+}
+
+const getCourse  = id => _coursesById.get(String(id))  || S.courses.find(c => c.id == id);
+const getStudent = id => _studentsById.get(String(id)) || S.students.find(s => s.id == id);
 const getEnrollmentPaid = (studentId, courseId) =>
-  S.payments
-    .filter(p => p.studentId == studentId && p.courseId == courseId)
-    .reduce((a, p) => a + Number(p.amount), 0);
+  _paidByEnKey.get(`${studentId}|${courseId}`) || 0;
 
 /* ─────────────────────────────────────────────
    MODAL SYSTEM
@@ -591,10 +645,13 @@ function renderStats() {
   const outstanding = S.enrollments.reduce(
     (a, en) => a + Math.max(0, Number(en.totalFee || 0) - getEnrollmentPaid(en.studentId, en.courseId)), 0
   );
+  const overdue = S.enrollments.reduce((a, en) => a + getOverdueInfo(en).amount, 0);
   document.getElementById('st-courses').textContent     = S.courses.length;
   document.getElementById('st-students').textContent    = S.students.length;
   document.getElementById('st-collected').textContent   = fmt(collected);
   document.getElementById('st-outstanding').textContent = fmt(outstanding);
+  const odEl = document.getElementById('st-overdue');
+  if (odEl) odEl.textContent = fmt(overdue);
 }
 
 function renderDash() {
@@ -704,10 +761,14 @@ function renderEnrollments() {
     const barCls  = pct >= 100 ? '' : pct < 50 ? 'danger' : 'warn';
     const initials = s.fullName.split(' ').filter(Boolean).map(n => n[0]).join('').slice(0, 2).toUpperCase();
     const course  = getCourse(en.courseId);
-    return `<div class="student-row clickable" onclick="showEnrollmentDetail('${esc(en.id)}')">
+    const od      = getOverdueInfo(en);
+    const odBadge = od.overdue
+      ? `<span class="chip red" style="font-size:9px;margin-left:6px" title="Overdue ${esc(fmt(od.amount))}"><i class="ti ti-alert-triangle"></i> Overdue</span>`
+      : '';
+    return `<div class="student-row clickable ${od.overdue ? 'row-overdue' : ''}" onclick="showEnrollmentDetail('${esc(en.id)}')">
       <div class="avatar ${avCls[i % 3]}">${esc(initials)}</div>
       <div class="student-info">
-        <div class="student-name">${esc(s.fullName)}</div>
+        <div class="student-name">${esc(s.fullName)}${odBadge}</div>
         <div class="student-sub">${course ? esc(course.name) : '—'} · <span style="color:${en.priceType === 'early_bird' ? 'var(--color-brand)' : 'inherit'}">${en.priceType === 'early_bird' ? 'Early Bird' : 'Normal'}</span></div>
       </div>
       <div class="pay-summary">
@@ -1032,6 +1093,69 @@ function calculatePaymentSuggestion() {
   document.getElementById('ss-desc').innerHTML  = nText;
   document.getElementById('p-amount').value     = parseFloat(nAmt).toFixed(2);
   document.getElementById('p-type').value       = nType;
+}
+
+/* ─────────────────────────────────────────────
+   CSV EXPORT
+   Client-side only — builds a CSV blob and triggers download.
+───────────────────────────────────────────── */
+function _csvCell(val) {
+  const s = String(val === null || val === undefined ? '' : val);
+  // Escape quotes, wrap if contains comma/quote/newline
+  if (/[",\n]/.test(s)) return '"' + s.replace(/"/g, '""') + '"';
+  return s;
+}
+
+function _downloadCSV(filename, rows) {
+  const csv  = rows.map(r => r.map(_csvCell).join(',')).join('\n');
+  const blob = new Blob(['\ufeff' + csv], { type: 'text/csv;charset=utf-8;' }); // BOM for Excel
+  const url  = URL.createObjectURL(blob);
+  const a    = document.createElement('a');
+  a.href = url;
+  a.download = filename;
+  document.body.appendChild(a);
+  a.click();
+  document.body.removeChild(a);
+  URL.revokeObjectURL(url);
+}
+
+function exportEnrollmentsCSV() {
+  if (!S.enrollments.length) return toast('No enrollments to export.', 'warn');
+  const rows = [['Student', 'Email', 'Course', 'Price Type', 'Total Fee', 'Paid', 'Remaining', 'Payment Type', 'Deposit Due', 'Overdue']];
+  S.enrollments.forEach(en => {
+    const s = getStudent(en.studentId);
+    const c = getCourse(en.courseId);
+    const paid = getEnrollmentPaid(en.studentId, en.courseId);
+    const total = Number(en.totalFee || 0);
+    const od = getOverdueInfo(en);
+    rows.push([
+      s ? s.fullName : '—', s ? s.email : '',
+      c ? c.name : '—',
+      en.priceType === 'early_bird' ? 'Early Bird' : 'Normal',
+      total.toFixed(2), paid.toFixed(2), Math.max(0, total - paid).toFixed(2),
+      en.paymentType === 'instalment' ? 'Instalment' : 'Full',
+      en.depositDate || '', od.overdue ? od.amount.toFixed(2) : '0.00'
+    ]);
+  });
+  _downloadCSV(`enrollments_${today()}.csv`, rows);
+  toast('Enrollments exported.', 'success');
+}
+
+function exportPaymentsCSV() {
+  if (!S.payments.length) return toast('No payments to export.', 'warn');
+  const rows = [['Date', 'Student', 'Course', 'Amount', 'Type', 'Note']];
+  [...S.payments]
+    .sort((a, b) => (b.date || '').localeCompare(a.date || ''))
+    .forEach(p => {
+      const s = getStudent(p.studentId);
+      const c = getCourse(p.courseId);
+      rows.push([
+        p.date || '', s ? s.fullName : '—', c ? c.name : '—',
+        Number(p.amount || 0).toFixed(2), p.type || '', p.note || ''
+      ]);
+    });
+  _downloadCSV(`payments_${today()}.csv`, rows);
+  toast('Payments exported.', 'success');
 }
 
 /* ─────────────────────────────────────────────
