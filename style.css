@@ -459,3 +459,11 @@ body { background-color: #f9fafb; font-family: var(--font-sans); }
   .filter-group { width: 100%; }
   .enroll-filter-btn { flex: 1; text-align: center; }
 }
+
+/* ── OVERDUE ROW HIGHLIGHT ── */
+.student-row.row-overdue {
+  background: linear-gradient(to right, #fef2f2 0%, transparent 40%);
+}
+.student-row.row-overdue:hover {
+  background: linear-gradient(to right, #fee2e2 0%, var(--color-background-secondary) 60%);
+}
