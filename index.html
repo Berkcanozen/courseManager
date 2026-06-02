@@ -26,7 +26,7 @@
     <button class="btn primary" style="width:100%;justify-content:center;padding:12px"
             id="l-btn" onclick="handleLogin()">Sign In</button>
     <div style="margin-top:24px;text-align:center">
-      <span class="version-text" id="appVersion">v2.9.3</span>
+      <span class="version-text" id="appVersion">v2.9.5</span>
       <div id="loginSyncBadge" class="sync-badge" style="margin-top:8px">
         <i class="ti ti-loader"></i> Connecting…
       </div>
@@ -65,6 +65,7 @@
           <div class="stat"><div class="lbl">Students</div> <div class="val b" id="st-students">0</div></div>
           <div class="stat"><div class="lbl">Collected</div><div class="val g" id="st-collected">€0</div></div>
           <div class="stat"><div class="lbl">Outstanding</div><div class="val a" id="st-outstanding">€0</div></div>
+          <div class="stat"><div class="lbl">Overdue</div><div class="val r" id="st-overdue">€0</div></div>
         </div>
         <div id="dashContent"></div>
       </div>
@@ -99,6 +100,7 @@
               <button class="enroll-filter-btn"         data-filter="archived" onclick="setEnrollmentFilter('archived')">Archived</button>
               <button class="enroll-filter-btn"         data-filter="all"      onclick="setEnrollmentFilter('all')">All</button>
             </div>
+            <button class="btn" onclick="exportEnrollmentsCSV()"><i class="ti ti-download"></i> Export</button>
             <button class="btn primary" onclick="openM('mEnrollment')"><i class="ti ti-user-check"></i> Enroll Student</button>
           </div>
         </div>
@@ -108,7 +110,10 @@
       <div class="sec" id="sec-payments">
         <div class="section-hd">
           <h3>Payment Log</h3>
-          <button class="btn primary" onclick="openM('mPayment')"><i class="ti ti-plus"></i> Record Payment</button>
+          <div style="display:flex;gap:8px">
+            <button class="btn" onclick="exportPaymentsCSV()"><i class="ti ti-download"></i> Export</button>
+            <button class="btn primary" onclick="openM('mPayment')"><i class="ti ti-plus"></i> Record Payment</button>
+          </div>
         </div>
         <div id="paymentList"></div>
       </div>
