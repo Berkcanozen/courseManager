@@ -1,12 +1,35 @@
 /**
- * MEISNER STUDIO - COURSE MANAGEMENT SYSTEM
- * Frontend Logic - v2.9.5
+ * MEISNER STUDIO — COURSE MANAGEMENT SYSTEM
+ * Frontend Logic — v3.0.0
  *
- * Changes from v2.9.1:
- *  - [UX]       Capacity full warning shown on course card and enrollment form
- *  - Backend:   Audit log (AuditLog sheet) for all CRUD operations
- *  - Backend:   getNextId protected with LockService
- *  - Backend:   Cron duplicate prevention (PropertiesService keyed by date+enrollmentId)
+ * ════════════════════════════════════════════════════════════
+ *  TABLE OF CONTENTS  (search for "§NN" to jump to a section)
+ * ════════════════════════════════════════════════════════════
+ *   §01  STATE                      Global data + edit-mode ids
+ *   §02  XSS PROTECTION             esc()
+ *   §03  TOAST / NOTIFICATIONS      toast()
+ *   §04  CONFIRM DIALOG             confirmDialog()
+ *   §05  FORMAT & VALIDATION        fmt, dates, getOverdueInfo, badges
+ *   §06  API LAYER                  apiFetch, tokens, _forceLogout
+ *   §07  AUTH & SESSION             login, verify, initApp, onload
+ *   §08  DATA SYNC                  syncSheets, student search
+ *   §09  STATE INDEXES & GETTERS    buildIndexes, getCourse/Student/Paid
+ *   §10  MODAL SYSTEM               openM/closeM + setup functions
+ *   §11  NAVIGATION                 goTab
+ *   §12  RENDER — LISTS             stats, dash, courses, students, …
+ *   §13  RENDER — STUDENT DETAIL    showStudentDetail
+ *   §14  RENDER — ENROLLMENT DETAIL showEnrollmentDetail
+ *   §15  FORM HELPERS               toggles, instalments, suggestion
+ *   §16  CSV EXPORT                 exportEnrollmentsCSV / PaymentsCSV
+ *   §17  CRUD — DELETE              deleteRecord, …
+ *   §18  CRUD — SAVE                saveCourse, saveStudent, …
+ * ════════════════════════════════════════════════════════════
+ *
+ *  ARCHITECTURE NOTE
+ *  Single-file by design (no bundler — runs directly on GitHub Pages).
+ *  Sections are ordered by dependency: helpers first, then state,
+ *  API, rendering, and finally the CRUD handlers that tie it together.
+ *  All config/magic-numbers live in config.js (window.APP_CONFIG).
  */
 
 // Config loaded from config.js (single source of truth)
@@ -18,7 +41,8 @@ const cfg       = window.APP_CONFIG;
 const CONSTANTS = window.APP_CONSTANTS || {};
 
 /* ─────────────────────────────────────────────
-   STATE
+   §01 · STATE
+   Global app data (S) and edit-mode tracking ids.
 ───────────────────────────────────────────── */
 let S = { courses: [], students: [], enrollments: [], payments: [], generalStatus: [] };
 let editCourseId          = null;
@@ -26,9 +50,8 @@ let editEnrollmentId      = null;
 let editStudentIdentityId = null;
 
 /* ─────────────────────────────────────────────
-   XSS PROTECTION
-   Always use esc() before injecting user-supplied
-   data into innerHTML. Safe for display purposes.
+   §02 · XSS PROTECTION
+   esc() sanitizes user data before innerHTML injection.
 ───────────────────────────────────────────── */
 const _escDiv = document.createElement('div');
 function esc(str) {
@@ -38,9 +61,8 @@ function esc(str) {
 }
 
 /* ─────────────────────────────────────────────
-   TOAST SYSTEM
-   Replaces all alert() calls.
-   Usage: toast('Message') / toast('Error', 'error') / toast('OK', 'success')
+   §03 · TOAST / NOTIFICATIONS
+   toast() — replaces alert(). Types: info/success/error/warn.
 ───────────────────────────────────────────── */
 function toast(message, type = 'info', duration = (window.APP_CONSTANTS && window.APP_CONSTANTS.TOAST_DURATION_MS) || 3500) {
   let container = document.getElementById('toast-container');
@@ -69,10 +91,8 @@ function toast(message, type = 'info', duration = (window.APP_CONSTANTS && windo
 }
 
 /* ─────────────────────────────────────────────
-   CUSTOM CONFIRM DIALOG
-   Replaces all confirm() calls.
-   Usage: await confirmDialog('Are you sure?')
-   Returns: true / false
+   §04 · CONFIRM DIALOG
+   confirmDialog() — Promise-based, replaces native confirm().
 ───────────────────────────────────────────── */
 function confirmDialog(message, confirmLabel = 'Confirm', danger = true) {
   return new Promise(resolve => {
@@ -112,7 +132,8 @@ function confirmDialog(message, confirmLabel = 'Confirm', danger = true) {
 }
 
 /* ─────────────────────────────────────────────
-   HELPERS
+   §05 · FORMAT & VALIDATION HELPERS
+   fmt, parseUserNumber, date helpers, getOverdueInfo, getStatusBadge.
 ───────────────────────────────────────────── */
 const fmt = n =>
   cfg.currency + Number(n || 0).toLocaleString(cfg.locale || 'en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
@@ -246,9 +267,8 @@ const getStatusBadge = statusId => {
 };
 
 /* ─────────────────────────────────────────────
-   API FETCH WRAPPER
-   - Attaches session token to every request
-   - Detects 401/Unauthorized → redirects to login
+   §06 · API LAYER
+   apiFetch() + token helpers + _forceLogout on auth failure.
 ───────────────────────────────────────────── */
 async function apiFetch(body, btnEl = null) {
   const original = btnEl ? btnEl.innerHTML : null;
@@ -282,7 +302,8 @@ function _forceLogout() {
 }
 
 /* ─────────────────────────────────────────────
-   AUTH
+   §07 · AUTH & SESSION
+   login, verifySession, testConnection, initApp, window.onload.
 ───────────────────────────────────────────── */
 async function testConnection() {
   const badge = document.getElementById('loginSyncBadge');
@@ -375,7 +396,8 @@ window.onload = async () => {
 };
 
 /* ─────────────────────────────────────────────
-   DATA SYNC
+   §08 · DATA SYNC
+   syncSheets() pulls all data; populateStudentSearch.
 ───────────────────────────────────────────── */
 async function syncSheets() {
   document.getElementById('syncBadge').innerHTML = '<i class="ti ti-loader"></i> Syncing…';
@@ -426,9 +448,8 @@ function captureSelectedStudent() {
 }
 
 /* ─────────────────────────────────────────────
-   DATA GETTERS + LOOKUP INDEXES
-   Indexes are rebuilt once per sync (buildIndexes)
-   to avoid O(n) .find() / O(n²) payment sums on every render.
+   §09 · STATE INDEXES & GETTERS
+   buildIndexes() + O(1) getCourse/getStudent/getEnrollmentPaid.
 ───────────────────────────────────────────── */
 let _coursesById  = new Map();
 let _studentsById = new Map();
@@ -450,7 +471,8 @@ const getEnrollmentPaid = (studentId, courseId) =>
   _paidByEnKey.get(`${studentId}|${courseId}`) || 0;
 
 /* ─────────────────────────────────────────────
-   MODAL SYSTEM
+   §10 · MODAL SYSTEM
+   openM/closeM + per-modal setup functions + focus management.
 ───────────────────────────────────────────── */
 // Track which element triggered the modal, so we can return focus on close
 let _modalTrigger = null;
@@ -490,7 +512,7 @@ function handleOverlayClick(e) {
   if (e.target === document.getElementById('modalOverlay')) closeM();
 }
 
-/* ── Modal setup helpers ── */
+/* ── §10.1 Modal setup helpers (one per modal) ── */
 function _setupCourseModal(editId) {
   const stSelect = document.getElementById('c-status');
   if (stSelect) stSelect.innerHTML = (S.generalStatus || [])
@@ -624,7 +646,8 @@ function _setupPaymentModal(extraParam) {
 }
 
 /* ─────────────────────────────────────────────
-   NAVIGATION
+   §11 · NAVIGATION
+   goTab() — tab switching + scroll reset.
 ───────────────────────────────────────────── */
 function goTab(name) {
   const names = ['dashboard', 'courses', 'students', 'enrollments', 'payments'];
@@ -635,8 +658,8 @@ function goTab(name) {
 }
 
 /* ─────────────────────────────────────────────
-   RENDER
-   All user data passed through esc() before innerHTML
+   §12 · RENDER — LISTS
+   renderStats/Dash/Courses/Students/Enrollments/Payments.
 ───────────────────────────────────────────── */
 function render() { renderStats(); renderDash(); renderCourses(); renderStudents(); renderEnrollments(); renderPayments(); }
 
@@ -804,7 +827,8 @@ function renderPayments() {
 }
 
 /* ─────────────────────────────────────────────
-   STUDENT DETAIL
+   §13 · RENDER — STUDENT DETAIL
+   showStudentDetail() modal with all enrollments.
 ───────────────────────────────────────────── */
 function showStudentDetail(sId) {
   const s = getStudent(sId);
@@ -879,7 +903,8 @@ function showStudentDetail(sId) {
 }
 
 /* ─────────────────────────────────────────────
-   ENROLLMENT DETAIL
+   §14 · RENDER — ENROLLMENT DETAIL
+   showEnrollmentDetail() modal with payment history.
 ───────────────────────────────────────────── */
 function showEnrollmentDetail(enId) {
   const en = S.enrollments.find(x => x.id == enId);
@@ -971,7 +996,8 @@ function showEnrollmentDetail(enId) {
 }
 
 /* ─────────────────────────────────────────────
-   FORM HELPERS
+   §15 · FORM HELPERS
+   student mode toggle, instalment builder, payment suggestion.
 ───────────────────────────────────────────── */
 function setStudentMode(mode) {
   document.getElementById('eTypeValue').value = mode;
@@ -1096,8 +1122,8 @@ function calculatePaymentSuggestion() {
 }
 
 /* ─────────────────────────────────────────────
-   CSV EXPORT
-   Client-side only — builds a CSV blob and triggers download.
+   §16 · CSV EXPORT
+   Client-side CSV download for enrollments and payments.
 ───────────────────────────────────────────── */
 function _csvCell(val) {
   const s = String(val === null || val === undefined ? '' : val);
@@ -1159,7 +1185,8 @@ function exportPaymentsCSV() {
 }
 
 /* ─────────────────────────────────────────────
-   CRUD — DELETE
+   §17 · CRUD — DELETE
+   deleteRecord, deleteEnrollmentFromDetail, confirmDeletePayment.
 ───────────────────────────────────────────── */
 async function deleteRecord(type) {
   let id, modalId, warningMsg, confirmMsg, backendAction;
@@ -1223,7 +1250,8 @@ async function confirmDeletePayment(paymentId, returnToEnrollmentId = null) {
 }
 
 /* ─────────────────────────────────────────────
-   CRUD — SAVE
+   §18 · CRUD — SAVE
+   saveCourse, saveStudentIdentity, saveEnrollment, savePayment.
 ───────────────────────────────────────────── */
 async function saveCourse() {
   const name = document.getElementById('c-name').value.trim();
