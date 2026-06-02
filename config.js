@@ -5,7 +5,7 @@
  *
  * !! REPLACE url WITH YOUR GOOGLE APPS SCRIPT WEB APP URL !!
  */
-window.APP_VERSION = '2.9.3';
+window.APP_VERSION = '2.9.5';
 
 window.APP_CONFIG = {
   url:      'https://script.google.com/macros/s/AKfycby-2trfd2qPNyzy68-SW1iSNbnYfnwJkFDLe6q49tfGlBIyAXMUme1weoC-fiPKRB33NQ/exec',
