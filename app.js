@@ -1,6 +1,6 @@
 /**
  * MEISNER STUDIO — COURSE MANAGEMENT SYSTEM
- * Frontend Logic — v3.0.0
+ * Frontend Logic — v3.1.0
  *
  * ════════════════════════════════════════════════════════════
  *  TABLE OF CONTENTS  (search for "§NN" to jump to a section)
@@ -23,6 +23,7 @@
  *   §16  CSV EXPORT                 exportEnrollmentsCSV / PaymentsCSV
  *   §17  CRUD — DELETE              deleteRecord, …
  *   §18  CRUD — SAVE                saveCourse, saveStudent, …
+ *   §19  DATE-BASED REPORTING       period summary, chart, upcoming due
  * ════════════════════════════════════════════════════════════
  *
  *  ARCHITECTURE NOTE
@@ -661,7 +662,7 @@ function goTab(name) {
    §12 · RENDER — LISTS
    renderStats/Dash/Courses/Students/Enrollments/Payments.
 ───────────────────────────────────────────── */
-function render() { renderStats(); renderDash(); renderCourses(); renderStudents(); renderEnrollments(); renderPayments(); }
+function render() { renderStats(); renderReport(); renderDash(); renderCourses(); renderStudents(); renderEnrollments(); renderPayments(); }
 
 function renderStats() {
   const collected   = S.payments.reduce((a, p) => a + Number(p.amount), 0);
@@ -1371,4 +1372,180 @@ async function savePayment() {
   if (data && !data.success) return toast(data.error || 'Error saving payment.', 'error');
   toast('Payment recorded.', 'success');
   closeM(); await syncSheets();
+}
+
+/* ─────────────────────────────────────────────
+   §19 · DATE-BASED REPORTING (Dashboard)
+   Period summary, monthly bar chart, upcoming due.
+   Pure JS + inline SVG — no external chart library.
+───────────────────────────────────────────── */
+
+// Returns {from, to} ISO date strings for the selected preset
+function getReportRange() {
+  const preset = document.getElementById('rep-preset').value;
+  const now    = new Date();
+  const y = now.getFullYear(), m = now.getMonth();
+  const iso = d => d.toISOString().split('T')[0];
+
+  if (preset === 'this_month')  return { from: iso(new Date(y, m, 1)),     to: iso(new Date(y, m + 1, 0)) };
+  if (preset === 'last_month')  return { from: iso(new Date(y, m - 1, 1)), to: iso(new Date(y, m, 0)) };
+  if (preset === 'last_3')      return { from: iso(new Date(y, m - 2, 1)), to: iso(new Date(y, m + 1, 0)) };
+  if (preset === 'this_year')   return { from: iso(new Date(y, 0, 1)),     to: iso(new Date(y, 11, 31)) };
+  if (preset === 'custom') {
+    return {
+      from: document.getElementById('rep-from').value || iso(new Date(y, m, 1)),
+      to:   document.getElementById('rep-to').value   || iso(new Date(y, m + 1, 0))
+    };
+  }
+  return { from: iso(new Date(y, m, 1)), to: iso(new Date(y, m + 1, 0)) };
+}
+
+function onReportPresetChange() {
+  const custom = document.getElementById('rep-custom');
+  custom.style.display = document.getElementById('rep-preset').value === 'custom' ? 'flex' : 'none';
+  renderReport();
+}
+
+function renderReport() {
+  if (!document.getElementById('rep-summary')) return; // dashboard not present
+  _renderReportSummary();
+  _renderReportChart();
+  _renderUpcomingDue();
+}
+
+/* ── Period summary cards ── */
+function _renderReportSummary() {
+  const { from, to } = getReportRange();
+  const fromMs = new Date(from).getTime();
+  const toMs   = new Date(to).getTime() + 86400000 - 1; // include end day
+
+  let total = 0, count = 0;
+  const byType = { deposit: 0, instalment: 0, full: 0, other: 0 };
+  for (const p of S.payments) {
+    const ms = new Date(p.date).getTime();
+    if (isNaN(ms) || ms < fromMs || ms > toMs) continue;
+    const amt = Number(p.amount || 0);
+    total += amt; count++;
+    byType[p.type] = (byType[p.type] || 0) + amt;
+  }
+
+  const box = document.getElementById('rep-summary');
+  box.innerHTML = `
+    <div class="stat"><div class="lbl">Collected (period)</div><div class="val g">${fmt(total)}</div></div>
+    <div class="stat"><div class="lbl">Payments</div><div class="val b">${count}</div></div>
+    <div class="stat"><div class="lbl">Deposits</div><div class="val a">${fmt(byType.deposit)}</div></div>
+    <div class="stat"><div class="lbl">Instalments</div><div class="val b">${fmt(byType.instalment)}</div></div>`;
+}
+
+/* ── Monthly bar chart (last 12 months, inline SVG) ── */
+function _renderReportChart() {
+  const months = [];
+  const now = new Date();
+  for (let i = 11; i >= 0; i--) {
+    const d = new Date(now.getFullYear(), now.getMonth() - i, 1);
+    months.push({ key: `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}`,
+                  label: d.toLocaleString(cfg.locale || 'en-US', { month: 'short' }),
+                  year: d.getFullYear(), total: 0 });
+  }
+  const idx = new Map(months.map((m, i) => [m.key, i]));
+  for (const p of S.payments) {
+    if (!p.date || typeof p.date !== 'string') continue;
+    const key = p.date.slice(0, 7); // YYYY-MM
+    if (idx.has(key)) months[idx.get(key)].total += Number(p.amount || 0);
+  }
+
+  const max = Math.max(1, ...months.map(m => m.total));
+  const W = 100 / months.length; // width % per bar
+  const bars = months.map((m, i) => {
+    const h = (m.total / max) * 100;
+    const x = i * W;
+    const showYear = i === 0 || months[i-1].year !== m.year;
+    return `
+      <g>
+        <rect x="${x + W*0.15}%" y="${100 - h}%" width="${W*0.7}%" height="${h}%"
+              fill="var(--color-brand)" rx="2">
+          <title>${m.label} ${m.year}: ${fmt(m.total)}</title>
+        </rect>
+      </g>`;
+  }).join('');
+
+  const labels = months.map((m, i) => {
+    const x = i * W + W / 2;
+    return `<text x="${x}%" y="98%" font-size="9" fill="var(--color-text-secondary)" text-anchor="middle">${m.label}</text>`;
+  }).join('');
+
+  document.getElementById('rep-chart').innerHTML = `
+    <div style="display:flex;justify-content:space-between;font-size:11px;color:var(--color-text-secondary);margin-bottom:4px">
+      <span>Peak: ${fmt(max)}</span>
+      <span>Total: ${fmt(months.reduce((a,m)=>a+m.total,0))}</span>
+    </div>
+    <svg viewBox="0 0 100 100" preserveAspectRatio="none" style="width:100%;height:160px;overflow:visible">
+      ${bars}
+    </svg>
+    <svg viewBox="0 0 100 10" preserveAspectRatio="none" style="width:100%;height:16px">
+      ${labels}
+    </svg>`;
+}
+
+/* ── Upcoming due (next 30 days) ── */
+function _renderUpcomingDue() {
+  const todayMs = new Date().setHours(0, 0, 0, 0);
+  const horizon = todayMs + 30 * 86400000;
+  const items = [];
+
+  for (const en of S.enrollments) {
+    const s = getStudent(en.studentId);
+    if (!s) continue;
+    const course = getCourse(en.courseId);
+    const paid   = getEnrollmentPaid(en.studentId, en.courseId);
+
+    // Deposit due
+    const dep = Number(en.depositAmount || 0);
+    if (dep > 0 && en.depositDate) {
+      const ms = dateToMs(en.depositDate);
+      if (ms >= todayMs && ms <= horizon && paid < dep)
+        items.push({ ms, date: en.depositDate, student: s.fullName, course: course?.name || '—', label: 'Deposit', amount: dep - paid });
+    }
+    // Instalments due
+    if (en.paymentType === 'instalment' && en.instalmentPlan) {
+      try {
+        JSON.parse(en.instalmentPlan).forEach((inst, i) => {
+          const ms = dateToMs(inst.date);
+          if (ms >= todayMs && ms <= horizon)
+            items.push({ ms, date: inst.date, student: s.fullName, course: course?.name || '—', label: `Instalment ${i+1}`, amount: Number(inst.amount || 0) });
+        });
+      } catch {}
+    }
+    // Full payment due
+    if (en.paymentType === 'full_remaining' && en.fullPayDate) {
+      const ms = dateToMs(en.fullPayDate);
+      const rem = Number(en.totalFee || 0) - paid;
+      if (ms >= todayMs && ms <= horizon && rem > 0)
+        items.push({ ms, date: en.fullPayDate, student: s.fullName, course: course?.name || '—', label: 'Full payment', amount: rem });
+    }
+  }
+
+  items.sort((a, b) => a.ms - b.ms);
+  const box = document.getElementById('rep-upcoming');
+
+  if (!items.length) {
+    box.innerHTML = '<div style="font-size:13px;color:var(--color-text-secondary);padding:12px 0;text-align:center">No payments due in the next 30 days.</div>';
+    return;
+  }
+
+  box.innerHTML = items.map(it => {
+    const days = Math.round((it.ms - todayMs) / 86400000);
+    const urgency = days <= 3 ? 'red' : days <= 7 ? 'amber' : 'blue';
+    const dayLabel = days === 0 ? 'Today' : days === 1 ? 'Tomorrow' : `in ${days}d`;
+    return `<div class="upcoming-row">
+      <div class="upcoming-info">
+        <div class="upcoming-name">${esc(it.student)}</div>
+        <div class="upcoming-sub">${esc(it.course)} · ${esc(it.label)}</div>
+      </div>
+      <div style="text-align:right">
+        <div style="font-weight:600;font-size:13px">${fmt(it.amount)}</div>
+        <span class="chip ${urgency}" style="font-size:9px">${esc(formatDate(it.date))} · ${dayLabel}</span>
+      </div>
+    </div>`;
+  }).join('');
 }
