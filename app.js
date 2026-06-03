@@ -1,6 +1,6 @@
 /**
  * MEISNER STUDIO — COURSE MANAGEMENT SYSTEM
- * Frontend Logic — v3.1.0
+ * Frontend Logic — v3.1.1
  *
  * ════════════════════════════════════════════════════════════
  *  TABLE OF CONTENTS  (search for "§NN" to jump to a section)
@@ -1454,37 +1454,30 @@ function _renderReportChart() {
     if (idx.has(key)) months[idx.get(key)].total += Number(p.amount || 0);
   }
 
-  const max = Math.max(1, ...months.map(m => m.total));
-  const W = 100 / months.length; // width % per bar
-  const bars = months.map((m, i) => {
-    const h = (m.total / max) * 100;
-    const x = i * W;
-    const showYear = i === 0 || months[i-1].year !== m.year;
-    return `
-      <g>
-        <rect x="${x + W*0.15}%" y="${100 - h}%" width="${W*0.7}%" height="${h}%"
-              fill="var(--color-brand)" rx="2">
-          <title>${m.label} ${m.year}: ${fmt(m.total)}</title>
-        </rect>
-      </g>`;
-  }).join('');
+  const max   = Math.max(1, ...months.map(m => m.total));
+  const total = months.reduce((a, m) => a + m.total, 0);
 
-  const labels = months.map((m, i) => {
-    const x = i * W + W / 2;
-    return `<text x="${x}%" y="98%" font-size="9" fill="var(--color-text-secondary)" text-anchor="middle">${m.label}</text>`;
+  // CSS flexbox bar chart — each column is a flex item with a bar + label.
+  const cols = months.map((m, i) => {
+    const hPct    = Math.round((m.total / max) * 100);
+    const hasVal  = m.total > 0;
+    const showYr  = i === 0 || months[i-1].year !== m.year;
+    return `<div class="bar-col" title="${esc(m.label)} ${m.year}: ${esc(fmt(m.total))}">
+      <div class="bar-val">${hasVal ? esc(fmt(m.total).replace(/\.00$/, '')) : ''}</div>
+      <div class="bar-track">
+        <div class="bar-fill-v" style="height:${hPct}%"></div>
+      </div>
+      <div class="bar-lbl">${esc(m.label)}</div>
+      <div class="bar-yr">${showYr ? esc(String(m.year).slice(2)) : ''}</div>
+    </div>`;
   }).join('');
 
   document.getElementById('rep-chart').innerHTML = `
-    <div style="display:flex;justify-content:space-between;font-size:11px;color:var(--color-text-secondary);margin-bottom:4px">
-      <span>Peak: ${fmt(max)}</span>
-      <span>Total: ${fmt(months.reduce((a,m)=>a+m.total,0))}</span>
+    <div style="display:flex;justify-content:space-between;font-size:11px;color:var(--color-text-secondary);margin-bottom:10px">
+      <span>Peak: ${esc(fmt(max))}</span>
+      <span>Total: ${esc(fmt(total))}</span>
     </div>
-    <svg viewBox="0 0 100 100" preserveAspectRatio="none" style="width:100%;height:160px;overflow:visible">
-      ${bars}
-    </svg>
-    <svg viewBox="0 0 100 10" preserveAspectRatio="none" style="width:100%;height:16px">
-      ${labels}
-    </svg>`;
+    <div class="bar-chart">${cols}</div>`;
 }
 
 /* ── Upcoming due (next 30 days) ── */
