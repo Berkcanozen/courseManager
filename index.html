@@ -26,7 +26,7 @@
     <button class="btn primary" style="width:100%;justify-content:center;padding:12px"
             id="l-btn" onclick="handleLogin()">Sign In</button>
     <div style="margin-top:24px;text-align:center">
-      <span class="version-text" id="appVersion">v3.0.0</span>
+      <span class="version-text" id="appVersion">v3.1.0</span>
       <div id="loginSyncBadge" class="sync-badge" style="margin-top:8px">
         <i class="ti ti-loader"></i> Connecting…
       </div>
@@ -67,6 +67,43 @@
           <div class="stat"><div class="lbl">Outstanding</div><div class="val a" id="st-outstanding">€0</div></div>
           <div class="stat"><div class="lbl">Overdue</div><div class="val r" id="st-overdue">€0</div></div>
         </div>
+
+        <!-- ── REPORTING ── -->
+        <div class="report-section">
+          <div class="report-hd">
+            <h3><i class="ti ti-chart-bar"></i> Collection Report</h3>
+            <div class="report-range">
+              <select id="rep-preset" onchange="onReportPresetChange()">
+                <option value="this_month">This month</option>
+                <option value="last_month">Last month</option>
+                <option value="last_3">Last 3 months</option>
+                <option value="this_year">This year</option>
+                <option value="custom">Custom range…</option>
+              </select>
+              <div id="rep-custom" style="display:none;gap:6px;align-items:center">
+                <input type="date" id="rep-from" onchange="renderReport()">
+                <span style="color:var(--color-text-secondary)">→</span>
+                <input type="date" id="rep-to" onchange="renderReport()">
+              </div>
+            </div>
+          </div>
+
+          <!-- Period summary cards -->
+          <div class="stats-grid" id="rep-summary" style="margin-bottom:16px"></div>
+
+          <!-- Monthly bar chart -->
+          <div class="report-card">
+            <div class="report-card-title">Monthly Collection (last 12 months)</div>
+            <div id="rep-chart"></div>
+          </div>
+
+          <!-- Upcoming due -->
+          <div class="report-card">
+            <div class="report-card-title">Upcoming Due (next 30 days)</div>
+            <div id="rep-upcoming"></div>
+          </div>
+        </div>
+
         <div id="dashContent"></div>
       </div>
 
