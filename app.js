@@ -351,7 +351,7 @@ async function handleLogin() {
       setUsername(u, remember);
       initApp();
     } else {
-      err.innerText = 'Invalid credentials.'; err.style.display = 'block';
+      err.innerText = d.error || 'Invalid credentials.'; err.style.display = 'block';
     }
   } catch {
     err.innerText = 'Connection error. Please try again.'; err.style.display = 'block';
