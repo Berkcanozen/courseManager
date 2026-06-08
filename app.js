@@ -367,11 +367,6 @@ function initApp() {
 }
 
 window.onload = async () => {
-  // Display version from config.js (single source of truth) — set early so it
-  // appears on the login screen, not just after login.
-  const verEl = document.getElementById('appVersion');
-  if (verEl && window.APP_VERSION) verEl.textContent = 'v' + window.APP_VERSION;
-
   // Keyboard shortcuts
   document.addEventListener('keydown', e => {
     if (e.key === 'Escape') { closeM(); return; }
