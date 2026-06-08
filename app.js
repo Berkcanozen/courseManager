@@ -363,13 +363,15 @@ async function handleLogin() {
 function initApp() {
   document.getElementById('login-screen').style.display = 'none';
   document.getElementById('main-app').style.display     = 'block';
-  // Display version from config (single source of truth)
-  const verEl = document.getElementById('appVersion');
-  if (verEl && window.APP_VERSION) verEl.textContent = 'v' + window.APP_VERSION;
   syncSheets();
 }
 
 window.onload = async () => {
+  // Display version from config.js (single source of truth) — set early so it
+  // appears on the login screen, not just after login.
+  const verEl = document.getElementById('appVersion');
+  if (verEl && window.APP_VERSION) verEl.textContent = 'v' + window.APP_VERSION;
+
   // Keyboard shortcuts
   document.addEventListener('keydown', e => {
     if (e.key === 'Escape') { closeM(); return; }
