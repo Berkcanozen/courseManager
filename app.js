@@ -1,6 +1,10 @@
 /**
  * MEISNER STUDIO — COURSE MANAGEMENT SYSTEM
- * Frontend Logic — v3.1.1
+ * Frontend Logic — v3.2.0
+ *  - sync race-condition guard (_syncSeq), one auto-retry on cold start,
+ *    single-flight write guard (_saving), token moved to POST body,
+ *    NaN guards, error logging, background re-sync on tab focus.
+ *  - money math extracted to calc.js (unit-tested in tests/calc.test.js).
  *
  * ════════════════════════════════════════════════════════════
  *  TABLE OF CONTENTS  (search for "§NN" to jump to a section)
@@ -40,6 +44,12 @@ if (!window.APP_CONFIG) {
 }
 const cfg       = window.APP_CONFIG;
 const CONSTANTS = window.APP_CONSTANTS || {};
+
+// calc.js (pure money/date math) must load before this file — see index.html.
+if (typeof parseUserNumber !== 'function' || typeof overdueAmount !== 'function') {
+  alert('Calculation library failed to load (calc.js missing). Please refresh or contact the administrator.');
+  throw new Error('calc.js not loaded');
+}
 
 /* ─────────────────────────────────────────────
    §01 · STATE
@@ -141,32 +151,8 @@ const fmt = n =>
 
 const today = () => new Date().toISOString().split('T')[0];
 
-const parseFee = val => {
-  if (val === null || val === undefined || val === '') return 0;
-  const n = parseFloat(String(val).replace(/[^0-9.]/g, ''));
-  return isNaN(n) ? 0 : n;
-};
-
-/**
- * Handles both European (1.234,56) and US (1,234.56) decimal formats.
- * Users in NL may type comma as decimal separator.
- */
-const parseUserNumber = val => {
-  if (val === null || val === undefined || val === '') return 0;
-  let s = String(val).trim();
-  // If both comma and dot present, last one is decimal separator
-  const lastComma = s.lastIndexOf(',');
-  const lastDot   = s.lastIndexOf('.');
-  if (lastComma > lastDot) {
-    // European: 1.234,56 → 1234.56
-    s = s.replace(/\./g, '').replace(',', '.');
-  } else {
-    // US: 1,234.56 → 1234.56
-    s = s.replace(/,/g, '');
-  }
-  const n = parseFloat(s);
-  return isNaN(n) ? 0 : n;
-};
+// parseFee, parseUserNumber, overdueAmount, suggestNextPayment, splitInstalments
+// live in calc.js (loaded before this file) — pure, unit-tested money math.
 
 /**
  * Date validation helpers
@@ -190,41 +176,13 @@ function validateEnrollmentDates(depositDate, fullPayDate, paymentType) {
 
 /**
  * Determines if an enrollment has any overdue (past-due & unpaid) milestone.
- * Returns { overdue: bool, count: number } where count is # of overdue milestones.
+ * Returns { overdue: bool, amount: number }. Math lives in calc.js.
  */
 function getOverdueInfo(en) {
   const todayMs = new Date().setHours(0, 0, 0, 0);
   const paid    = getEnrollmentPaid(en.studentId, en.courseId);
-  let overdueAmount = 0;
-
-  // Deposit overdue?
-  const dep = Number(en.depositAmount || 0);
-  if (dep > 0 && en.depositDate && dateToMs(en.depositDate) < todayMs && paid < dep) {
-    overdueAmount += (dep - paid);
-  }
-
-  // Instalment overdue? (sum scheduled amounts due before today vs paid)
-  if (en.paymentType === 'instalment' && en.instalmentPlan) {
-    try {
-      const plan = JSON.parse(en.instalmentPlan);
-      let scheduledDue = dep; // deposit counts toward the running total
-      for (const inst of plan) {
-        if (inst.date && dateToMs(inst.date) < todayMs) {
-          scheduledDue += Number(inst.amount || 0);
-        }
-      }
-      if (paid < scheduledDue) overdueAmount = Math.max(overdueAmount, scheduledDue - paid);
-    } catch {}
-  }
-
-  // Full payment overdue?
-  if (en.paymentType === 'full_remaining' && en.fullPayDate &&
-      dateToMs(en.fullPayDate) < todayMs) {
-    const rem = Number(en.totalFee || 0) - paid;
-    if (rem > 0) overdueAmount = Math.max(overdueAmount, rem);
-  }
-
-  return { overdue: overdueAmount > 0, amount: overdueAmount };
+  const amount  = overdueAmount(en, paid, todayMs);
+  return { overdue: amount > 0, amount };
 }
 
 const formatDate = dateStr => {
@@ -269,27 +227,61 @@ const getStatusBadge = statusId => {
 
 /* ─────────────────────────────────────────────
    §06 · API LAYER
-   apiFetch() + token helpers + _forceLogout on auth failure.
+   _postWithRetry + apiFetch + token helpers + _forceLogout.
+   - _postWithRetry: one automatic retry on network failure / 5xx (Apps Script
+     cold-start can take 5-15s or 500). Client errors (4xx) are NOT retried.
+   - _saving: global single-flight guard so the Enter key and a button click
+     (or two fast clicks) can't fire the same write twice.
 ───────────────────────────────────────────── */
+const _sleep = ms => new Promise(r => setTimeout(r, ms));
+
+/**
+ * POSTs to the backend with a single automatic retry.
+ * Resolves to parsed JSON, or { __authFailed: true } on HTTP 401.
+ * Rejects only after the retry is also exhausted.
+ */
+async function _postWithRetry(body, { retries = 1, delayMs = 1500 } = {}) {
+  let lastErr;
+  for (let attempt = 0; attempt <= retries; attempt++) {
+    if (attempt > 0) await _sleep(delayMs);
+    try {
+      const res = await fetch(cfg.url, { method: 'POST', body: JSON.stringify(body) });
+      if (res.status === 401) return { __authFailed: true };
+      if (!res.ok) {
+        lastErr = new Error(`HTTP ${res.status}`);
+        if (res.status < 500) throw lastErr; // client error — retrying won't help
+        continue;                            // 5xx — likely cold start, retry once
+      }
+      return await res.json();
+    } catch (err) {
+      lastErr = err; // network/parse error — fall through to the retry
+    }
+  }
+  throw lastErr;
+}
+
+let _saving = false; // single-flight guard for write operations
+
 async function apiFetch(body, btnEl = null) {
+  if (_saving) return null;          // a write is already in flight — ignore the duplicate
+  _saving = true;
   const original = btnEl ? btnEl.innerHTML : null;
   if (btnEl) { btnEl.innerHTML = '<i class="ti ti-loader"></i> Saving…'; btnEl.disabled = true; }
 
-  const enriched = { ...body, token: getToken() };
   try {
-    const res = await fetch(cfg.url, { method: 'POST', body: JSON.stringify(enriched) });
-
-    // Token expired or invalid — force logout
-    if (res.status === 401) { _forceLogout(); return null; }
-    if (!res.ok) throw new Error(`HTTP ${res.status}`);
-
-    const data = await res.json();
+    const data = await _postWithRetry({ ...body, token: getToken() });
+    if (data && data.__authFailed) { _forceLogout(); return null; }
     // Backend may also return { success: false, error: 'Unauthorized' }
     if (data && data.success === false && data.error === 'Unauthorized') {
       _forceLogout(); return null;
     }
     return data;
+  } catch (err) {
+    console.error('[apiFetch]', err);
+    toast('Network error. Please check your connection and try again.', 'error');
+    return null; // callers already treat null as "handled, stop"
   } finally {
+    _saving = false;
     if (btnEl) { btnEl.innerHTML = original; btnEl.disabled = false; }
   }
 }
@@ -392,6 +384,16 @@ window.onload = async () => {
       else if (id === 'mPayment')     { e.preventDefault(); savePayment(); }
     }
   });
+  // Re-sync when the tab regains focus, plus a gentle background poll, so data
+  // doesn't go stale when the app is open on multiple tabs/devices.
+  const _canBackgroundSync = () =>
+    document.visibilityState === 'visible' &&
+    !!getToken() &&
+    document.getElementById('main-app').style.display !== 'none';
+
+  document.addEventListener('visibilitychange', () => { if (_canBackgroundSync()) syncSheets(); });
+  setInterval(() => { if (_canBackgroundSync()) syncSheets(); }, 5 * 60 * 1000); // every 5 min
+
   const valid = await verifySession();
   if (valid) { initApp(); } else { clearToken(); testConnection(); }
 };
@@ -400,13 +402,18 @@ window.onload = async () => {
    §08 · DATA SYNC
    syncSheets() pulls all data; populateStudentSearch.
 ───────────────────────────────────────────── */
+let _syncSeq = 0; // monotonic id — only the newest sync is allowed to write S
+
 async function syncSheets() {
+  const mySeq = ++_syncSeq;
   document.getElementById('syncBadge').innerHTML = '<i class="ti ti-loader"></i> Syncing…';
   try {
-    const r = await fetch(`${cfg.url}?action=getAll&token=${encodeURIComponent(getToken())}`);
-    if (r.status === 401) { _forceLogout(); return; }
-    const d = await r.json();
-    if (d.success === false) {
+    // Token now travels in the POST body (not the query string), so it never
+    // lands in server access logs or browser history.
+    const d = await _postWithRetry({ action: 'getAll', token: getToken() });
+    if (mySeq !== _syncSeq) return;           // a newer sync started — discard this result
+    if (d && d.__authFailed) { _forceLogout(); return; }
+    if (d && d.success === false) {
       if (d.error === 'Unauthorized') { _forceLogout(); return; }
       throw new Error(d.error || 'Sync failed');
     }
@@ -422,7 +429,9 @@ async function syncSheets() {
     buildIndexes();
     populateStudentSearch();
     render();
-  } catch {
+  } catch (err) {
+    if (mySeq !== _syncSeq) return;           // a newer sync owns the UI now — stay quiet
+    console.error('[syncSheets]', err);
     document.getElementById('syncBadge').innerHTML =
       '<i class="ti ti-cloud-x" style="color:#ef4444"></i> Sync Error';
     toast('Could not sync data. Please refresh the page.', 'error');
@@ -665,7 +674,7 @@ function goTab(name) {
 function render() { renderStats(); renderReport(); renderDash(); renderCourses(); renderStudents(); renderEnrollments(); renderPayments(); }
 
 function renderStats() {
-  const collected   = S.payments.reduce((a, p) => a + Number(p.amount), 0);
+  const collected   = S.payments.reduce((a, p) => a + Number(p.amount || 0), 0);
   const outstanding = S.enrollments.reduce(
     (a, en) => a + Math.max(0, Number(en.totalFee || 0) - getEnrollmentPaid(en.studentId, en.courseId)), 0
   );
@@ -835,7 +844,7 @@ function showStudentDetail(sId) {
   const s = getStudent(sId);
   if (!s) return;
   const enrollments = S.enrollments.filter(e => e.studentId == sId);
-  const totalPaid   = S.payments.filter(p => p.studentId == sId).reduce((a, p) => a + Number(p.amount), 0);
+  const totalPaid   = S.payments.filter(p => p.studentId == sId).reduce((a, p) => a + Number(p.amount || 0), 0);
   const totalDue    = enrollments.reduce((a, en) => a + Number(en.totalFee || 0), 0);
   const initials    = s.fullName.split(' ').filter(Boolean).map(n => n[0]).join('').slice(0, 2).toUpperCase();
 
@@ -913,7 +922,7 @@ function showEnrollmentDetail(enId) {
   const s      = getStudent(en.studentId);
   const course = getCourse(en.courseId);
   const paid   = getEnrollmentPaid(en.studentId, en.courseId);
-  const rem    = Number(en.totalFee) - paid;
+  const rem    = Number(en.totalFee || 0) - paid;
   const payments = S.payments
     .filter(p => p.studentId == en.studentId && p.courseId == en.courseId)
     .sort((a, b) => (b.date || '').localeCompare(a.date || ''));
@@ -1069,15 +1078,12 @@ function updateInstalments() {
   if (document.getElementById('e-payType').value !== 'instalment') return;
   const num     = parseInt(document.getElementById('e-numInstalments').value) || 0;
   const deposit = parseFee(document.getElementById('e-depositAmount').value);
-  const rem     = Math.max(0, Number(totalFee) - deposit);
-  if (num > 0) {
-    const amt = (rem / num).toFixed(2);
-    for (let i = 1; i <= num; i++) {
-      container.innerHTML += `<div class="form-2col dynamic-row">
-        <div class="fg"><label>Instalment ${i} (€)</label><input type="number" class="inst-amount" value="${amt}"></div>
+  const amounts = splitInstalments(totalFee, deposit, num);
+  for (let i = 0; i < amounts.length; i++) {
+    container.innerHTML += `<div class="form-2col dynamic-row">
+        <div class="fg"><label>Instalment ${i + 1} (€)</label><input type="number" class="inst-amount" value="${amounts[i].toFixed(2)}"></div>
         <div class="fg"><label>Date</label><input type="date" class="inst-date"></div>
       </div>`;
-    }
   }
 }
 
@@ -1091,35 +1097,23 @@ function calculatePaymentSuggestion() {
   const en = S.enrollments.find(x => x.studentId == sId && x.courseId == cId);
   if (!en) { suggBox.style.display = 'none'; return; }
   const paid = getEnrollmentPaid(sId, cId);
-  const rem  = Math.max(0, Number(en.totalFee) - paid);
-  if (rem === 0) {
+  const sug  = suggestNextPayment(en, paid);
+  if (sug.fullyPaid) {
     suggBox.style.display = 'block'; suggBox.classList.add('success');
     document.getElementById('ss-title').innerHTML = '<i class="ti ti-circle-check"></i> Fully Paid!';
     document.getElementById('ss-desc').innerHTML  = 'No outstanding balance.';
     document.getElementById('p-amount').value     = 0;
     document.getElementById('p-type').value       = 'other'; return;
   }
-  let nAmt = rem, nType = 'full', nText = `Remaining Balance: <b>${fmt(rem)}</b>`;
-  const dep = Number(en.depositAmount || 0);
-  if (dep > 0 && paid < dep) {
-    nAmt = dep - paid; nType = 'deposit'; nText = `Expected Deposit: <b>${fmt(nAmt)}</b>`;
-  } else if (en.paymentType === 'instalment' && en.instalmentPlan) {
-    try {
-      const plan = JSON.parse(en.instalmentPlan); let acc = dep;
-      for (let i = 0; i < plan.length; i++) {
-        acc += Number(plan[i].amount);
-        if (paid < acc) {
-          nAmt = Number(plan[i].amount) - Math.max(0, paid - (acc - Number(plan[i].amount)));
-          nType = 'instalment'; nText = `Next due: <b>Instalment ${i + 1}</b> (${fmt(nAmt)})`; break;
-        }
-      }
-    } catch {}
-  }
+  let nText;
+  if (sug.type === 'deposit')         nText = `Expected Deposit: <b>${fmt(sug.amount)}</b>`;
+  else if (sug.type === 'instalment') nText = `Next due: <b>Instalment ${sug.instalmentIndex + 1}</b> (${fmt(sug.amount)})`;
+  else                                nText = `Remaining Balance: <b>${fmt(sug.remaining)}</b>`;
   suggBox.style.display = 'block';
   document.getElementById('ss-title').innerHTML = '<i class="ti ti-bulb"></i> Suggested';
   document.getElementById('ss-desc').innerHTML  = nText;
-  document.getElementById('p-amount').value     = parseFloat(nAmt).toFixed(2);
-  document.getElementById('p-type').value       = nType;
+  document.getElementById('p-amount').value     = Number(sug.amount || 0).toFixed(2);
+  document.getElementById('p-type').value       = sug.type;
 }
 
 /* ─────────────────────────────────────────────
@@ -1507,7 +1501,7 @@ function _renderUpcomingDue() {
           if (ms >= todayMs && ms <= horizon)
             items.push({ ms, date: inst.date, student: s.fullName, course: course?.name || '—', label: `Instalment ${i+1}`, amount: Number(inst.amount || 0) });
         });
-      } catch {}
+      } catch (e) { console.warn('instalmentPlan parse failed:', e); }
     }
     // Full payment due
     if (en.paymentType === 'full_remaining' && en.fullPayDate) {
