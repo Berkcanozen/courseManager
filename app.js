@@ -501,7 +501,7 @@ function openM(id, editId = null, extraParam = null) {
   try {
     if (id === 'mCourse')      _setupCourseModal(editId);
     if (id === 'mStudentEdit') _setupStudentEditModal(editId);
-    if (id === 'mEnrollment')  _setupEnrollmentModal(editId);
+    if (id === 'mEnrollment')  _setupEnrollmentModal(editId, extraParam);
     if (id === 'mPayment')     _setupPaymentModal(extraParam);
   } catch (err) { console.error('[openM]', err); }
 }
@@ -570,7 +570,10 @@ function _setupStudentEditModal(editId) {
   }
 }
 
-function _setupEnrollmentModal(editId) {
+let _enrollReturnCourseId = null; // set when enrolling from Course Detail → reopen it after save
+
+function _setupEnrollmentModal(editId, presetCourseId = null) {
+  _enrollReturnCourseId = (!editId && presetCourseId) ? presetCourseId : null;
   document.getElementById('e-course').innerHTML =
     '<option value="">Select course…</option>' +
     S.courses.map(c => `<option value="${esc(c.id)}">${esc(c.name)}</option>`).join('');
@@ -627,6 +630,15 @@ function _setupEnrollmentModal(editId) {
     document.getElementById('eTypeValue').value     = 'existing';
     setStudentMode('existing');
     toggleInstalmentFields();
+    if (presetCourseId) {
+      // Opened from Course Detail: course is fixed to that course (read-only)
+      document.getElementById('e-course').value    = presetCourseId;
+      document.getElementById('e-course').disabled = true;
+      const pc = getCourse(presetCourseId);
+      document.getElementById('modal-subtitle-enrollment').textContent =
+        'Enrolling in ' + (pc ? pc.name : 'this course') + '. Configure the payment plan.';
+      updateInstalments();
+    }
   }
 }
 
@@ -973,7 +985,8 @@ function showCourseDetail(cId) {
 
   document.getElementById('cd-footer').innerHTML = `
     <button class="btn" onclick="closeM()">Close</button>
-    <button class="btn" onclick="openM('mCourse','${esc(c.id)}')"><i class="ti ti-edit"></i> Edit Course</button>`;
+    <button class="btn" onclick="openM('mCourse','${esc(c.id)}')"><i class="ti ti-edit"></i> Edit Course</button>
+    <button class="btn primary" onclick="openM('mEnrollment',null,'${esc(c.id)}')"><i class="ti ti-user-plus"></i> Add Enrollment</button>`;
 
   _modalTrigger = document.activeElement;
   document.querySelectorAll('.modal').forEach(m => m.classList.remove('active'));
@@ -1415,7 +1428,10 @@ async function saveEnrollment() {
   if (data === null) return;
   if (data && !data.success) return toast(data.error || 'Error saving enrollment.', 'error');
   toast(editEnrollmentId ? 'Enrollment updated.' : 'Student enrolled.', 'success');
+  const returnCourseId = _enrollReturnCourseId;
+  _enrollReturnCourseId = null;
   closeM(); await syncSheets();
+  if (returnCourseId) showCourseDetail(returnCourseId);
 }
 
 async function savePayment() {
