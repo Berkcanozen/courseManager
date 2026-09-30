@@ -709,13 +709,13 @@ function renderCourses() {
   box.innerHTML = S.courses.map(c => {
     const count = S.enrollments.filter(e => e.courseId == c.id).length;
     const isFull  = c.capacity > 0 && count >= Number(c.capacity);
-    return `<div class="card">
+    return `<div class="card clickable" onclick="showCourseDetail('${esc(c.id)}')">
       <div class="card-hd">
         <div><b>${esc(c.name)}</b><br><small>${esc(formatDate(c.startDate))} to ${esc(formatDate(c.endDate))}</small></div>
         <div style="display:flex;gap:6px;align-items:center">
           ${getStatusBadge(c.status)}
           <span class="chip ${isFull ? 'red' : 'blue'}">${count}${c.capacity ? '/' + esc(c.capacity) : ''} Students${isFull ? ' · Full' : ''}</span>
-          <button class="btn ghost sm" onclick="openM('mCourse','${esc(c.id)}')"><i class="ti ti-edit"></i></button>
+          <button class="btn ghost sm" onclick="event.stopPropagation();openM('mCourse','${esc(c.id)}')"><i class="ti ti-edit"></i></button>
         </div>
       </div>
       <div class="meta-row">
@@ -906,6 +906,78 @@ function showStudentDetail(sId) {
 
   document.querySelectorAll('.modal').forEach(m => m.classList.remove('active'));
   document.getElementById('mStudentDetail').classList.add('active');
+  document.getElementById('modalOverlay').classList.add('open');
+}
+
+/* ─────────────────────────────────────────────
+   §13b · RENDER — COURSE DETAIL
+   showCourseDetail() modal listing enrolled students.
+───────────────────────────────────────────── */
+function showCourseDetail(cId) {
+  const c = getCourse(cId);
+  if (!c) return;
+  const avCls = ['av-t', 'av-b', 'av-a'];
+  const enrollments = S.enrollments
+    .filter(e => e.courseId == cId)
+    .map(en => ({ en, s: getStudent(en.studentId) }))
+    .filter(x => x.s)
+    .sort((a, b) => (a.s.fullName || '').localeCompare(b.s.fullName || ''));
+
+  let totalDue = 0, totalPaid = 0;
+  const rowsHtml = enrollments.map(({ en, s }, i) => {
+    const paid  = getEnrollmentPaid(en.studentId, en.courseId);
+    const total = Number(en.totalFee || 0);
+    totalDue  += total;
+    totalPaid += paid;
+    const pct      = total > 0 ? Math.round(paid / total * 100) : 100;
+    const barCls   = pct >= 100 ? '' : pct < 50 ? 'danger' : 'warn';
+    const initials = (s.fullName || '').split(' ').filter(Boolean).map(n => n[0]).join('').slice(0, 2).toUpperCase();
+    const od       = getOverdueInfo(en);
+    const odBadge  = od.overdue
+      ? `<span class="chip red" style="font-size:9px;margin-left:6px" title="Overdue ${esc(fmt(od.amount))}"><i class="ti ti-alert-triangle"></i> Overdue</span>`
+      : '';
+    return `<div class="student-row clickable ${od.overdue ? 'row-overdue' : ''}" onclick="showEnrollmentDetail('${esc(en.id)}')">
+      <div class="avatar ${avCls[i % 3]}">${esc(initials)}</div>
+      <div class="student-info">
+        <div class="student-name">${esc(s.fullName)}${odBadge}</div>
+        <div class="student-sub">${esc(s.email || '')}${s.phone ? ' · ' + esc(s.phone) : ''} · <span style="color:${en.priceType === 'early_bird' ? 'var(--color-brand)' : 'inherit'}">${en.priceType === 'early_bird' ? 'Early Bird' : 'Normal'}</span></div>
+      </div>
+      <div class="pay-summary">
+        <div class="pay-amount ${pct >= 100 ? 'g' : pct < 50 ? 'r' : 'a'}">${fmt(paid)} / ${fmt(total)}</div>
+        <div class="bar-bg"><div class="bar-fill ${barCls}" style="width:${Math.min(100, pct)}%"></div></div>
+      </div>
+    </div>`;
+  }).join('');
+
+  document.getElementById('cd-title').textContent = c.name;
+
+  let cdSub = document.getElementById('cd-subtitle');
+  if (!cdSub) {
+    cdSub = document.createElement('p');
+    cdSub.id = 'cd-subtitle'; cdSub.className = 'modal-subtitle';
+    document.getElementById('cd-title').insertAdjacentElement('afterend', cdSub);
+  }
+  cdSub.textContent = formatDate(c.startDate) + ' to ' + formatDate(c.endDate);
+
+  const count = enrollments.length;
+  document.getElementById('cd-body').innerHTML = `
+    <div class="stats-grid" style="margin-bottom:16px">
+      <div class="stat"><div class="lbl">Students</div><div class="val b">${count}${c.capacity ? '/' + esc(c.capacity) : ''}</div></div>
+      <div class="stat"><div class="lbl">Paid</div><div class="val g">${fmt(totalPaid)}</div></div>
+      <div class="stat"><div class="lbl">Outstanding</div><div class="val ${totalDue - totalPaid > 0 ? 'a' : 'g'}">${fmt(Math.max(0, totalDue - totalPaid))}</div></div>
+    </div>
+    <div style="font-size:14px;font-weight:600;margin-bottom:8px">Enrolled students</div>
+    ${count
+      ? `<div class="card" style="padding:4px 16px">${rowsHtml}</div>`
+      : '<div style="font-size:13px;color:var(--color-text-secondary);padding:10px 0">No students enrolled yet.</div>'}`;
+
+  document.getElementById('cd-footer').innerHTML = `
+    <button class="btn" onclick="closeM()">Close</button>
+    <button class="btn" onclick="openM('mCourse','${esc(c.id)}')"><i class="ti ti-edit"></i> Edit Course</button>`;
+
+  _modalTrigger = document.activeElement;
+  document.querySelectorAll('.modal').forEach(m => m.classList.remove('active'));
+  document.getElementById('mCourseDetail').classList.add('active');
   document.getElementById('modalOverlay').classList.add('open');
 }
 
