@@ -552,3 +552,59 @@ body { background-color: #f9fafb; font-family: var(--font-sans); }
   .bar-lbl { font-size: 8px; }
   .bar-yr { display: none; }
 }
+
+/* ══════════════════════════════════════════
+   MODAL CONTENT — layout fixes (all sizes)
+══════════════════════════════════════════ */
+/* Detail modals always show exactly 3 stats → keep them on one row */
+.modal .stats-grid { grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 10px; }
+.modal .stat { padding: 12px; min-width: 0; }
+.modal .stat .val { font-size: 18px; overflow-wrap: anywhere; }
+.student-sub { overflow-wrap: anywhere; }
+.pay-amount { white-space: nowrap; }
+
+/* ══════════════════════════════════════════
+   MOBILE MODALS — scrollable bottom sheet with sticky footer
+══════════════════════════════════════════ */
+@media (max-width: 640px) {
+  body:has(#modalOverlay.open) { overflow: hidden; }
+  #modalOverlay { overflow: hidden; }
+  .modal {
+    max-height: 92vh; max-height: 92dvh;
+    overflow-y: auto; overscroll-behavior: contain; -webkit-overflow-scrolling: touch;
+    padding-bottom: 0;
+  }
+  .modal::before {             /* grab handle */
+    content: ''; display: block; width: 36px; height: 4px; border-radius: 2px;
+    background: var(--color-border-secondary); margin: -8px auto 12px;
+  }
+  .modal h2 { margin-bottom: 4px; font-size: 17px; }
+  .modal-subtitle { margin-bottom: 16px; padding-bottom: 12px; }
+  .modal-footer {
+    position: sticky; bottom: 0; z-index: 2;
+    background: var(--color-background-primary);
+    margin: 16px -16px 0; padding: 12px 16px calc(12px + env(safe-area-inset-bottom));
+  }
+
+  .modal-footer .btn, .modal-footer .danger-btn { white-space: nowrap; }
+
+  /* Stats inside modals — compact 3-up */
+  .modal .stats-grid { gap: 6px; }
+  .modal .stat { padding: 8px 10px; }
+  .modal .stat .lbl { font-size: 10px; margin-bottom: 4px; }
+  .modal .stat .val { font-size: 14px; }
+
+  /* Rows with a payment summary: put amount + bar on its own line under the name */
+  .student-row { flex-wrap: wrap; row-gap: 6px; }
+  .student-row .pay-summary {
+    flex: 1 1 100%; margin-left: 48px;
+    display: flex; align-items: center; gap: 10px; text-align: left;
+  }
+  .student-row .pay-summary .bar-bg { flex: 1; margin: 0; }
+  .student-row .pay-summary .pay-label { display: none; }
+  .student-name { white-space: normal; }
+
+  /* Payment history rows inside modals — keep on one line */
+  .modal .payment-entry { flex-direction: row; align-items: center; }
+  .modal .payment-entry > div:last-child { width: auto; }
+}
