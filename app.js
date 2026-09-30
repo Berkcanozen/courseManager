@@ -693,7 +693,7 @@ function renderDash() {
     const totalPaid = enrolls.reduce((a, e) => a + getEnrollmentPaid(e.studentId, c.id), 0);
     const pct       = totalDue > 0 ? Math.round(totalPaid / totalDue * 100) : 0;
     const barCls    = pct >= 100 ? '' : pct < 50 ? 'danger' : 'warn';
-    return `<div class="card">
+    return `<div class="card clickable" onclick="showCourseDetail('${esc(c.id)}')">
       <div class="card-hd"><div><b>${esc(c.name)}</b><br><small>${enrolls.length} student(s) enrolled</small></div>${getStatusBadge(c.status)}</div>
       <div class="bar-bg"><div class="bar-fill ${barCls}" style="width:${Math.min(100,pct)}%"></div></div>
       <div style="display:flex;justify-content:space-between;font-size:12px;color:var(--color-text-secondary);margin-top:6px">
