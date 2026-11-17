@@ -162,7 +162,7 @@ The backend uses a 30-second `CacheService` cache. Wait 30 seconds and refresh, 
 
 - The Apps Script URL is intentionally kept in `config.js`. Since the app is hosted on GitHub Pages, there is no server-side environment for secrets.
 - **The URL alone cannot access data.** Every request except `ping` requires a valid session token, sent in the POST body (never in the URL), that is issued by the backend after login and stored server-side in `PropertiesService`.
-- Tokens are random (two UUIDs, 256 bits) and expire after **8 hours**.
+- Tokens are random (two v4 UUIDs, ~244 random bits) and expire after **8 hours**.
 - Old tokens are automatically cleaned up on each new login.
 - Passwords are stored as plaintext in the `Admins` sheet — consider restricting Sheets access to trusted Google accounts only.
 

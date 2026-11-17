@@ -65,7 +65,7 @@ function isValidToken(token) {
 }
 
 /**
- * Opaque session token: 256 bits from two cryptographically random UUIDs.
+ * Opaque session token: two cryptographically random v4 UUIDs (~244 random bits).
  * (Previously base64(username|time|Math.random) — partly guessable.)
  * Who owns it and when it was issued live server-side in PropertiesService.
  */
