@@ -514,8 +514,12 @@ function closeM() {
   document.getElementById('modalOverlay').classList.remove('open');
   document.querySelectorAll('.modal').forEach(m => m.classList.remove('active'));
   // Return focus to the element that opened the modal
-  if (_modalTrigger && typeof _modalTrigger.focus === 'function') {
-    setTimeout(() => { _modalTrigger.focus(); _modalTrigger = null; }, 50);
+  // Capture locally: a second closeM() within 50ms would otherwise null the
+  // shared ref before this timer fires and throw on null.focus().
+  const trigger = _modalTrigger;
+  _modalTrigger = null;
+  if (trigger && typeof trigger.focus === 'function') {
+    setTimeout(() => { if (document.contains(trigger)) trigger.focus(); }, 50);
   }
 }
 
