@@ -446,6 +446,21 @@ const dayOffset = n => { const d = new Date(); d.setDate(d.getDate() + n);
     await page.evaluate(() => setEnrollmentFilter('active'));
   });
 
+  await t('live status codes: "Closed" course archives, "Open" stays active, badge colours right', async () => {
+    const c = await uiCourse({ name: 'Live Codes', status: 106 });
+    await openEnroll(c[0], { email: 'sukru@example.com' });
+    await page.fill('#e-depositAmount', '0'); await page.fill('#e-fullPayDate', '2027-01-31');
+    await page.click('#btn-save-enrollment'); await settle();
+    await page.evaluate(() => { goTab('enrollments'); setEnrollmentFilter('active'); });
+    const active = await page.textContent('#enrollmentList');
+    await page.evaluate(() => setEnrollmentFilter('archived'));
+    const archived = await page.textContent('#enrollmentList');
+    ok(!active.includes('Live Codes') && archived.includes('Live Codes'), 'closed course not archived');
+    await page.evaluate(() => setEnrollmentFilter('active'));
+    const badges = await page.evaluate(() => [getStatusBadge(105), getStatusBadge(106)]);
+    ok(/chip teal/.test(badges[0]) && /chip blue/.test(badges[1]), 'badges: ' + badges.join(' '));
+  });
+
   /* ═════════ Search & export ═════════ */
   group('Search & CSV export');
   await t('search with regex characters "(" "+" "*" does not crash', async () => {

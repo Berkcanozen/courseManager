@@ -92,6 +92,8 @@ The app expects the following sheets inside one Google Spreadsheet:
    | 103 | Draft | draft | course |
    | 104 | Cancelled | cancelled | course |
 
+   `open` / `closed` are accepted as alternatives to `active` / `completed`.
+
 ### 2. Google Apps Script
 
 1. Inside the spreadsheet, go to **Extensions → Apps Script**
@@ -209,6 +211,7 @@ No test touches the live spreadsheet. `backend.test.js` runs the real `.gs` file
 
 | Version | Highlights |
 |---|---|
+| v3.2.6 | Status codes open/closed (live sheet) recognised alongside active/completed/cancelled: archive filter + badge colours |
 | v3.2.5 | Random UUID session tokens; GET no longer serves data (token never in URLs); email format validated (UI + backend); instalment dates must be in order and not before the deposit; full plan rules enforced in the backend too |
 | v3.2.4 | Sheets keeps phones/notes as text (leading 0, "+") and blocks formula injection; deposit/instalment validation; exact instalment rounding; overpayment confirm; CSV injection guard; edge-case E2E suite |
 | v3.2.3 | Backend in repo; cron skips already-paid reminders and shows remaining amount; case-insensitive email dedupe; id lock covers append; clean error messages; backend test suite |

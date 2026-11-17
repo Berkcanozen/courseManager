@@ -110,7 +110,9 @@ function makeGasEnv({ sheetsTyping = false } = {}) {
   seed('Admins', [['email', 'username', 'password'], ['admin@studio.test', 'admin', 'pw']]);
   seed('GeneralStatus', [['id', 'name', 'code', 'entity'],
     [101, 'Active', 'active', 'course'], [102, 'Completed', 'completed', 'course'],
-    [103, 'Draft', 'draft', 'course'], [104, 'Cancelled', 'cancelled', 'course']]);
+    [103, 'Draft', 'draft', 'course'], [104, 'Cancelled', 'cancelled', 'course'],
+    // live sheet uses this naming scheme — keep both covered
+    [105, 'Open', 'open', 'course'], [106, 'Closed', 'closed', 'course']]);
 
   const post = body => JSON.parse(ctx.doPost({ postData: { contents: typeof body === 'string' ? body : JSON.stringify(body) } }).getContent());
   const call = (action, payload = {}, token) => post({ action, payload, token, currentUser: 'admin' });

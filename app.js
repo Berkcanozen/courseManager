@@ -224,11 +224,19 @@ const setUsername = (username, remember) => {
   else          sessionStorage.setItem('username', username);
 };
 
+// Status codes come from the GeneralStatus sheet. Both naming schemes are in
+// use (README: active/completed/cancelled; live sheet: open/closed), so the
+// app accepts either. Archived = the course is over (enrollments leave the
+// "Active" filter).
+const STATUS_COLORS   = { active: 'teal', open: 'teal', completed: 'blue', closed: 'blue', draft: 'amber', cancelled: 'red' };
+const ARCHIVED_CODES  = ['completed', 'closed', 'cancelled'];
+const isArchivedCode  = code => ARCHIVED_CODES.includes(String(code || '').trim().toLowerCase());
+
 const getStatusBadge = statusId => {
-  const colors = { active: 'teal', completed: 'blue', draft: 'amber', cancelled: 'red' };
+  const colors = STATUS_COLORS;
   const st = (S.generalStatus || []).find(s => s.id == statusId);
   const label     = st ? st.name : (statusId || 'Unknown');
-  const colorCode = st ? st.code : 'blue';
+  const colorCode = st ? String(st.code || '').trim().toLowerCase() : 'blue';
   return `<span class="chip ${colors[colorCode] || 'blue'}">${esc(label)}</span>`;
 };
 
@@ -804,8 +812,8 @@ function renderEnrollments() {
     const course = getCourse(en.courseId);
     const status = (S.generalStatus || []).find(s => s.id == (course && course.status));
     const code   = status ? status.code : '';
-    if (_enrollmentFilter === 'active')   return code !== 'completed' && code !== 'cancelled';
-    if (_enrollmentFilter === 'archived') return code === 'completed' || code === 'cancelled';
+    if (_enrollmentFilter === 'active')   return !isArchivedCode(code);
+    if (_enrollmentFilter === 'archived') return isArchivedCode(code);
     return true; // 'all'
   });
   if (!filtered.length) { box.innerHTML = '<div class="empty"><i class="ti ti-list"></i>No enrollments match this filter.</div>'; return; }

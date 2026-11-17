@@ -89,7 +89,7 @@ test('getAll via POST (token in body) returns all collections', () => {
   const d = E.do('getAll');
   assert.ok(d.success);
   for (const k of ['courses', 'students', 'enrollments', 'payments', 'generalStatus']) assert.ok(Array.isArray(d[k]), k);
-  assert.strictEqual(d.generalStatus.length, 4);
+  assert.strictEqual(d.generalStatus.length, 6);
 });
 test('token of user is not readable from a different token', () => {
   const E = loggedIn();
