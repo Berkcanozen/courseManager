@@ -149,7 +149,11 @@ function confirmDialog(message, confirmLabel = 'Confirm', danger = true) {
 const fmt = n =>
   cfg.currency + Number(n || 0).toLocaleString(cfg.locale || 'en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
 
-const today = () => new Date().toISOString().split('T')[0];
+// Local date (not UTC) — toISOString() returns yesterday between 00:00 and
+// 01:00/02:00 in Europe/Amsterdam, and shifts report ranges by a day.
+const toLocalISO = d =>
+  `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
+const today = () => toLocalISO(new Date());
 
 // parseFee, parseUserNumber, overdueAmount, suggestNextPayment, splitInstalments
 // live in calc.js (loaded before this file) — pure, unit-tested money math.
@@ -374,11 +378,11 @@ window.onload = async () => {
     if (e.key === 'Enter' && e.target.tagName !== 'TEXTAREA' && e.target.tagName !== 'BUTTON') {
       const active = document.querySelector('.modal.active');
       if (!active) return;
-      const id = active.id;
-      if (id === 'mCourse')      { e.preventDefault(); saveCourse(); }
-      else if (id === 'mStudentEdit') { e.preventDefault(); saveStudentIdentity(); }
-      else if (id === 'mEnrollment')  { e.preventDefault(); saveEnrollment(); }
-      else if (id === 'mPayment')     { e.preventDefault(); savePayment(); }
+      // Route through the save button so a disabled button (course full,
+      // payment form incomplete) also blocks the Enter key.
+      const btnId = { mCourse: 'btn-save-course', mStudentEdit: 'btn-save-st',
+                      mEnrollment: 'btn-save-enrollment', mPayment: 'btn-save-payment' }[active.id];
+      if (btnId) { e.preventDefault(); document.getElementById(btnId)?.click(); }
     }
   });
   // Re-sync when the tab regains focus, plus a gentle background poll, so data
@@ -707,6 +711,10 @@ function renderDash() {
     const barCls    = pct >= 100 ? '' : pct < 50 ? 'danger' : 'warn';
     return `<div class="card clickable" onclick="showCourseDetail('${esc(c.id)}')">
       <div class="card-hd"><div><b>${esc(c.name)}</b><br><small>${enrolls.length} student(s) enrolled</small></div>${getStatusBadge(c.status)}</div>
+      <div style="display:flex;justify-content:space-between;font-size:12px;margin-bottom:4px">
+        <span style="font-weight:600;color:var(--color-text-primary)">${fmt(totalPaid)} / ${fmt(totalDue)}</span>
+        <span style="color:var(--color-text-secondary)">${pct}%</span>
+      </div>
       <div class="bar-bg"><div class="bar-fill ${barCls}" style="width:${Math.min(100,pct)}%"></div></div>
       <div style="display:flex;justify-content:space-between;font-size:12px;color:var(--color-text-secondary);margin-top:6px">
         <span>${fmt(totalPaid)} Paid</span><span>${fmt(totalDue - totalPaid)} Remaining</span>
@@ -814,8 +822,8 @@ function renderEnrollments() {
         <div class="student-sub">${course ? esc(course.name) : '—'} · <span style="color:${en.priceType === 'early_bird' ? 'var(--color-brand)' : 'inherit'}">${en.priceType === 'early_bird' ? 'Early Bird' : 'Normal'}</span></div>
       </div>
       <div class="pay-summary">
-        <div class="pay-amount ${pct >= 100 ? 'g' : pct < 50 ? 'r' : 'a'}">${fmt(paid)} / ${fmt(total)}</div>
         <div class="pay-label">Total Fee</div>
+        <div class="pay-amount ${pct >= 100 ? 'g' : pct < 50 ? 'r' : 'a'}">${fmt(paid)} / ${fmt(total)}</div>
         <div class="bar-bg"><div class="bar-fill ${barCls}" style="width:${Math.min(100,pct)}%"></div></div>
       </div>
     </div>`;
@@ -877,6 +885,7 @@ function showStudentDetail(sId) {
           <div style="font-size:12px;color:var(--color-text-secondary);margin-bottom:4px">
             ${en.priceType === 'early_bird' ? 'Early Bird' : 'Normal'} · ${esc(planSummary)}
           </div>
+          <div class="pay-amount ${pct >= 100 ? 'g' : pct < 50 ? 'r' : 'a'}" style="font-size:12px;margin-bottom:4px">${fmt(paid)} / ${fmt(total)}</div>
           <div class="bar-bg"><div class="bar-fill ${barCls}" style="width:${Math.min(100,pct)}%"></div></div>
           <div style="display:flex;justify-content:space-between;font-size:11px;color:var(--color-text-secondary);margin-top:4px">
             <span>${fmt(paid)} paid</span><span>${fmt(Math.max(0, total - paid))} remaining</span>
@@ -1464,7 +1473,7 @@ function getReportRange() {
   const preset = document.getElementById('rep-preset').value;
   const now    = new Date();
   const y = now.getFullYear(), m = now.getMonth();
-  const iso = d => d.toISOString().split('T')[0];
+  const iso = toLocalISO; // local, not UTC — see today()
 
   if (preset === 'this_month')  return { from: iso(new Date(y, m, 1)),     to: iso(new Date(y, m + 1, 0)) };
   if (preset === 'last_month')  return { from: iso(new Date(y, m - 1, 1)), to: iso(new Date(y, m, 0)) };

@@ -147,7 +147,10 @@ body { background-color: #f9fafb; font-family: var(--font-sans); }
 .student-sub  { font-size: 12px; color: var(--color-text-secondary); margin-top: 2px; }
 .pay-summary  { flex: 0 0 120px; text-align: right; }
 .pay-amount   { font-size: 13px; font-weight: 600; }
-.pay-label    { font-size: 11px; color: var(--color-text-secondary); margin-top: 2px; }
+.pay-amount.g { color: #10b981; }
+.pay-amount.a { color: #f59e0b; }
+.pay-amount.r { color: #ef4444; }
+.pay-label   { font-size: 11px; color: var(--color-text-secondary); margin-top: 2px; }
 
 /* ── PAYMENT ENTRIES ── */
 .payment-entry {
