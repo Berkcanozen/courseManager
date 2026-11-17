@@ -6,6 +6,7 @@
  *  - enrollStudent: capacity check
  *  - writeAuditLog on both functions
  *  - totalFee and fullPayDate persisted
+ * v3.2.4 — deposit > fee rejected (create + update); new student text via asText()
  * v3.2.3 — new-student email duplicate check is case/whitespace-insensitive
  */
 
@@ -26,6 +27,8 @@ function _enrollStudentLocked(ss, payload, currentUser, timestamp) {
     throw new Error('Total fee cannot be negative.');
   if (payload.depositAmount && Number(payload.depositAmount) < 0)
     throw new Error('Deposit cannot be negative.');
+  if (Number(payload.depositAmount || 0) > Number(payload.totalFee || 0))
+    throw new Error('Deposit cannot be more than the course fee.');
 
   const sSheet = ss.getSheetByName('Students')    || ss.insertSheet('Students');
   const eSheet = ss.getSheetByName('Enrollments') || ss.insertSheet('Enrollments');
@@ -77,8 +80,8 @@ function _enrollStudentLocked(ss, payload, currentUser, timestamp) {
     if (sSheet.getLastRow() === 0)
       sSheet.appendRow(['id','fullName','email','phone','createUser','createDate','updateUser','updateDate']);
     finalStudentId = _getNextIdNoLock(sSheet);
-    sSheet.appendRow([finalStudentId, payload.studentData.fullName, String(payload.studentData.email || '').trim(),
-      payload.studentData.phone||'', currentUser, timestamp, '', '']);
+    sSheet.appendRow([finalStudentId, asText(payload.studentData.fullName), asText(String(payload.studentData.email || '').trim()),
+      asText(payload.studentData.phone), currentUser, timestamp, '', '']);
     writeAuditLog('addStudent', finalStudentId, {
       fullName: payload.studentData.fullName, email: payload.studentData.email, via: 'enrollment'
     }, currentUser);
@@ -103,6 +106,10 @@ function _enrollStudentLocked(ss, payload, currentUser, timestamp) {
 
 function updateEnrollment(ss, payload, currentUser, timestamp) {
   try {
+    if (Number(payload.totalFee) < 0) throw new Error('Total fee cannot be negative.');
+    if (Number(payload.depositAmount || 0) < 0) throw new Error('Deposit cannot be negative.');
+    if (Number(payload.depositAmount || 0) > Number(payload.totalFee || 0))
+      throw new Error('Deposit cannot be more than the course fee.');
     const sheet = ss.getSheetByName('Enrollments');
     if (!sheet) throw new Error('Enrollments sheet not found.');
     const data = sheet.getDataRange().getValues();
@@ -129,7 +136,7 @@ function updateEnrollment(ss, payload, currentUser, timestamp) {
     }, currentUser);
     return successResponse();
   } catch (err) {
-    return errorResponse('Update Enrollment Error: ' + err.toString());
+    return errorResponse(err.message || err.toString());
   }
 }
 

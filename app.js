@@ -1216,7 +1216,11 @@ function calculatePaymentSuggestion() {
    Client-side CSV download for enrollments and payments.
 ───────────────────────────────────────────── */
 function _csvCell(val) {
-  const s = String(val === null || val === undefined ? '' : val);
+  let s = String(val === null || val === undefined ? '' : val);
+  // CSV/formula injection: Excel & Sheets execute cells starting with = + - @
+  // (e.g. a student named "=HYPERLINK(...)"). A leading apostrophe makes the
+  // spreadsheet show it as plain text.
+  if (/^[=+\-@\t\r]/.test(s)) s = "'" + s;
   // Escape quotes, wrap if contains comma/quote/newline
   if (/[",\n]/.test(s)) return '"' + s.replace(/"/g, '""') + '"';
   return s;
@@ -1422,6 +1426,20 @@ async function saveEnrollment() {
     ? (document.getElementById('e-priceType').value === 'early_bird' ? course.feeEarly : course.feeNormal)
     : parseFee(document.getElementById('e-displayTotal').value);
 
+  // Money validation — the plan must make sense before it hits the sheet.
+  const totalNum   = Number(rawTotal || 0);
+  const depositNum = parseUserNumber(document.getElementById('e-depositAmount').value);
+  if (depositNum < 0) return toast('Deposit cannot be negative.', 'warn');
+  if (depositNum > totalNum) return toast(`Deposit (${fmt(depositNum)}) cannot be more than the course fee (${fmt(totalNum)}).`, 'warn');
+  if (document.getElementById('e-payType').value === 'instalment') {
+    if (!instPlan.length) return toast('Enter the number of instalments.', 'warn');
+    if (instPlan.some(p => !p.date)) return toast('Every instalment needs a due date.', 'warn');
+    if (instPlan.some(p => !(parseUserNumber(p.amount) > 0))) return toast('Every instalment amount must be more than 0.', 'warn');
+    const planTotal = sumCents([depositNum, ...instPlan.map(p => parseUserNumber(p.amount))]);
+    if (planTotal !== sumCents([totalNum]))
+      return toast(`Deposit + instalments (${fmt(planTotal)}) must equal the course fee (${fmt(totalNum)}).`, 'warn');
+  }
+
   const payload = {
     enrollmentId: editEnrollmentId,
     isNew: !editEnrollmentId && document.getElementById('eTypeValue').value === 'new',
@@ -1452,6 +1470,20 @@ async function savePayment() {
   const cId = document.getElementById('p-course').value;
   const amt = parseUserNumber(document.getElementById('p-amount').value);
   if (!sId || !cId || !amt) return toast('Student, course, and amount are required.', 'warn');
+  if (amt < 0) return toast('Amount cannot be negative.', 'warn');
+  // Overpayment guard: paying more than the outstanding balance is usually a typo
+  // (extra zero) — ask before recording it.
+  const en = S.enrollments.find(x => x.studentId == sId && x.courseId == cId);
+  if (en) {
+    const remaining = sumCents([Number(en.totalFee || 0), -getEnrollmentPaid(sId, cId)]);
+    if (sumCents([amt]) > remaining) {
+      const over = sumCents([amt, -Math.max(0, remaining)]);
+      const okToPay = await confirmDialog(
+        `This payment (${fmt(amt)}) is ${fmt(over)} more than the outstanding balance (${fmt(Math.max(0, remaining))}). Record it anyway?`,
+        'Record anyway', false);
+      if (!okToPay) return;
+    }
+  }
   const btn     = document.getElementById('btn-save-payment');
   const payload = {
     studentId: sId, courseId: cId, amount: amt,

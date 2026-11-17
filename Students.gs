@@ -1,6 +1,7 @@
 /**
  * MEISNER STUDIO — Students.gs
  * v2.9.2 — writeAuditLog added; duplicate email check on update (unchanged)
+ * v3.2.4 — free-text fields written via asText()
  * v3.2.3 — email duplicate check is case/whitespace-insensitive; add is atomic;
  *          error messages returned without "Error:" prefix
  */
@@ -17,7 +18,7 @@ function addStudent(ss, payload, currentUser, timestamp) {
       }
       if (sheet.getLastRow() === 0) sheet.appendRow(['id','fullName','email','phone','createUser','createDate','updateUser','updateDate']);
       const id = _getNextIdNoLock(sheet);
-      sheet.appendRow([id, payload.fullName, email, payload.phone||'', currentUser, timestamp, '', '']);
+      sheet.appendRow([id, asText(payload.fullName), asText(email), asText(payload.phone), currentUser, timestamp, '', '']);
       return id;
     });
     invalidateCache();
@@ -43,7 +44,7 @@ function updateStudent(ss, payload, currentUser, timestamp) {
     for (let i = 1; i < data.length; i++) {
       if (data[i][0] == payload.id) {
         sheet.getRange(i + 1, 2, 1, 7).setValues([[
-          payload.fullName, email, payload.phone||'',
+          asText(payload.fullName), asText(email), asText(payload.phone),
           data[i][4]||'', data[i][5]||'', currentUser, timestamp
         ]]);
         found = true; break;

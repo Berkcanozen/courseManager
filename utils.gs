@@ -11,6 +11,9 @@
  *  - withScriptLock: lock now covers next-id AND appendRow (getNextId alone
  *    released the lock before the row was written → possible duplicate ids)
  *  - normEmail: case/whitespace-insensitive email comparison
+ * v3.2.4
+ *  - asText: keeps free text as text in Sheets (phone leading 0 / "+",
+ *    "007", and no formula injection via "=")
  */
 
 // CACHE_KEY, CACHE_TTL, LOCK_TIMEOUT_MS defined in config.gs
@@ -52,6 +55,20 @@ function withScriptLock(fn) {
   } finally {
     lock.releaseLock();
   }
+}
+
+/**
+ * Makes a free-text value safe to write with appendRow/setValues.
+ * Google Sheets otherwise "helps": "0612345678" → 612345678 (leading zero
+ * lost), "+316…" → number (plus lost), "007" → 7, and anything starting with
+ * "=" becomes a live formula (e.g. =IMPORTXML could leak data). A leading
+ * apostrophe tells Sheets to keep the text as-is; it is not part of the value
+ * that getValues() returns.
+ */
+function asText(v) {
+  if (v === null || v === undefined) return '';
+  const s = String(v);
+  return (/^[=+\-@]/.test(s) || /^\d[\d\s.,]*$/.test(s)) ? "'" + s : s;
 }
 
 /** Canonical form for email comparison: trimmed, lower-case. */

@@ -9,99 +9,13 @@
  */
 process.env.TZ = 'Europe/Amsterdam';
 const assert = require('assert');
-const fs     = require('fs');
-const path   = require('path');
-const vm     = require('vm');
 
-const ROOT     = path.resolve(__dirname, '..');
-const GS_FILES = ['config.gs', 'utils.gs', 'Auth.gs', 'Courses.gs', 'Students.gs',
-                  'Enrollments.gs', 'Payments.gs', 'Cron.gs', 'router.gs'];
+const { makeGasEnv } = require('./gas-mock');
 
-/* ───────────── Google service mocks ───────────── */
-function makeSheet(name) {
-  const rows = [];
-  return {
-    _rows: rows,
-    getName: () => name,
-    appendRow: r => { rows.push(r.slice()); },
-    getLastRow: () => rows.length,
-    getDataRange: () => ({ getValues: () => rows.map(r => r.slice()) }),
-    getRange: (row, col, nr, nc) => ({
-      getValues: () => rows.slice(row - 1, row - 1 + nr).map(r => r.slice(col - 1, col - 1 + nc)),
-      setValues: vals => vals.forEach((v, i) => {
-        const r = rows[row - 1 + i];
-        v.forEach((cell, j) => { r[col - 1 + j] = cell; });
-      }),
-    }),
-    deleteRow: n => { rows.splice(n - 1, 1); },
-    setFrozenRows: () => {},
-  };
-}
-
-function makeEnv() {
-  const sheets = {};
-  const props  = {};
-  const cache  = {};
-  const mails  = [];
-  let lockDepth = 0, maxLockDepth = 0;
-  const ss = {
-    getSheetByName: n => sheets[n] || null,
-    insertSheet: n => (sheets[n] = makeSheet(n)),
-    getUrl: () => 'https://docs.google.com/spreadsheets/d/TEST',
-  };
-  const fmtParts = (d, tz) => Object.fromEntries(new Intl.DateTimeFormat('en-GB', {
-    timeZone: tz, year: 'numeric', month: '2-digit', day: '2-digit',
-    hour: '2-digit', minute: '2-digit', second: '2-digit', hourCycle: 'h23',
-  }).formatToParts(d).map(p => [p.type, p.value]));
-  const env = {
-    console,
-    SpreadsheetApp: { getActiveSpreadsheet: () => ss },
-    LockService: { getScriptLock: () => ({
-      waitLock: () => { lockDepth++; maxLockDepth = Math.max(maxLockDepth, lockDepth); },
-      releaseLock: () => { lockDepth--; },
-    }) },
-    PropertiesService: { getScriptProperties: () => ({
-      getProperty: k => (k in props ? props[k] : null),
-      setProperty: (k, v) => { props[k] = String(v); },
-      deleteProperty: k => { delete props[k]; },
-      getProperties: () => ({ ...props }),
-    }) },
-    CacheService: { getScriptCache: () => ({
-      get: k => (k in cache ? cache[k] : null),
-      put: (k, v) => { cache[k] = v; },
-      remove: k => { delete cache[k]; },
-    }) },
-    ContentService: {
-      MimeType: { JSON: 'application/json' },
-      createTextOutput: s => ({ _s: s, setMimeType() { return this; }, getContent() { return this._s; } }),
-    },
-    Utilities: {
-      formatDate: (d, tz, fmt) => {
-        const p = fmtParts(d, tz);
-        return fmt.replace('yyyy', p.year).replace('MM', p.month).replace('dd', p.day)
-                  .replace('HH', p.hour).replace('mm', p.minute).replace('ss', p.second);
-      },
-      base64Encode: s => Buffer.from(String(s)).toString('base64'),
-      getUuid: () => require('crypto').randomUUID(),
-    },
-    Session: { getScriptTimeZone: () => 'Europe/Amsterdam' },
-    MailApp: { sendEmail: m => mails.push(m) },
-  };
-  const ctx = vm.createContext(env);
-  for (const f of GS_FILES) vm.runInContext(fs.readFileSync(path.join(ROOT, f), 'utf8'), ctx, { filename: f });
-
-  // seed sheets the app expects to exist
-  const admins = ss.insertSheet('Admins');
-  admins.appendRow(['email', 'username', 'password']);
-  admins.appendRow(['admin@studio.test', 'admin', 'pw']);
-  const gs = ss.insertSheet('GeneralStatus');
-  gs.appendRow(['id', 'name', 'code', 'entity']);
-  gs.appendRow([101, 'Active', 'active', 'course']);
-
-  const call = (action, payload = {}, token) =>
-    JSON.parse(ctx.doPost({ postData: { contents: JSON.stringify({ action, payload, token, currentUser: 'admin' }) } }).getContent());
-  return { ctx, ss, sheets, props, cache, mails, call, lock: () => ({ lockDepth, maxLockDepth }) };
-}
+// Backend tests use raw values (no Sheets type coercion) so assertions can
+// check exactly what the .gs code wrote. tests/e2e-edge.js runs with
+// sheetsTyping:true to catch Sheets-specific surprises.
+const makeEnv = () => makeGasEnv();
 
 /* ───────────── tiny runner ───────────── */
 let passed = 0, failed = 0; const fails = [];
@@ -141,7 +55,7 @@ const enrollPayload = (courseId, studentId, extra = {}) => ({
 group('Auth');
 test('ping via GET', () => {
   const E = makeEnv();
-  assert.strictEqual(JSON.parse(E.ctx.doGet({ parameter: { action: 'ping' } }).getContent()).success, true);
+  assert.strictEqual(E.get({ action: 'ping' }).success, true);
 });
 test('correct login returns a token', () => { loggedIn(); });
 test('wrong password → success:false, no token', () => {
@@ -175,7 +89,7 @@ test('getAll via POST (token in body) returns all collections', () => {
   const d = E.do('getAll');
   assert.ok(d.success);
   for (const k of ['courses', 'students', 'enrollments', 'payments', 'generalStatus']) assert.ok(Array.isArray(d[k]), k);
-  assert.strictEqual(d.generalStatus.length, 1);
+  assert.strictEqual(d.generalStatus.length, 4);
 });
 test('token of user is not readable from a different token', () => {
   const E = loggedIn();
@@ -251,6 +165,38 @@ test('updateStudent keeping own email is allowed', () => {
   assert.ok(E.do('updateStudent', { id: a, fullName: 'Anna V', email: 'anna@example.com' }).success);
 });
 
+group('Sheets text safety (asText)');
+test('phone with leading zero / plus is written as text', () => {
+  const E = loggedIn();
+  E.do('addStudent', { fullName: 'Lotte', email: 'l@x.test', phone: '0612345678' });
+  E.do('addStudent', { fullName: 'Sem',   email: 's@x.test', phone: '+31612345678' });
+  assert.strictEqual(rows(E, 'Students')[0][3], "'0612345678");
+  assert.strictEqual(rows(E, 'Students')[1][3], "'+31612345678");
+});
+test('name starting with "=" is written as text (no formula injection)', () => {
+  const E = loggedIn();
+  E.do('addStudent', { fullName: '=IMPORTXML("http://x","//a")', email: 'f@x.test' });
+  assert.ok(String(rows(E, 'Students')[0][1]).startsWith("'="));
+});
+test('normal text is written unchanged', () => {
+  const E = loggedIn(); seedStudent(E);
+  assert.strictEqual(rows(E, 'Students')[0][1], 'Anna de Vries');
+  assert.strictEqual(rows(E, 'Students')[0][2], 'anna@example.com');
+});
+test('payment note "007" is written as text', () => {
+  const E = loggedIn();
+  E.do('addPayment', { studentId: 1, courseId: 1, amount: 5, date: '2026-12-01', type: 'other', note: '007' });
+  assert.strictEqual(rows(E, 'Payments')[0][6], "'007");
+});
+test('with real Sheets coercion the value reads back exactly', () => {
+  const { makeGasEnv } = require('./gas-mock');
+  const E = makeGasEnv({ sheetsTyping: true });
+  const tok = E.call('checkLogin', { username: 'admin', password: 'pw' }).token;
+  E.call('addStudent', { fullName: '=1+1', email: 'z@x.test', phone: '0612345678' }, tok);
+  const st = E.call('getAll', {}, tok).students[0];
+  assert.strictEqual(st.fullName, '=1+1'); assert.strictEqual(st.phone, '0612345678');
+});
+
 group('Enrollment creation');
 test('enroll existing student', () => {
   const E = loggedIn(); const c = seedCourse(E); const s = seedStudent(E);
@@ -299,6 +245,18 @@ test('error messages have no "Error: " prefix', () => {
   E.do('enrollStudent', enrollPayload(c, s));
   const r = E.do('enrollStudent', enrollPayload(c, s));
   assert.ok(!/^Error: /.test(r.error), 'message shown to the user: "' + r.error + '"');
+});
+test('deposit larger than total fee rejected (create)', () => {
+  const E = loggedIn(); const c = seedCourse(E); const s = seedStudent(E);
+  const r = E.do('enrollStudent', enrollPayload(c, s, { totalFee: '1000', depositAmount: '1500' }));
+  assert.strictEqual(r.success, false); assert.ok(/more than the course fee/.test(r.error), r.error);
+});
+test('deposit larger than total fee rejected (update)', () => {
+  const E = loggedIn(); const c = seedCourse(E); const s = seedStudent(E);
+  E.do('enrollStudent', enrollPayload(c, s));
+  const r = E.do('updateEnrollment', { enrollmentId: rows(E, 'Enrollments')[0][0], priceType: 'normal',
+    totalFee: '1000', depositAmount: '1200', paymentType: 'full_remaining', instalmentPlan: '[]' });
+  assert.strictEqual(r.success, false); assert.ok(!/^Update Enrollment Error/.test(r.error), r.error);
 });
 test('enrollStudent releases the lock on failure', () => {
   const E = loggedIn(); const c = seedCourse(E); const s = seedStudent(E);

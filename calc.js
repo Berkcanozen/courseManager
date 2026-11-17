@@ -121,15 +121,21 @@
   }
 
   /**
-   * Splits the remaining fee (after deposit) into `num` equal instalments,
-   * each rounded to 2 decimals. Returns an array of numbers.
+   * Splits the remaining fee (after deposit) into `num` instalments rounded to
+   * 2 decimals. The LAST instalment absorbs the rounding difference so the
+   * plan always adds up exactly to the remaining fee (1000 / 3 →
+   * 333.33 + 333.33 + 333.34, not 999.99; 1000 / 7 → no stray +0.02).
    */
   function splitInstalments(totalFee, deposit, num) {
-    const rem = Math.max(0, Number(totalFee || 0) - Number(deposit || 0));
+    const remCents = Math.max(0, Math.round((Number(totalFee || 0) - Number(deposit || 0)) * 100));
     if (!(num > 0)) return [];
-    const amt = rem / num;
-    return Array.from({ length: num }, () => Number(amt.toFixed(2)));
+    const base = Math.floor(remCents / num);
+    return Array.from({ length: num }, (_, i) =>
+      (i < num - 1 ? base : remCents - base * (num - 1)) / 100);
   }
 
-  return { _isISODate, _dateToMs, parseFee, parseUserNumber, overdueAmount, suggestNextPayment, splitInstalments };
+  /** Sum of amounts rounded to cents — avoids 0.1 + 0.2 style float drift. */
+  const sumCents = arr => Math.round(arr.reduce((a, v) => a + Number(v || 0) * 100, 0)) / 100;
+
+  return { _isISODate, _dateToMs, parseFee, parseUserNumber, overdueAmount, suggestNextPayment, splitInstalments, sumCents };
 });

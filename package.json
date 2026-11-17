@@ -1,13 +1,14 @@
 {
   "name": "meisner-studio",
-  "version": "3.2.3",
+  "version": "3.2.4",
   "private": true,
   "description": "Meisner Studio Amsterdam — Course Management System",
   "scripts": {
     "test": "node tests/calc.test.js && node tests/backend.test.js",
     "test:backend": "node tests/backend.test.js",
     "test:e2e": "node tests/e2e.js",
-    "test:all": "node tests/calc.test.js && node tests/backend.test.js && node tests/e2e.js"
+    "test:edge": "node tests/e2e-edge.js",
+    "test:all": "node tests/calc.test.js && node tests/backend.test.js && node tests/e2e.js && node tests/e2e-edge.js"
   },
   "devDependencies": {
     "playwright": "1.63.0"

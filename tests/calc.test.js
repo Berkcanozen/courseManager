@@ -9,7 +9,7 @@
  */
 const assert = require('assert');
 const {
-  parseFee, parseUserNumber, overdueAmount, suggestNextPayment, splitInstalments, _dateToMs
+  parseFee, parseUserNumber, overdueAmount, suggestNextPayment, splitInstalments, sumCents, _dateToMs
 } = require('../calc.js');
 
 let passed = 0, failed = 0;
@@ -155,11 +155,16 @@ test('even split', () => {
   assert.deepStrictEqual(splitInstalments(900, 300, 3), [200, 200, 200]);
 });
 test('rounding to 2 decimals', () => {
-  assert.deepStrictEqual(splitInstalments(1000, 0, 3), [333.33, 333.33, 333.33]);
+  assert.deepStrictEqual(splitInstalments(1000, 0, 3), [333.33, 333.33, 333.34]);
 });
 test('deposit larger than fee -> no negative', () => {
   assert.deepStrictEqual(splitInstalments(500, 600, 2), [0, 0]);
 });
+test('plan always sums exactly to the remaining fee', () => {
+  for (const [fee, dep, n] of [[1000, 0, 7], [1000, 0, 3], [800, 200, 3], [1234.56, 100, 11], [999.99, 0.01, 24]])
+    assert.strictEqual(sumCents(splitInstalments(fee, dep, n)), Math.round((fee - dep) * 100) / 100, `${fee}-${dep} / ${n}`);
+});
+test('sumCents avoids float drift', () => assert.strictEqual(sumCents([0.1, 0.2]), 0.3));
 test('zero instalments -> empty', () => {
   assert.deepStrictEqual(splitInstalments(1000, 0, 0), []);
 });

@@ -1,6 +1,7 @@
 /**
  * MEISNER STUDIO — Courses.gs
  * v2.9.5 — writeAuditLog added after every write
+ * v3.2.4 — course name written via asText()
  * v3.2.3 — addCourse: next id + appendRow under one lock
  */
 
@@ -15,7 +16,7 @@ function addCourse(ss, payload, currentUser, timestamp) {
     const status = payload.status || '101';
     const newId  = withScriptLock(() => {
       const id = _getNextIdNoLock(sheet);
-      sheet.appendRow([id, payload.name||'', payload.startDate||'', payload.endDate||'',
+      sheet.appendRow([id, asText(payload.name), payload.startDate||'', payload.endDate||'',
         payload.feeNormal||0, payload.feeEarly||0, payload.deposit||0,
         payload.capacity||'', status, currentUser, timestamp, '', '']);
       return id;
@@ -39,7 +40,7 @@ function updateCourse(ss, payload, currentUser, timestamp) {
     for (let i = 1; i < data.length; i++) {
       if (data[i][0] == payload.id) {
         sheet.getRange(i + 1, 2, 1, 12).setValues([[
-          payload.name, payload.startDate, payload.endDate,
+          asText(payload.name), payload.startDate, payload.endDate,
           payload.feeNormal, payload.feeEarly, payload.deposit||'',
           payload.capacity||'', payload.status,
           data[i][9]||'', data[i][10]||'', currentUser, timestamp

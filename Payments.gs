@@ -1,6 +1,7 @@
 /**
  * MEISNER STUDIO — Payments.gs
  * v2.9.5 — negative amount validation
+ * v3.2.4 — note written via asText()
  * v3.2.3 — next id + appendRow under one lock
  */
 
@@ -15,7 +16,7 @@ function addPayment(ss, payload, currentUser, timestamp) {
   const newPayId = withScriptLock(() => {
     const id = _getNextIdNoLock(sheet);
     sheet.appendRow([id, payload.studentId, payload.courseId, amount,
-      payload.date, payload.type, payload.note||'', currentUser, timestamp]);
+      payload.date, payload.type, asText(payload.note), currentUser, timestamp]);
     return id;
   });
   invalidateCache();

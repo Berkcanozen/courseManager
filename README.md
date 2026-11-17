@@ -50,8 +50,10 @@ A lightweight, serverless web application for managing acting courses, student e
 │
 └── tests/
     ├── calc.test.js    # Money math
+    ├── gas-mock.js     # Mocked Google services + Sheets value coercion
     ├── backend.test.js # *.gs under Node with mocked Google services
-    └── e2e.js          # Full UI flows in headless Chromium
+    ├── e2e.js          # Full UI flows in headless Chromium
+    └── e2e-edge.js     # Edge cases: UI + real *.gs backend together
 ```
 
 ---
@@ -193,6 +195,7 @@ npm test             # money math + backend (*.gs) tests — no install needed
 npm install          # once, for the E2E test
 npx playwright install chromium
 npm run test:e2e     # full UI flows in headless Chromium against a fake backend
+npm run test:edge    # edge cases: UI + the real .gs backend, with Sheets value coercion
 npm run test:all     # everything
 ```
 
