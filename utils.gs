@@ -14,6 +14,8 @@
  * v3.2.4
  *  - asText: keeps free text as text in Sheets (phone leading 0 / "+",
  *    "007", and no formula injection via "=")
+ * v3.2.5
+ *  - isValidEmail, sumCents (used by student + enrollment validation)
  */
 
 // CACHE_KEY, CACHE_TTL, LOCK_TIMEOUT_MS defined in config.gs
@@ -69,6 +71,16 @@ function asText(v) {
   if (v === null || v === undefined) return '';
   const s = String(v);
   return (/^[=+\-@]/.test(s) || /^\d[\d\s.,]*$/.test(s)) ? "'" + s : s;
+}
+
+/** Minimal email shape check: something@something.tld, no spaces. */
+function isValidEmail(email) {
+  return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(String(email || '').trim());
+}
+
+/** Sum of amounts rounded to cents (mirrors sumCents in calc.js). */
+function sumCents(arr) {
+  return Math.round(arr.reduce((a, v) => a + Number(v || 0) * 100, 0)) / 100;
 }
 
 /** Canonical form for email comparison: trimmed, lower-case. */

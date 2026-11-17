@@ -96,6 +96,20 @@ test('token of user is not readable from a different token', () => {
   assert.strictEqual(E.call('getAll', {}, E.token + 'x').error, 'Unauthorized');
 });
 
+test('token is random: no username inside, 64 hex chars, unique per login', () => {
+  const E = makeEnv();
+  const t1 = E.call('checkLogin', { username: 'admin', password: 'pw' }).token;
+  const t2 = E.call('checkLogin', { username: 'admin', password: 'pw' }).token;
+  assert.ok(/^[0-9a-f]{64}$/.test(t1), t1);
+  assert.notStrictEqual(t1, t2);
+  assert.ok(!Buffer.from(t1, 'base64').toString().includes('admin'));
+});
+test('GET getAll is gone, even with a valid token (no token in URLs)', () => {
+  const E = loggedIn();
+  const r = E.get({ action: 'getAll', token: E.token });
+  assert.strictEqual(r.success, false); assert.strictEqual(r.error, 'Invalid action');
+});
+
 group('Course creation');
 test('addCourse creates header + row with id 1001 and default status 101', () => {
   const E = loggedIn();
@@ -195,6 +209,62 @@ test('with real Sheets coercion the value reads back exactly', () => {
   E.call('addStudent', { fullName: '=1+1', email: 'z@x.test', phone: '0612345678' }, tok);
   const st = E.call('getAll', {}, tok).students[0];
   assert.strictEqual(st.fullName, '=1+1'); assert.strictEqual(st.phone, '0612345678');
+});
+
+group('Email format');
+test('addStudent rejects malformed emails', () => {
+  const E = loggedIn();
+  for (const email of ['anna-example.com', 'anna@', '@example.com', 'anna @example.com', 'anna@example'])
+    assert.strictEqual(E.do('addStudent', { fullName: 'A', email }).success, false, email);
+  assert.strictEqual(rows(E, 'Students').length, 0);
+});
+test('updateStudent rejects a malformed email', () => {
+  const E = loggedIn(); const a = seedStudent(E);
+  const r = E.do('updateStudent', { id: a, fullName: 'Anna', email: 'nope' });
+  assert.strictEqual(r.success, false); assert.ok(/valid email/.test(r.error));
+});
+test('enrolling a NEW student with a malformed email is rejected, nothing written', () => {
+  const E = loggedIn(); const c = seedCourse(E);
+  const r = E.do('enrollStudent', enrollPayload(c, '', { isNew: true, studentData: { fullName: 'X', email: 'x.at.test' } }));
+  assert.strictEqual(r.success, false);
+  assert.strictEqual(rows(E, 'Students').length, 0); assert.strictEqual(rows(E, 'Enrollments').length, 0);
+});
+
+group('Instalment plan validation (backend)');
+const plan = arr => JSON.stringify(arr.map(([amount, date]) => ({ amount, date })));
+const instPayload = (c, s, instalmentPlan, extra = {}) => enrollPayload(c, s, {
+  paymentType: 'instalment', totalFee: '1500', depositAmount: '300', depositDate: '2026-12-01', instalmentPlan, ...extra });
+test('valid plan accepted', () => {
+  const E = loggedIn(); const c = seedCourse(E); const s = seedStudent(E);
+  assert.ok(E.do('enrollStudent', instPayload(c, s, plan([[600, '2027-01-01'], [600, '2027-02-01']]))).success);
+});
+for (const [name, p, re] of [
+  ['missing date',                 plan([[600, '2027-01-01'], [600, '']]),            /needs a due date/],
+  ['zero amount',                  plan([[1200, '2027-01-01'], [0, '2027-02-01']]),   /more than 0/],
+  ['dates out of order',           plan([[600, '2027-02-01'], [600, '2027-01-01']]),  /before the previous/],
+  ['first instalment before deposit', plan([[600, '2026-11-01'], [600, '2027-01-01']]), /before the deposit/],
+  ['plan does not add up',         plan([[600, '2027-01-01'], [500, '2027-02-01']]),  /must equal/],
+  ['empty plan',                   '[]',                                              /empty/],
+  ['garbage plan',                 'not json',                                        /empty/],
+]) {
+  test('rejected: ' + name, () => {
+    const E = loggedIn(); const c = seedCourse(E); const s = seedStudent(E);
+    const r = E.do('enrollStudent', instPayload(c, s, p));
+    assert.strictEqual(r.success, false); assert.ok(re.test(r.error), r.error);
+    assert.strictEqual(rows(E, 'Enrollments').length, 0);
+  });
+}
+test('updateEnrollment enforces the same plan rules', () => {
+  const E = loggedIn(); const c = seedCourse(E); const s = seedStudent(E);
+  E.do('enrollStudent', enrollPayload(c, s));
+  const r = E.do('updateEnrollment', { enrollmentId: rows(E, 'Enrollments')[0][0], priceType: 'normal', totalFee: '1500',
+    depositAmount: '300', depositDate: '2026-12-01', paymentType: 'instalment',
+    instalmentPlan: plan([[600, '2027-02-01'], [600, '2027-01-01']]) });
+  assert.strictEqual(r.success, false); assert.ok(/before the previous/.test(r.error), r.error);
+});
+test('no deposit → first instalment may be any date', () => {
+  const E = loggedIn(); const c = seedCourse(E); const s = seedStudent(E);
+  assert.ok(E.do('enrollStudent', instPayload(c, s, plan([[1500, '2026-01-01']]), { depositAmount: '0', depositDate: '' })).success);
 });
 
 group('Enrollment creation');

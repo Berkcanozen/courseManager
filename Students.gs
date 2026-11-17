@@ -1,6 +1,7 @@
 /**
  * MEISNER STUDIO — Students.gs
  * v2.9.2 — writeAuditLog added; duplicate email check on update (unchanged)
+ * v3.2.5 — email format validated on add + update
  * v3.2.4 — free-text fields written via asText()
  * v3.2.3 — email duplicate check is case/whitespace-insensitive; add is atomic;
  *          error messages returned without "Error:" prefix
@@ -10,6 +11,7 @@ function addStudent(ss, payload, currentUser, timestamp) {
   try {
     const sheet = ss.getSheetByName('Students') || ss.insertSheet('Students');
     const email = String(payload.email || '').trim();
+    if (!isValidEmail(email)) throw new Error('Please enter a valid email address.');
     // Duplicate check + insert under one lock so two requests can't both pass the check.
     const newId = withScriptLock(() => {
       const data = sheet.getDataRange().getValues();
@@ -34,6 +36,7 @@ function updateStudent(ss, payload, currentUser, timestamp) {
     const sheet = ss.getSheetByName('Students');
     if (!sheet) throw new Error('Students sheet not found.');
     const email = String(payload.email || '').trim();
+    if (!isValidEmail(email)) throw new Error('Please enter a valid email address.');
     const data = sheet.getDataRange().getValues();
     // Duplicate email check — skip current row (case/whitespace-insensitive)
     for (let i = 1; i < data.length; i++) {

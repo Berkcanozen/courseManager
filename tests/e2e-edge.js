@@ -199,6 +199,27 @@ const dayOffset = n => { const d = new Date(); d.setDate(d.getDate() + n);
     await close();
   });
 
+  group('Email format');
+  await t('student form rejects a malformed email (no request sent)', async () => {
+    const before = count('addStudent');
+    await page.evaluate(() => { goTab('students'); openM('mStudentEdit'); });
+    await page.fill('#se-fullname', 'No At'); await page.fill('#se-email', 'noat.example.com');
+    await clearToasts(); await page.click('#btn-save-st'); await settle();
+    await toastWith(/valid email/);
+    eq(count('addStudent'), before); await close();
+  });
+  await t('student edit rejects a malformed email', async () => {
+    const before = count('updateStudent');
+    await page.evaluate(id => openM('mStudentEdit', id), studentRow('lotte@example.com')[0]);
+    await page.fill('#se-email', 'lotte@'); await page.click('#btn-save-st'); await settle();
+    eq(count('updateStudent'), before); await close();
+  });
+  await t('backend rejects a malformed email even if the UI is bypassed', async () => {
+    const r = await page.evaluate(() => apiFetch({ action: 'addStudent', payload: { fullName: 'Bypass', email: 'bypass' }, currentUser: 'admin' }));
+    eq(r.success, false); ok(/valid email/.test(r.error), r.error);
+    ok(!rows('Students').some(x => x[1] === 'Bypass'), 'written');
+  });
+
   /* ═════════ Course / capacity ═════════ */
   group('Capacity');
   let unlimited, cap1;
@@ -291,6 +312,41 @@ const dayOffset = n => { const d = new Date(); d.setDate(d.getDate() + n);
     await page.click('#btn-save-enrollment'); await settle();
     eq(count('enrollStudent'), before, 'instalment with no due date was saved');
     await close();
+  });
+  await t('new student in enrollment form: malformed email rejected', async () => {
+    const before = count('enrollStudent');
+    await openEnroll(feeCourse, { newStudent: { fullName: 'Val v5', email: 'v5-at-example' } });
+    await page.fill('#e-depositAmount', '0'); await page.fill('#e-fullPayDate', '2027-01-31');
+    await page.click('#btn-save-enrollment'); await settle();
+    eq(count('enrollStudent'), before); await close();
+  });
+  await t('first instalment due before the deposit → rejected', async () => {
+    const before = count('enrollStudent');
+    await openEnroll(feeCourse, { newStudent: { fullName: 'Val v6', email: 'v6@example.com' } });
+    await page.fill('#e-depositAmount', '100'); await page.fill('#e-depositDate', dayOffset(30));
+    await page.selectOption('#e-payType', 'instalment'); await page.fill('#e-numInstalments', '2');
+    const d = await page.$$('.inst-date'); await d[0].fill(dayOffset(10)); await d[1].fill(dayOffset(60));
+    await clearToasts(); await page.click('#btn-save-enrollment'); await settle();
+    await toastWith(/before the deposit/);
+    eq(count('enrollStudent'), before); await close();
+  });
+  await t('instalment dates out of order → rejected', async () => {
+    const before = count('enrollStudent');
+    await openEnroll(feeCourse, { newStudent: { fullName: 'Val v7', email: 'v7@example.com' } });
+    await page.fill('#e-depositAmount', '100'); await page.fill('#e-depositDate', dayOffset(5));
+    await page.selectOption('#e-payType', 'instalment'); await page.fill('#e-numInstalments', '3');
+    const d = await page.$$('.inst-date'); await d[0].fill(dayOffset(30)); await d[1].fill(dayOffset(90)); await d[2].fill(dayOffset(60));
+    await clearToasts(); await page.click('#btn-save-enrollment'); await settle();
+    await toastWith(/before the previous instalment/);
+    eq(count('enrollStudent'), before); await close();
+  });
+  await t('backend rejects an invalid plan even if the UI is bypassed', async () => {
+    const sid = studentRow('sem@example.com')[0];
+    const r = await page.evaluate(([c, s]) => apiFetch({ action: 'enrollStudent', currentUser: 'admin', payload: {
+      isNew: false, studentId: s, studentData: {}, courseId: c, priceType: 'normal', totalFee: 1000,
+      depositAmount: 0, depositDate: '', paymentType: 'instalment', fullPayDate: '',
+      instalmentPlan: JSON.stringify([{ amount: 400, date: '2027-03-01' }, { amount: 400, date: '2027-02-01' }]) } }), [feeCourse, sid]);
+    eq(r.success, false); ok(/before the previous|must equal/.test(r.error), r.error);
   });
   await t('valid 3-instalment plan with early-bird price saves', async () => {
     await openEnroll(feeCourse, { email: 'ijsbrand@example.com' });

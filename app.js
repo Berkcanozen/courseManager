@@ -164,6 +164,9 @@ const today = () => toLocalISO(new Date());
 const isValidDate = str => str && /^\d{4}-\d{2}-\d{2}$/.test(str);
 const dateToMs    = str => isValidDate(str) ? new Date(str).getTime() : null;
 
+// Minimal email shape check (mirrors isValidEmail in utils.gs).
+const isValidEmail = str => /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(String(str || '').trim());
+
 function validateCourseDates(startDate, endDate, depositDeadline) {
   if (startDate && endDate && dateToMs(startDate) > dateToMs(endDate))
     return 'End date must be after start date.';
@@ -1377,6 +1380,7 @@ async function saveStudentIdentity() {
   const email    = document.getElementById('se-email').value.trim();
   if (!fullName) return toast('Full name is required.', 'warn');
   if (!email)    return toast('Email is required.', 'warn');
+  if (!isValidEmail(email)) return toast('Please enter a valid email address.', 'warn');
   const btn     = document.getElementById('btn-save-st');
   const payload = { id: editStudentIdentityId, fullName, email, phone: document.getElementById('se-phone').value };
   const data = await apiFetch(
@@ -1402,6 +1406,7 @@ async function saveEnrollment() {
       const fn = document.getElementById('e-fullname').value.trim();
       const em = document.getElementById('e-email').value.trim();
       if (!fn || !em) return toast('Name and email are required.', 'warn');
+      if (!isValidEmail(em)) return toast('Please enter a valid email address.', 'warn');
       studentData = { fullName: fn, email: em, phone: document.getElementById('e-phone').value };
     }
     if (studentId && S.enrollments.find(e => e.studentId == studentId && e.courseId == courseId))
@@ -1435,6 +1440,13 @@ async function saveEnrollment() {
     if (!instPlan.length) return toast('Enter the number of instalments.', 'warn');
     if (instPlan.some(p => !p.date)) return toast('Every instalment needs a due date.', 'warn');
     if (instPlan.some(p => !(parseUserNumber(p.amount) > 0))) return toast('Every instalment amount must be more than 0.', 'warn');
+    const depDate = document.getElementById('e-depositDate').value;
+    let prevDate = depositNum > 0 && depDate ? depDate : '';
+    for (let i = 0; i < instPlan.length; i++) {
+      if (prevDate && instPlan[i].date < prevDate)
+        return toast(`Instalment ${i + 1} is due before the ${i === 0 ? 'deposit' : 'previous instalment'}.`, 'warn');
+      prevDate = instPlan[i].date;
+    }
     const planTotal = sumCents([depositNum, ...instPlan.map(p => parseUserNumber(p.amount))]);
     if (planTotal !== sumCents([totalNum]))
       return toast(`Deposit + instalments (${fmt(planTotal)}) must equal the course fee (${fmt(totalNum)}).`, 'warn');

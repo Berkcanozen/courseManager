@@ -6,9 +6,43 @@
  *  - enrollStudent: capacity check
  *  - writeAuditLog on both functions
  *  - totalFee and fullPayDate persisted
+ * v3.2.5 — validatePaymentPlan (create + update): instalment dates/order/sum;
+ *          new-student email format
  * v3.2.4 — deposit > fee rejected (create + update); new student text via asText()
  * v3.2.3 — new-student email duplicate check is case/whitespace-insensitive
  */
+
+/**
+ * Validates the money side of an enrollment. Throws Error(message) when invalid.
+ * Shared by enrollStudent and updateEnrollment so both paths enforce the same
+ * rules the frontend does (the API can be called directly, bypassing the UI).
+ *  - fee / deposit not negative, deposit not above the fee
+ *  - instalment plan: every instalment has a date and an amount > 0, dates in
+ *    order and not before the deposit date, deposit + instalments = fee
+ */
+function validatePaymentPlan(payload) {
+  const total = Number(payload.totalFee || 0);
+  const dep   = Number(payload.depositAmount || 0);
+  if (total < 0) throw new Error('Total fee cannot be negative.');
+  if (dep < 0)   throw new Error('Deposit cannot be negative.');
+  if (dep > total) throw new Error('Deposit cannot be more than the course fee.');
+  if (payload.paymentType !== 'instalment') return;
+
+  let plan;
+  try { plan = JSON.parse(payload.instalmentPlan || '[]'); } catch (e) { plan = null; }
+  if (!Array.isArray(plan) || plan.length === 0) throw new Error('Instalment plan is empty.');
+  let prev = (dep > 0 && payload.depositDate) ? String(payload.depositDate) : '';
+  for (let i = 0; i < plan.length; i++) {
+    const d = String(plan[i].date || '');
+    if (!/^\d{4}-\d{2}-\d{2}$/.test(d)) throw new Error('Instalment ' + (i + 1) + ' needs a due date.');
+    if (!(Number(plan[i].amount) > 0))   throw new Error('Instalment ' + (i + 1) + ' amount must be more than 0.');
+    if (prev && d < prev) throw new Error('Instalment ' + (i + 1) + ' is due before the ' + (i === 0 ? 'deposit' : 'previous instalment') + '.');
+    prev = d;
+  }
+  const planTotal = sumCents([dep].concat(plan.map(p => Number(p.amount))));
+  if (planTotal !== sumCents([total]))
+    throw new Error('Deposit + instalments (' + planTotal + ') must equal the course fee (' + total + ').');
+}
 
 function enrollStudent(ss, payload, currentUser, timestamp) {
   // Wrap the whole enrollment in a lock so capacity check + write are atomic.
@@ -22,13 +56,7 @@ function enrollStudent(ss, payload, currentUser, timestamp) {
 }
 
 function _enrollStudentLocked(ss, payload, currentUser, timestamp) {
-  // Negative fee guard
-  if (Number(payload.totalFee) < 0)
-    throw new Error('Total fee cannot be negative.');
-  if (payload.depositAmount && Number(payload.depositAmount) < 0)
-    throw new Error('Deposit cannot be negative.');
-  if (Number(payload.depositAmount || 0) > Number(payload.totalFee || 0))
-    throw new Error('Deposit cannot be more than the course fee.');
+  validatePaymentPlan(payload);
 
   const sSheet = ss.getSheetByName('Students')    || ss.insertSheet('Students');
   const eSheet = ss.getSheetByName('Enrollments') || ss.insertSheet('Enrollments');
@@ -37,6 +65,8 @@ function _enrollStudentLocked(ss, payload, currentUser, timestamp) {
 
   // 1. If new student, check email isn't already taken
   if (payload.isNew) {
+    if (!isValidEmail(payload.studentData && payload.studentData.email))
+      throw new Error('Please enter a valid email address.');
     const sData = sSheet.getDataRange().getValues();
     for (let i = 1; i < sData.length; i++) {
       if (normEmail(sData[i][2]) === normEmail(payload.studentData.email))
@@ -106,10 +136,7 @@ function _enrollStudentLocked(ss, payload, currentUser, timestamp) {
 
 function updateEnrollment(ss, payload, currentUser, timestamp) {
   try {
-    if (Number(payload.totalFee) < 0) throw new Error('Total fee cannot be negative.');
-    if (Number(payload.depositAmount || 0) < 0) throw new Error('Deposit cannot be negative.');
-    if (Number(payload.depositAmount || 0) > Number(payload.totalFee || 0))
-      throw new Error('Deposit cannot be more than the course fee.');
+    validatePaymentPlan(payload);
     const sheet = ss.getSheetByName('Enrollments');
     if (!sheet) throw new Error('Enrollments sheet not found.');
     const data = sheet.getDataRange().getValues();

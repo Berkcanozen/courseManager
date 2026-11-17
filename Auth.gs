@@ -5,6 +5,8 @@
  *  - isValidToken: unchanged
  *  - verifyToken: unchanged
  *  - handleLogin: brute-force gate (lockout after repeated failures)
+ * v3.2.5
+ *  - _generateToken: random UUID-based token (no username/time inside)
  */
 
 function handleLogin(ss, payload) {
@@ -62,10 +64,13 @@ function isValidToken(token) {
   }
 }
 
+/**
+ * Opaque session token: 256 bits from two cryptographically random UUIDs.
+ * (Previously base64(username|time|Math.random) — partly guessable.)
+ * Who owns it and when it was issued live server-side in PropertiesService.
+ */
 function _generateToken(username) {
-  return Utilities.base64Encode(
-    username + '|' + Date.now() + '|' + Math.random().toString(36).slice(2)
-  );
+  return (Utilities.getUuid() + Utilities.getUuid()).replace(/-/g, '');
 }
 
 function _storeToken(username, token) {

@@ -4,19 +4,15 @@
  * v2.9.6 — getAll served via doPost too (token in body, not URL);
  *           delete operations also write to AuditLog
  * v3.2.3 — error responses carry err.message (no "Error: " prefix)
+ * v3.2.5 — doGet no longer serves getAll (token-in-URL path removed)
  */
 
+// GET serves only the unauthenticated health check. Data is fetched via POST
+// (doPost → getAll) so the session token never travels in a URL, where it
+// would end up in server logs and browser history.
 function doGet(e) {
   const action = e && e.parameter ? e.parameter.action : null;
-  const token  = e && e.parameter ? e.parameter.token  : null;
-
   if (action === 'ping') return successResponse({ status: 'ok' });
-
-  if (action === 'getAll') {
-    if (!isValidToken(token)) return errorResponse('Unauthorized');
-    return successResponse(getAllData());
-  }
-
   return errorResponse('Invalid action');
 }
 
