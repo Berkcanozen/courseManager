@@ -177,6 +177,19 @@ The app will connect to the live Apps Script backend as long as `cfg.url` is set
 
 ---
 
+## Testing
+
+```bash
+npm test             # unit tests for money math (calc.js) — no install needed
+npm install          # once, for the E2E test
+npx playwright install chromium
+npm run test:e2e     # full UI flows in headless Chromium against a fake backend
+```
+
+The E2E test never touches the live spreadsheet: all requests to `script.google.com` are intercepted by an in-memory mock.
+
+---
+
 ## Changelog
 
 | Version | Highlights |

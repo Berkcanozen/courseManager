@@ -4,6 +4,11 @@
   "private": true,
   "description": "Meisner Studio Amsterdam — Course Management System",
   "scripts": {
-    "test": "node tests/calc.test.js"
+    "test": "node tests/calc.test.js",
+    "test:e2e": "node tests/e2e.js",
+    "test:all": "node tests/calc.test.js && node tests/e2e.js"
+  },
+  "devDependencies": {
+    "playwright": "1.63.0"
   }
 }
