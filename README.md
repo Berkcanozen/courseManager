@@ -160,13 +160,13 @@ The backend uses a 30-second `CacheService` cache. Wait 30 seconds and refresh, 
 
 ## Security
 
-- The Apps Script URL is intentionally kept in `app.js`. Since the app is hosted on GitHub Pages, there is no server-side environment for secrets.
+- The Apps Script URL is intentionally kept in `config.js`. Since the app is hosted on GitHub Pages, there is no server-side environment for secrets.
 - **The URL alone cannot access data.** Every request except `ping` requires a valid session token that is issued by the backend after login and stored server-side in `PropertiesService`.
 - Tokens expire after **8 hours**.
 - Old tokens are automatically cleaned up on each new login.
 - Passwords are stored as plaintext in the `Admins` sheet — consider restricting Sheets access to trusted Google accounts only.
 
-> If you rotate your Apps Script deployment (to get a new URL), update `cfg.url` in `app.js` and redeploy to GitHub Pages.
+> If you rotate your Apps Script deployment (to get a new URL), update `url` in `config.js` and redeploy to GitHub Pages.
 
 ---
 
@@ -184,7 +184,7 @@ npx serve .
 python3 -m http.server 8080
 ```
 
-The app will connect to the live Apps Script backend as long as `cfg.url` is set.
+The app will connect to the live Apps Script backend as long as `url` in `config.js` is set.
 
 ---
 
@@ -209,6 +209,11 @@ No test touches the live spreadsheet. `backend.test.js` runs the real `.gs` file
 
 | Version | Highlights |
 |---|---|
+| v3.2.4 | Sheets keeps phones/notes as text (leading 0, "+") and blocks formula injection; deposit/instalment validation; exact instalment rounding; overpayment confirm; CSV injection guard; edge-case E2E suite |
+| v3.2.3 | Backend in repo; cron skips already-paid reminders and shows remaining amount; case-insensitive email dedupe; id lock covers append; clean error messages; backend test suite |
+| v3.2.2 | closeM focus crash fix, student search on paste/autofill, E2E test |
+| v3.2.1 | Paid/total shown above progress bars, Enter can't bypass a disabled save, local-date fix, test setup fixed |
+| v3.2.0 | calc.js extracted + unit tests, sync race guard, single-flight writes, token in POST body, course detail |
 | v2.9.1 | config.js single source of truth, parseUserNumber decimal fix, date validation, Enter key, focus management, enrollment archive filter |
 | v2.9.0 | XSS protection (esc()), token expiry redirect, toast system, custom confirm dialog |
 | v2.8.1 | Enrollment detail delete button, "Edit Plan" → "Edit", 6 bug fixes |
