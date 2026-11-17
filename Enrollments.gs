@@ -6,6 +6,7 @@
  *  - enrollStudent: capacity check
  *  - writeAuditLog on both functions
  *  - totalFee and fullPayDate persisted
+ * v3.2.3 — new-student email duplicate check is case/whitespace-insensitive
  */
 
 function enrollStudent(ss, payload, currentUser, timestamp) {
@@ -35,7 +36,7 @@ function _enrollStudentLocked(ss, payload, currentUser, timestamp) {
   if (payload.isNew) {
     const sData = sSheet.getDataRange().getValues();
     for (let i = 1; i < sData.length; i++) {
-      if (sData[i][2] === payload.studentData.email)
+      if (normEmail(sData[i][2]) === normEmail(payload.studentData.email))
         throw new Error('A student with this email already exists!');
     }
   }
@@ -76,7 +77,7 @@ function _enrollStudentLocked(ss, payload, currentUser, timestamp) {
     if (sSheet.getLastRow() === 0)
       sSheet.appendRow(['id','fullName','email','phone','createUser','createDate','updateUser','updateDate']);
     finalStudentId = _getNextIdNoLock(sSheet);
-    sSheet.appendRow([finalStudentId, payload.studentData.fullName, payload.studentData.email,
+    sSheet.appendRow([finalStudentId, payload.studentData.fullName, String(payload.studentData.email || '').trim(),
       payload.studentData.phone||'', currentUser, timestamp, '', '']);
     writeAuditLog('addStudent', finalStudentId, {
       fullName: payload.studentData.fullName, email: payload.studentData.email, via: 'enrollment'

@@ -35,7 +35,10 @@ A lightweight, serverless web application for managing acting courses, student e
 ├── index.html          # App shell, all modals
 ├── style.css           # Styles + responsive breakpoints
 ├── app.js              # All frontend logic
+├── calc.js             # Pure money/date math (unit-tested)
+├── config.js           # Frontend config + version
 │
+├── config.gs           # Backend constants (token TTL, lock, cache, login gate)
 ├── router.gs           # doGet / doPost — request routing
 ├── Auth.gs             # Login, token generation & verification
 ├── utils.gs            # Shared helpers, cache, delete with lock
@@ -43,7 +46,12 @@ A lightweight, serverless web application for managing acting courses, student e
 ├── Students.gs         # Student CRUD
 ├── Enrollments.gs      # Enrollment CRUD
 ├── Payments.gs         # Payment CRUD
-└── Cron.gs             # Daily payment reminder email
+├── Cron.gs             # Daily payment reminder email
+│
+└── tests/
+    ├── calc.test.js    # Money math
+    ├── backend.test.js # *.gs under Node with mocked Google services
+    └── e2e.js          # Full UI flows in headless Chromium
 ```
 
 ---
@@ -86,6 +94,7 @@ The app expects the following sheets inside one Google Spreadsheet:
 
 1. Inside the spreadsheet, go to **Extensions → Apps Script**
 2. Create the following files and paste the corresponding `.gs` code from this repo:
+   - `config.gs`
    - `router.gs`
    - `Auth.gs`
    - `utils.gs`
@@ -180,13 +189,16 @@ The app will connect to the live Apps Script backend as long as `cfg.url` is set
 ## Testing
 
 ```bash
-npm test             # unit tests for money math (calc.js) — no install needed
+npm test             # money math + backend (*.gs) tests — no install needed
 npm install          # once, for the E2E test
 npx playwright install chromium
 npm run test:e2e     # full UI flows in headless Chromium against a fake backend
+npm run test:all     # everything
 ```
 
-The E2E test never touches the live spreadsheet: all requests to `script.google.com` are intercepted by an in-memory mock.
+No test touches the live spreadsheet. `backend.test.js` runs the real `.gs` files with in-memory mocks of SpreadsheetApp, LockService, PropertiesService, CacheService and MailApp; the E2E test intercepts all requests to `script.google.com`.
+
+> The `.gs` files in this repo are the source of truth for the backend. After changing one, paste it into the Apps Script editor and deploy a new version (see FAQ below).
 
 ---
 

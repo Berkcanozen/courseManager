@@ -5,6 +5,9 @@
  *    keyed by "CRON_SENT_<date>_<enrollmentId>_<reason>"
  *  - Keys are auto-cleaned after 48 hours to avoid storage bloat
  *  - Full try/catch with CronLog sheet (unchanged from v2.8.0)
+ * v3.2.3
+ *  - Skips reminders for deposits / instalments already covered by payments
+ *  - Full-payment reminder shows the remaining amount, not the total fee
  */
 
 function checkPaymentsAndNotify() {
@@ -32,6 +35,10 @@ function checkPaymentsAndNotify() {
 
     const enrollments = sheetToObjects(enrollmentsSheet);
     const students    = sheetToObjects(studentsSheet);
+    const payments    = sheetToObjects(ss.getSheetByName('Payments'));
+    const paidFor     = (sid, cid) => payments
+      .filter(p => p.studentId == sid && p.courseId == cid)
+      .reduce((a, p) => a + Number(p.amount || 0), 0);
     const todayStr    = Utilities.formatDate(new Date(), Session.getScriptTimeZone(), 'yyyy-MM-dd');
     const todayMs     = new Date().setHours(0, 0, 0, 0);
     const dueLines    = [];
@@ -43,24 +50,31 @@ function checkPaymentsAndNotify() {
       let isDueToday   = false;
       let dueReason    = '';
       const keysToMark = []; // specific keys that, once notified, mark this reason sent
+      // Payments already received for this enrollment: a step that's already
+      // covered must not trigger a reminder.
+      const paid = paidFor(en.studentId, en.courseId);
+      const dep  = Number(en.depositAmount || 0);
 
-      if (en.depositDate && new Date(en.depositDate).setHours(0,0,0,0) === todayMs) {
+      if (en.depositDate && new Date(en.depositDate).setHours(0,0,0,0) === todayMs && paid < dep) {
         const key = _sentKey(todayStr, en.id, 'deposit');
         if (!_alreadySent(key)) {
           isDueToday = true;
-          dueReason += 'Deposit (' + en.depositAmount + '€) ';
+          dueReason += 'Deposit (' + (dep - paid) + '€) ';
           keysToMark.push(key);
         }
       }
 
       if (en.paymentType === 'instalment' && en.instalmentPlan) {
         try {
+          let scheduled = dep; // running total due up to and including this instalment
           JSON.parse(en.instalmentPlan).forEach((inst, index) => {
-            if (inst.date && new Date(inst.date).setHours(0,0,0,0) === todayMs) {
+            const amt = Number(inst.amount || 0);
+            scheduled += amt;
+            if (inst.date && new Date(inst.date).setHours(0,0,0,0) === todayMs && paid < scheduled) {
               const key = _sentKey(todayStr, en.id, 'inst_' + index);
               if (!_alreadySent(key)) {
                 isDueToday = true;
-                dueReason += '| Instalment ' + (index + 1) + ' (' + inst.amount + '€) ';
+                dueReason += '| Instalment ' + (index + 1) + ' (' + Math.min(amt, scheduled - paid) + '€) ';
                 keysToMark.push(key);
               }
             }
@@ -70,12 +84,13 @@ function checkPaymentsAndNotify() {
         }
       }
 
+      const remaining = Number(en.totalFee || 0) - paid;
       if (en.paymentType === 'full_remaining' && en.fullPayDate &&
-          new Date(en.fullPayDate).setHours(0,0,0,0) === todayMs) {
+          new Date(en.fullPayDate).setHours(0,0,0,0) === todayMs && remaining > 0) {
         const key = _sentKey(todayStr, en.id, 'full');
         if (!_alreadySent(key)) {
           isDueToday = true;
-          dueReason += 'Full payment (' + en.totalFee + '€) ';
+          dueReason += 'Full payment (' + remaining + '€ remaining) ';
           keysToMark.push(key);
         }
       }

@@ -1,23 +1,30 @@
 /**
  * MEISNER STUDIO — Students.gs
  * v2.9.2 — writeAuditLog added; duplicate email check on update (unchanged)
+ * v3.2.3 — email duplicate check is case/whitespace-insensitive; add is atomic;
+ *          error messages returned without "Error:" prefix
  */
 
 function addStudent(ss, payload, currentUser, timestamp) {
   try {
     const sheet = ss.getSheetByName('Students') || ss.insertSheet('Students');
-    const data  = sheet.getDataRange().getValues();
-    for (let i = 1; i < data.length; i++) {
-      if (data[i][2] === payload.email) throw new Error('A student with this email already exists!');
-    }
-    if (sheet.getLastRow() === 0) sheet.appendRow(['id','fullName','email','phone','createUser','createDate','updateUser','updateDate']);
-    const newId = getNextId(sheet);
-    sheet.appendRow([newId, payload.fullName, payload.email, payload.phone||'', currentUser, timestamp, '', '']);
+    const email = String(payload.email || '').trim();
+    // Duplicate check + insert under one lock so two requests can't both pass the check.
+    const newId = withScriptLock(() => {
+      const data = sheet.getDataRange().getValues();
+      for (let i = 1; i < data.length; i++) {
+        if (normEmail(data[i][2]) === normEmail(email)) throw new Error('A student with this email already exists!');
+      }
+      if (sheet.getLastRow() === 0) sheet.appendRow(['id','fullName','email','phone','createUser','createDate','updateUser','updateDate']);
+      const id = _getNextIdNoLock(sheet);
+      sheet.appendRow([id, payload.fullName, email, payload.phone||'', currentUser, timestamp, '', '']);
+      return id;
+    });
     invalidateCache();
-    writeAuditLog('addStudent', newId, { fullName: payload.fullName, email: payload.email }, currentUser);
+    writeAuditLog('addStudent', newId, { fullName: payload.fullName, email: email }, currentUser);
     return successResponse({ id: newId });
   } catch (err) {
-    return errorResponse('Add Student Error: ' + err.toString());
+    return errorResponse(err.message || err.toString());
   }
 }
 
@@ -25,17 +32,18 @@ function updateStudent(ss, payload, currentUser, timestamp) {
   try {
     const sheet = ss.getSheetByName('Students');
     if (!sheet) throw new Error('Students sheet not found.');
+    const email = String(payload.email || '').trim();
     const data = sheet.getDataRange().getValues();
-    // Duplicate email check — skip current row
+    // Duplicate email check — skip current row (case/whitespace-insensitive)
     for (let i = 1; i < data.length; i++) {
-      if (data[i][0] != payload.id && data[i][2] === payload.email)
+      if (data[i][0] != payload.id && normEmail(data[i][2]) === normEmail(email))
         throw new Error('Another student with this email already exists!');
     }
     let found = false;
     for (let i = 1; i < data.length; i++) {
       if (data[i][0] == payload.id) {
         sheet.getRange(i + 1, 2, 1, 7).setValues([[
-          payload.fullName, payload.email, payload.phone||'',
+          payload.fullName, email, payload.phone||'',
           data[i][4]||'', data[i][5]||'', currentUser, timestamp
         ]]);
         found = true; break;
@@ -43,10 +51,10 @@ function updateStudent(ss, payload, currentUser, timestamp) {
     }
     if (!found) throw new Error('Student ID ' + payload.id + ' not found!');
     invalidateCache();
-    writeAuditLog('updateStudent', payload.id, { fullName: payload.fullName, email: payload.email }, currentUser);
+    writeAuditLog('updateStudent', payload.id, { fullName: payload.fullName, email: email }, currentUser);
     return successResponse();
   } catch (err) {
-    return errorResponse('Update Student Error: ' + err.toString());
+    return errorResponse(err.message || err.toString());
   }
 }
 

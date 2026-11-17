@@ -3,6 +3,7 @@
  * v2.9.7 — delete actions routed to guarded entity fns (referential integrity);
  * v2.9.6 — getAll served via doPost too (token in body, not URL);
  *           delete operations also write to AuditLog
+ * v3.2.3 — error responses carry err.message (no "Error: " prefix)
  */
 
 function doGet(e) {
@@ -58,6 +59,8 @@ function doPost(e) {
 
     return errorResponse('Unknown action');
   } catch (err) {
-    return errorResponse(err.toString());
+    // err.message, not err.toString(): toString() prefixes "Error: ", which
+    // then showed up verbatim in the user-facing toast.
+    return errorResponse(err.message || String(err));
   }
 }

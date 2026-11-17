@@ -185,7 +185,7 @@ const count = a => calls.filter(c => c === a).length;
     await page.evaluate(() => openM('mStudentEdit'));
     await page.fill('#se-fullname', 'Anna 2'); await page.fill('#se-email', 'ANNA@example.com');
     await page.click('#btn-save-st');
-    await page.locator('.toast', { hasText: 'already exists' }).first().waitFor();
+    await page.locator('.toast', { hasText: 'already exists' }).first().waitFor({ timeout: 10000 });
     ok(await modalOpen('mStudentEdit'), 'modal closed');
     eq(db.students.length, 1); await page.evaluate(() => closeM());
   });

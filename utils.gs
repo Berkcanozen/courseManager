@@ -7,6 +7,10 @@
  *  - getAllData: CacheService (unchanged)
  *  - sheetToObjects: dates now formatted in script timezone (was 'GMT')
  *  - deleteRowByIdGuarded + countRefs: atomic check-and-delete (referential integrity)
+ * v3.2.3
+ *  - withScriptLock: lock now covers next-id AND appendRow (getNextId alone
+ *    released the lock before the row was written → possible duplicate ids)
+ *  - normEmail: case/whitespace-insensitive email comparison
  */
 
 // CACHE_KEY, CACHE_TTL, LOCK_TIMEOUT_MS defined in config.gs
@@ -33,6 +37,26 @@ function getNextId(sheet) {
   } finally {
     lock.releaseLock();
   }
+}
+
+/**
+ * Runs fn() while holding the script lock and returns its result.
+ * Use for any read-check-write sequence (next id + appendRow, duplicate check
+ * + insert) so two concurrent requests can't interleave and collide.
+ */
+function withScriptLock(fn) {
+  const lock = LockService.getScriptLock();
+  lock.waitLock(LOCK_TIMEOUT_MS);
+  try {
+    return fn();
+  } finally {
+    lock.releaseLock();
+  }
+}
+
+/** Canonical form for email comparison: trimmed, lower-case. */
+function normEmail(email) {
+  return String(email || '').trim().toLowerCase();
 }
 
 /**
